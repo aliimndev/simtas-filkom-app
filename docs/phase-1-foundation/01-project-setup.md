@@ -20,8 +20,8 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
 - [ ] Setup struktur monorepo:
   ```
   simtas-filkom-app/
-  ├── backend/          # Go application
-  ├── frontend/         # Next.js application
+  ├── api/          # Go application
+  ├── client/         # Next.js application
   ├── docs/             # Dokumentasi
   ├── docker-compose.yml
   ├── .gitignore
@@ -34,7 +34,7 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
 ### Backend — Go Setup
 - [ ] Inisiasi Go module:
   ```bash
-  go mod init github.com/[username]/simtas-filkom-app/backend
+  go mod init github.com/aliimndev/simtas-filkom-app/backend
   ```
 - [ ] Install dependencies awal:
   ```bash
