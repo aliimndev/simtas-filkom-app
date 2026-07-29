@@ -1,0 +1,29 @@
+# Environment files
+.env
+.env.local
+.env.production
+
+# Go
+api/vendor/
+api/.env
+
+# Node
+node_modules/
+.next/
+client/node_modules/
+client/.next/
+client/out/
+client/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
