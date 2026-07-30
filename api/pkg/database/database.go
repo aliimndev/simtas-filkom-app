@@ -51,7 +51,3 @@ func Close(db *gorm.DB) {
 		log.Printf("Failed to close database connection: %v", err)
 	}
 }
-
-func RunMigrations(db *gorm.DB) error {
-	return db.AutoMigrate()
-}
