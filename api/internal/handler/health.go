@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/aliimndev/simtas-filkom-app/api/pkg/response"
@@ -12,7 +13,7 @@ func RegisterHealthRoutes(rg *gin.RouterGroup) {
 }
 
 func HealthCheck(c *gin.Context) {
-	response.Success(c, "Service is healthy", gin.H{
+	response.Success(c, http.StatusOK, gin.H{
 		"status":    "ok",
 		"version":   "1.0.0",
 		"timestamp": time.Now().UTC().Format(time.RFC3339),

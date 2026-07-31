@@ -10,19 +10,27 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
-// RunMigrations runs all pending UP migrations from the migrations/ directory.
-// migrationsPath should be the absolute (or relative-to-cwd) path to the
-// folder that contains the numbered *.up.sql / *.down.sql files.
+// RunMigrations runs all pending UP migrations.
+// Uses a separate sql.DB connection so closing the migrator does NOT affect
+// the GORM connection pool.
 func RunMigrations(db *gorm.DB, migrationsPath string) error {
-	sqlDB, err := db.DB()
+	dsn, err := getDSN(db)
 	if err != nil {
-		return fmt.Errorf("get underlying sql.DB: %w", err)
+		return err
 	}
 
-	m, err := newMigrator(sqlDB, migrationsPath)
+	// Dedicated connection for migrations only
+	migDB, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return fmt.Errorf("open migration db: %w", err)
+	}
+	defer migDB.Close()
+
+	m, err := newMigrator(migDB, migrationsPath)
 	if err != nil {
 		return err
 	}
@@ -37,14 +45,20 @@ func RunMigrations(db *gorm.DB, migrationsPath string) error {
 	return nil
 }
 
-// RollbackAll rolls back every applied migration (for testing / teardown).
+// RollbackAll rolls back every applied migration.
 func RollbackAll(db *gorm.DB, migrationsPath string) error {
-	sqlDB, err := db.DB()
+	dsn, err := getDSN(db)
 	if err != nil {
-		return fmt.Errorf("get underlying sql.DB: %w", err)
+		return err
 	}
 
-	m, err := newMigrator(sqlDB, migrationsPath)
+	migDB, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return fmt.Errorf("open migration db: %w", err)
+	}
+	defer migDB.Close()
+
+	m, err := newMigrator(migDB, migrationsPath)
 	if err != nil {
 		return err
 	}
@@ -58,8 +72,7 @@ func RollbackAll(db *gorm.DB, migrationsPath string) error {
 	return nil
 }
 
-// RunSeeds executes all SQL files inside seedsPath in lexicographic order.
-// Each file is run inside its own transaction; errors abort that file only.
+// RunSeeds executes all SQL files in seedsPath in lexicographic order.
 func RunSeeds(db *gorm.DB, seedsPath string) error {
 	sqlDB, err := db.DB()
 	if err != nil {
@@ -87,13 +100,35 @@ func RunSeeds(db *gorm.DB, seedsPath string) error {
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
+// getDSN builds a postgres DSN from environment variables
+func getDSN(_ *gorm.DB) (string, error) {
+	return buildDSNFromEnv(), nil
+}
+
+// buildDSNFromEnv reads DB env vars to build a postgres DSN
+func buildDSNFromEnv() string {
+	host := getEnvOrDefault("DB_HOST", "localhost")
+	port := getEnvOrDefault("DB_PORT", "5432")
+	user := getEnvOrDefault("DB_USER", "postgres")
+	password := getEnvOrDefault("DB_PASSWORD", "postgres")
+	dbname := getEnvOrDefault("DB_NAME", "simtas_filkom")
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=Asia/Jakarta",
+		host, port, user, password, dbname)
+}
+
+func getEnvOrDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
 func newMigrator(sqlDB *sql.DB, migrationsPath string) (*migrate.Migrate, error) {
 	driver, err := postgres.WithInstance(sqlDB, &postgres.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("create postgres driver: %w", err)
 	}
 
-	// filepath.ToSlash ensures forward slashes on Windows too.
 	sourceURL := "file://" + filepath.ToSlash(migrationsPath)
 	m, err := migrate.NewWithDatabaseInstance(sourceURL, "postgres", driver)
 	if err != nil {

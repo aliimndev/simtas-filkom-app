@@ -24,6 +24,14 @@ apiClient.interceptors.response.use(
       if (typeof window !== 'undefined') {
         window.location.href = '/login'
       }
+    } else if (error.response?.status === 403) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('app:forbidden', {
+            detail: error.response.data?.message ?? 'Akses ditolak',
+          }),
+        )
+      }
     }
     return Promise.reject(error)
   },

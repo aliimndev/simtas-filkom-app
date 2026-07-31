@@ -13,9 +13,12 @@ RUN go build -o simtas-api ./cmd/server
 # Stage 2: Run
 FROM alpine:latest
 
+RUN apk add --no-cache ca-certificates tzdata
+
 WORKDIR /app
 
 COPY --from=builder /app/simtas-api .
+COPY --from=builder /app/migrations ./migrations
 
 EXPOSE 8080
 

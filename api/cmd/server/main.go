@@ -16,33 +16,33 @@ import (
 )
 
 func main() {
-	// ── flags ────────────────────────────────────────────────────────────
+	// ── CLI flags ─────────────────────────────────────────────────────────
 	doMigrate := flag.Bool("migrate", false, "run database migrations then exit")
-	doSeed := flag.Bool("seed", false, "run seed files then exit (requires --migrate first)")
+	doSeed := flag.Bool("seed", false, "run seed files then exit")
 	flag.Parse()
 
-	// ── environment ──────────────────────────────────────────────────────
+	// ── Environment ───────────────────────────────────────────────────────
 	if err := godotenv.Load(); err != nil {
 		log.Println("no .env file found, using system environment variables")
 	}
 
 	cfg := config.Load()
 
-	// ── database ─────────────────────────────────────────────────────────
+	// ── Database ──────────────────────────────────────────────────────────
 	db, err := database.Connect(cfg)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
-	defer database.Close(db)
+	// Note: db connection is kept open for the lifetime of the server process.
+	// database.Close(db) is intentionally not deferred here.
 
-	// Resolve paths relative to the project root (works from any cwd).
+	// Resolve paths relative to the api root (works regardless of cwd)
 	_, thisFile, _, _ := runtime.Caller(0)
-	// thisFile = …/api/cmd/server/main.go  →  project root = …/api
 	apiRoot := filepath.Join(filepath.Dir(thisFile), "..", "..")
 	migrationsPath := filepath.Join(apiRoot, "migrations")
 	seedsPath := filepath.Join(apiRoot, "migrations", "seeds")
 
-	// ── --migrate flag ───────────────────────────────────────────────────
+	// ── --migrate flag ────────────────────────────────────────────────────
 	if *doMigrate {
 		log.Println("running migrations…")
 		if err := database.RunMigrations(db, migrationsPath); err != nil {
@@ -52,7 +52,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	// ── --seed flag ──────────────────────────────────────────────────────
+	// ── --seed flag ───────────────────────────────────────────────────────
 	if *doSeed {
 		log.Println("running seeds…")
 		if err := database.RunSeeds(db, seedsPath); err != nil {
@@ -62,47 +62,28 @@ func main() {
 		os.Exit(0)
 	}
 
-	// ── auto-migrate on startup (development convenience) ────────────────
+	// ── Auto-migrate in development ───────────────────────────────────────
 	if cfg.AppEnv == "development" {
-		log.Println("auto-running migrations (development mode)…")
 		if err := database.RunMigrations(db, migrationsPath); err != nil {
 			log.Fatalf("auto-migration failed: %v", err)
 		}
 	}
 
-	// ── router ───────────────────────────────────────────────────────────
+	// ── Gin engine ────────────────────────────────────────────────────────
 	if cfg.AppEnv == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	r := gin.Default()
+	engine := gin.Default()
 
-	// CORS
-	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", cfg.CORSAllowedOrigins)
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-		c.Next()
-	})
+	// Register all routes (auth + middleware)
+	r := handler.NewRouter(engine, db, cfg)
+	r.Setup()
 
-	// Routes
-	v1 := r.Group("/api/v1")
-	{
-		handler.RegisterHealthRoutes(v1)
-	}
-
-	// ── start ────────────────────────────────────────────────────────────
-	port := cfg.AppPort
-	if port == "" {
-		port = "8080"
-	}
-	log.Printf("server starting on port %s (env=%s)", port, cfg.AppEnv)
-	if err := r.Run(fmt.Sprintf(":%s", port)); err != nil {
+	// ── Start server ──────────────────────────────────────────────────────
+	addr := fmt.Sprintf(":%s", cfg.AppPort)
+	log.Printf("server starting on %s (env=%s)", addr, cfg.AppEnv)
+	if err := engine.Run(addr); err != nil {
 		log.Fatalf("server error: %v", err)
-		os.Exit(1)
 	}
 }
