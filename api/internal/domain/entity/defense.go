@@ -7,16 +7,16 @@ import (
 )
 
 type ThesisDefense struct {
-	ID            uuid.UUID    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	ThesisID      uuid.UUID    `gorm:"type:uuid;not null;index" json:"thesis_id"`
-	Thesis        Thesis       `gorm:"foreignKey:ThesisID" json:"thesis"`
-	Status        string       `gorm:"type:varchar(30);not null;default:pending;index" json:"status"`
-	ScheduledAt   *time.Time   `gorm:"index" json:"scheduled_at,omitempty"`
-	Room          *string      `gorm:"type:varchar(100)" json:"room,omitempty"`
-	RevisionNotes *string      `gorm:"type:text" json:"revision_notes,omitempty"`
-	FinalScore    *float64     `gorm:"type:decimal(5,2)" json:"final_score,omitempty"`
-	CreatedAt     time.Time    `gorm:"not null;default:now()" json:"created_at"`
-	UpdatedAt     time.Time    `gorm:"not null;default:now()" json:"updated_at"`
+	ID            uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	ThesisID      uuid.UUID  `gorm:"type:uuid;not null;index" json:"thesis_id"`
+	Thesis        Thesis     `gorm:"foreignKey:ThesisID" json:"thesis"`
+	Status        string     `gorm:"type:varchar(30);not null;default:pending;index" json:"status"`
+	ScheduledAt   *time.Time `gorm:"index" json:"scheduled_at,omitempty"`
+	Room          *string    `gorm:"type:varchar(100)" json:"room,omitempty"`
+	RevisionNotes *string    `gorm:"type:text" json:"revision_notes,omitempty"`
+	FinalScore    *float64   `gorm:"type:decimal(5,2)" json:"final_score,omitempty"`
+	CreatedAt     time.Time  `gorm:"not null;default:now()" json:"created_at"`
+	UpdatedAt     time.Time  `gorm:"not null;default:now()" json:"updated_at"`
 
 	// Associations
 	Examiners []User         `gorm:"many2many:defense_examiners;joinForeignKey:DefenseID;joinReferences:ExaminerID" json:"examiners,omitempty"`

@@ -1,32 +1,24 @@
-# Job 01 — Project Setup & Infrastructure
+Before proceeding to the next phase, perform a complete verification of everything inside @docs/phase-1-foundation/.
 
-## Progress Tracking
+Your task is to audit the implementation against every document in this directory.
 
-### 1. Repository & Struktur Proyek
-- [x] Buat struktur monorepo (api/, client/, docker-compose.yml, .gitignore, .env.example)
-- [x] Update README.md dengan instruksi setup lokal
+Requirements:
+- Read every document in @docs/phase-1-foundation/.
+- Compare the implementation with each requirement.
+- Verify that every task has been fully completed as specified.
+- Check the actual source code, not just the checklist or documentation.
+- Ensure the architecture matches the documented design.
+- Verify database schema, migrations, API routes, authentication, RBAC, validation, error handling, logging, and security requirements where applicable.
+- Check for missing features, incomplete implementations, TODOs, placeholders, duplicated logic, and dead code.
+- Verify type safety, linting, formatting, and build status.
+- Ensure there are no inconsistencies between the documentation and the implementation.
 
-### 2. API — Go Setup
-- [x] Init Go module & install dependencies
-- [x] Buat struktur Clean Architecture
-- [x] Implementasi `GET /api/v1/health` endpoint
-- [x] Buat `pkg/response/response.go`
-- [x] Konfigurasi `.env.example`
+After the audit:
+1. Mark every completed task as ✅.
+2. Mark incomplete or incorrect tasks as ❌.
+3. Explain why each ❌ item is incomplete.
+4. List the exact files that need changes.
+5. Fix every issue you find before continuing.
+6. Do not start Phase 2 until every Phase 1 requirement has been fully satisfied.
 
-### 3. Client — Next.js Setup
-- [x] Init Next.js project
-- [x] Install dependencies
-- [x] Buat struktur folder
-- [x] Konfigurasi next.config.ts, Tailwind, TanStack Query
-- [x] Buat lib/api/client.ts (Axios instance)
-- [x] Buat .env.local.example
-
-### 4. Docker & Local Development
-- [x] Buat api/Dockerfile
-- [x] Buat docker-compose.yml
-
-### 5. CI/CD Pipeline
-- [x] Buat .github/workflows/ci.yml
-
-### 6. Done Criteria Verification
-- [ ] Test semua service berjalan (requires docker/postgres running)
+Treat this as a production readiness audit, not a superficial review. Be strict and verify everything from the actual codebase.

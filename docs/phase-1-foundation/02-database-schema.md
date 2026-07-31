@@ -16,18 +16,18 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
 ## Checklist
 
 ### Setup Migration Tool
-- [ ] Install `golang-migrate`:
+- [x] Install `golang-migrate`:
   ```bash
   go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
   ```
-- [ ] Buat folder `backend/migrations/`
-- [ ] Konvensi penamaan: `000001_create_roles_table.up.sql` / `000001_create_roles_table.down.sql`
-- [ ] Buat helper `pkg/database/migrate.go` untuk jalankan migrasi saat startup (via flag `--migrate`)
+- [x] Buat folder `backend/migrations/`
+- [x] Konvensi penamaan: `000001_create_roles_table.up.sql` / `000001_create_roles_table.down.sql`
+- [x] Buat helper `pkg/database/migrate.go` untuk jalankan migrasi saat startup (via flag `--migrate`)
 
 ### Migrasi — Grup 1: Master Data
 
 #### `000001_create_roles_table`
-- [ ] Tabel **`roles`**:
+- [x] Tabel **`roles`**:
   ```sql
   id          SERIAL PRIMARY KEY,
   name        VARCHAR(50) UNIQUE NOT NULL,
@@ -37,7 +37,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   ```
 
 #### `000002_create_academic_years_table`
-- [ ] Tabel **`academic_years`**:
+- [x] Tabel **`academic_years`**:
   ```sql
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name        VARCHAR(20) NOT NULL,   -- contoh: "2026/2027"
@@ -53,7 +53,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
 ### Migrasi — Grup 2: Users
 
 #### `000003_create_users_table`
-- [ ] Tabel **`users`**:
+- [x] Tabel **`users`**:
   ```sql
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email                VARCHAR(255) UNIQUE NOT NULL,
@@ -74,7 +74,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   ```
 
 #### `000004_create_auth_tables`
-- [ ] Tabel **`password_reset_tokens`**:
+- [x] Tabel **`password_reset_tokens`**:
   ```sql
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -83,7 +83,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   used_at     TIMESTAMPTZ,
   created_at  TIMESTAMPTZ DEFAULT NOW()
   ```
-- [ ] Tabel **`token_blacklist`**:
+- [x] Tabel **`token_blacklist`**:
   ```sql
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   token_jti   VARCHAR(255) UNIQUE NOT NULL,
@@ -95,7 +95,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
 ### Migrasi — Grup 3: Thesis Core
 
 #### `000005_create_theses_table`
-- [ ] Tabel **`theses`**:
+- [x] Tabel **`theses`**:
   ```sql
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id       UUID NOT NULL REFERENCES users(id),
@@ -119,7 +119,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   - Constraint: `CHECK (status IN ('submitted','approved','rejected','in_progress','seminar_ready','seminar_done','defense_ready','defense_done','graduated','cancelled'))`
 
 #### `000006_create_thesis_supervisors_table`
-- [ ] Tabel **`thesis_supervisors`**:
+- [x] Tabel **`thesis_supervisors`**:
   ```sql
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   thesis_id     UUID NOT NULL REFERENCES theses(id) ON DELETE CASCADE,
@@ -132,7 +132,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
 ### Migrasi — Grup 4: Consultation
 
 #### `000007_create_consultation_logs_table`
-- [ ] Tabel **`consultation_logs`**:
+- [x] Tabel **`consultation_logs`**:
   ```sql
   id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   thesis_id           UUID NOT NULL REFERENCES theses(id) ON DELETE CASCADE,
@@ -152,7 +152,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
 ### Migrasi — Grup 5: Documents
 
 #### `000008_create_documents_table`
-- [ ] Tabel **`documents`**:
+- [x] Tabel **`documents`**:
   ```sql
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   thesis_id       UUID NOT NULL REFERENCES theses(id) ON DELETE CASCADE,
@@ -178,7 +178,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
 ### Migrasi — Grup 6: Seminar
 
 #### `000009_create_seminars_table`
-- [ ] Tabel **`seminars`**:
+- [x] Tabel **`seminars`**:
   ```sql
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   thesis_id    UUID NOT NULL REFERENCES theses(id) ON DELETE CASCADE,
@@ -191,7 +191,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   created_at   TIMESTAMPTZ DEFAULT NOW(),
   updated_at   TIMESTAMPTZ DEFAULT NOW()
   ```
-- [ ] Tabel **`seminar_examiners`**:
+- [x] Tabel **`seminar_examiners`**:
   ```sql
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   seminar_id   UUID NOT NULL REFERENCES seminars(id) ON DELETE CASCADE,
@@ -199,7 +199,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   assigned_by  UUID NOT NULL REFERENCES users(id),
   UNIQUE(seminar_id, examiner_id)
   ```
-- [ ] Tabel **`seminar_scores`**:
+- [x] Tabel **`seminar_scores`**:
   ```sql
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   seminar_id       UUID NOT NULL REFERENCES seminars(id) ON DELETE CASCADE,
@@ -215,7 +215,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
 ### Migrasi — Grup 7: Thesis Defense
 
 #### `000010_create_thesis_defenses_table`
-- [ ] Tabel **`thesis_defenses`**:
+- [x] Tabel **`thesis_defenses`**:
   ```sql
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   thesis_id      UUID NOT NULL REFERENCES theses(id) ON DELETE CASCADE,
@@ -229,13 +229,13 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   created_at     TIMESTAMPTZ DEFAULT NOW(),
   updated_at     TIMESTAMPTZ DEFAULT NOW()
   ```
-- [ ] Tabel **`defense_examiners`** (struktur sama dengan `seminar_examiners`)
-- [ ] Tabel **`defense_scores`** (struktur sama dengan `seminar_scores`)
+- [x] Tabel **`defense_examiners`** (struktur sama dengan `seminar_examiners`)
+- [x] Tabel **`defense_scores`** (struktur sama dengan `seminar_scores`)
 
 ### Migrasi — Grup 8: Archive
 
 #### `000011_create_thesis_archives_table`
-- [ ] Tabel **`thesis_archives`**:
+- [x] Tabel **`thesis_archives`**:
   ```sql
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   thesis_id       UUID NOT NULL UNIQUE REFERENCES theses(id),
@@ -251,7 +251,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
   ```
-- [ ] Buat trigger PostgreSQL auto-update `search_vector`:
+- [x] Buat trigger PostgreSQL auto-update `search_vector`:
   ```sql
   CREATE OR REPLACE FUNCTION update_archive_search_vector()
   RETURNS TRIGGER AS $$
@@ -274,7 +274,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
 ### Migrasi — Grup 9: System
 
 #### `000012_create_system_tables`
-- [ ] Tabel **`audit_logs`**:
+- [x] Tabel **`audit_logs`**:
   ```sql
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -287,7 +287,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   user_agent   TEXT,
   created_at   TIMESTAMPTZ DEFAULT NOW()
   ```
-- [ ] Tabel **`email_logs`**:
+- [x] Tabel **`email_logs`**:
   ```sql
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   recipient_email  VARCHAR(255) NOT NULL,
@@ -300,24 +300,24 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   ```
 
 ### Index
-- [ ] `users`: `CREATE INDEX idx_users_email ON users(email)` (sudah di-cover UNIQUE)
-- [ ] `users`: `CREATE INDEX idx_users_role_id ON users(role_id)`
-- [ ] `users`: `CREATE INDEX idx_users_is_active ON users(is_active) WHERE deleted_at IS NULL`
-- [ ] `theses`: `CREATE INDEX idx_theses_student_id ON theses(student_id)`
-- [ ] `theses`: `CREATE INDEX idx_theses_status ON theses(status)`
-- [ ] `theses`: `CREATE INDEX idx_theses_academic_year ON theses(academic_year_id)`
-- [ ] `documents`: `CREATE INDEX idx_documents_thesis_id ON documents(thesis_id)`
-- [ ] `documents`: `CREATE INDEX idx_documents_type_status ON documents(document_type, status)`
-- [ ] `audit_logs`: `CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id)`
-- [ ] `audit_logs`: `CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id)`
-- [ ] `audit_logs`: `CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC)`
-- [ ] `thesis_archives`: `CREATE INDEX idx_archives_search ON thesis_archives USING GIN(search_vector)`
-- [ ] `token_blacklist`: `CREATE INDEX idx_token_blacklist_jti ON token_blacklist(token_jti)`
-- [ ] `token_blacklist`: `CREATE INDEX idx_token_blacklist_expires ON token_blacklist(expires_at)`
+- [x] `users`: `CREATE INDEX idx_users_email ON users(email)` (sudah di-cover UNIQUE)
+- [x] `users`: `CREATE INDEX idx_users_role_id ON users(role_id)`
+- [x] `users`: `CREATE INDEX idx_users_is_active ON users(is_active) WHERE deleted_at IS NULL`
+- [x] `theses`: `CREATE INDEX idx_theses_student_id ON theses(student_id)`
+- [x] `theses`: `CREATE INDEX idx_theses_status ON theses(status)`
+- [x] `theses`: `CREATE INDEX idx_theses_academic_year ON theses(academic_year_id)`
+- [x] `documents`: `CREATE INDEX idx_documents_thesis_id ON documents(thesis_id)`
+- [x] `documents`: `CREATE INDEX idx_documents_type_status ON documents(document_type, status)`
+- [x] `audit_logs`: `CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id)`
+- [x] `audit_logs`: `CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id)`
+- [x] `audit_logs`: `CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC)`
+- [x] `thesis_archives`: `CREATE INDEX idx_archives_search ON thesis_archives USING GIN(search_vector)`
+- [x] `token_blacklist`: `CREATE INDEX idx_token_blacklist_jti ON token_blacklist(token_jti)`
+- [x] `token_blacklist`: `CREATE INDEX idx_token_blacklist_expires ON token_blacklist(expires_at)`
 
 ### GORM Models (Go Structs)
-- [ ] Buat file Go struct di `backend/internal/domain/entity/` untuk setiap entitas
-- [ ] Contoh konvensi:
+- [x] Buat file Go struct di `backend/internal/domain/entity/` untuk setiap entitas
+- [x] Contoh konvensi:
   ```go
   type User struct {
     ID                  uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
@@ -334,27 +334,29 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
     DeletedAt           gorm.DeletedAt `gorm:"index"`
   }
   ```
-- [ ] Semua model menggunakan UUID sebagai primary key
-- [ ] Soft delete via `gorm.DeletedAt` pada entitas utama
+- [x] Semua model menggunakan UUID sebagai primary key
+- [x] Soft delete via `gorm.DeletedAt` pada entitas utama
 
 ### Seed Data
-- [ ] File `backend/migrations/seeds/001_roles.sql` — insert 5 role
-- [ ] File `backend/migrations/seeds/002_academic_year.sql` — 1 tahun akademik aktif
-- [ ] File `backend/migrations/seeds/003_admin_user.sql` — akun admin default:
+- [x] File `backend/migrations/seeds/001_roles.sql` — insert 5 role
+- [x] File `backend/migrations/seeds/002_academic_year.sql` — 1 tahun akademik aktif
+- [x] File `backend/migrations/seeds/003_admin_user.sql` — akun admin default:
   - Email: `admin@filkom.unida.ac.id`
   - Password: `Admin@2027!` (bcrypt hash)
   - `must_change_password: true`
-- [ ] File `backend/migrations/seeds/004_kaprodi_user.sql` — 1 akun Kaprodi untuk testing
+- [x] File `backend/migrations/seeds/004_kaprodi_user.sql` — 1 akun Kaprodi untuk testing
 
 ---
 
 ## Done Criteria
 
-- [ ] `migrate -path ./migrations -database "$DB_URL" up` berhasil tanpa error
-- [ ] `migrate -path ./migrations -database "$DB_URL" down` rollback semua tabel tanpa error
-- [ ] Semua FK constraint berfungsi — insert data dengan FK invalid → error
-- [ ] Partial unique index `is_active` pada `academic_years` berfungsi
-- [ ] Full-text search trigger berfungsi pada `thesis_archives`
-- [ ] GIN index `search_vector` terbuat
-- [ ] Seed data tersedia: 5 roles, 1 academic year, akun admin, akun kaprodi
-- [ ] Semua GORM model dapat di-compile dan auto-migrate tanpa error
+- [x] `migrate -path ./migrations -database "$DB_URL" up` berhasil tanpa error
+- [x] `migrate -path ./migrations -database "$DB_URL" down` rollback semua tabel tanpa error
+- [x] Semua FK constraint berfungsi — insert data dengan FK invalid → error
+- [x] Partial unique index `is_active` pada `academic_years` berfungsi
+- [x] Full-text search trigger berfungsi pada `thesis_archives`
+- [x] GIN index `search_vector` terbuat
+- [x] Seed data tersedia: 5 roles, 1 academic year, akun admin, akun kaprodi
+- [x] Semua GORM model dapat di-compile dan auto-migrate tanpa error
+
+**Completed: 2026-07-30** — All 12 migrations applied, 19 tables created, 4 seed files executed, all GORM entities compiled successfully.

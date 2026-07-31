@@ -16,8 +16,8 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
 ## Checklist
 
 ### Repository & Struktur Proyek
-- [ ] Buat repository GitHub `simtas-filkom-app`
-- [ ] Setup struktur monorepo:
+- [x] Buat repository GitHub `simtas-filkom-app`
+- [x] Setup struktur monorepo:
   ```
   simtas-filkom-app/
   ├── api/          # Go application
@@ -28,15 +28,15 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
   ├── .env.example
   └── README.md
   ```
-- [ ] Setup `.gitignore` untuk Go, Node.js, dan environment files
-- [ ] Buat `README.md` dengan instruksi setup lokal
+- [x] Setup `.gitignore` untuk Go, Node.js, dan environment files
+- [x] Buat `README.md` dengan instruksi setup lokal
 
 ### Backend — Go Setup
-- [ ] Inisiasi Go module:
+- [x] Inisiasi Go module:
   ```bash
   go mod init github.com/aliimndev/simtas-filkom-app/backend
   ```
-- [ ] Install dependencies awal:
+- [x] Install dependencies awal:
   ```bash
   go get github.com/gin-gonic/gin
   go get gorm.io/gorm
@@ -47,7 +47,7 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
   go get github.com/google/uuid
   go get golang.org/x/crypto
   ```
-- [ ] Buat struktur Clean Architecture:
+- [x] Buat struktur Clean Architecture:
   ```
   backend/
   ├── cmd/
@@ -73,8 +73,8 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
   ├── .env.example
   └── go.mod
   ```
-- [ ] Implementasi `GET /api/v1/health` endpoint — return `{ "status": "ok", "version": "1.0.0", "timestamp": "..." }`
-- [ ] Buat `pkg/response/response.go` — standard response format:
+- [x] Implementasi `GET /api/v1/health` endpoint — return `{ "status": "ok", "version": "1.0.0", "timestamp": "..." }`
+- [x] Buat `pkg/response/response.go` — standard response format:
   ```json
   {
     "success": true,
@@ -83,7 +83,7 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
     "meta": { "page": 1, "per_page": 20, "total": 100 }
   }
   ```
-- [ ] Konfigurasi environment variables di `.env.example`:
+- [x] Konfigurasi environment variables di `.env.example`:
   ```env
   # App
   APP_PORT=8080
@@ -116,7 +116,7 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
   ```
 
 ### Frontend — Next.js Setup
-- [ ] Inisiasi project:
+- [x] Inisiasi project:
   ```bash
   npx create-next-app@latest frontend \
     --typescript \
@@ -126,7 +126,7 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
     --src-dir \
     --import-alias "@/*"
   ```
-- [ ] Install dependencies:
+- [x] Install dependencies:
   ```bash
   npm install @tanstack/react-query @tanstack/react-query-devtools
   npm install react-hook-form @hookform/resolvers zod
@@ -135,7 +135,7 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
   npm install lucide-react
   npm install next-themes
   ```
-- [ ] Setup struktur folder:
+- [x] Setup struktur folder:
   ```
   frontend/src/
   ├── app/
@@ -161,26 +161,26 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
   ├── types/                   # TypeScript global types & interfaces
   └── constants/               # App constants (routes, labels, etc.)
   ```
-- [ ] Konfigurasi `next.config.ts`:
+- [x] Konfigurasi `next.config.ts`:
   ```ts
   const nextConfig = {
     env: { NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL },
     images: { domains: ['xxx.supabase.co'] }
   }
   ```
-- [ ] Setup Tailwind CSS custom theme di `tailwind.config.ts` — warna brand FILKOM Unida
-- [ ] Setup TanStack Query provider di `app/layout.tsx`
-- [ ] Buat `lib/api/client.ts` — Axios instance dengan:
+- [x] Setup Tailwind CSS custom theme di `tailwind.config.ts` — warna brand FILKOM Unida
+- [x] Setup TanStack Query provider di `app/layout.tsx`
+- [x] Buat `lib/api/client.ts` — Axios instance dengan:
   - `baseURL` dari env
   - Request interceptor: attach JWT token dari localStorage/cookie
   - Response interceptor: handle 401 (redirect ke login), 403 (toast error)
-- [ ] Tambah `.env.local.example`:
+- [x] Tambah `.env.local.example`:
   ```env
   NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
   ```
 
 ### Docker & Local Development
-- [ ] Buat `backend/Dockerfile` (multi-stage build):
+- [x] Buat `backend/Dockerfile` (multi-stage build):
   ```dockerfile
   # Stage 1: Build
   FROM golang:1.24-alpine AS builder
@@ -197,7 +197,7 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
   EXPOSE 8080
   CMD ["./simtas-backend"]
   ```
-- [ ] Buat `docker-compose.yml` di root:
+- [x] Buat `docker-compose.yml` di root:
   ```yaml
   services:
     postgres:
@@ -222,11 +222,11 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
   volumes:
     postgres_data:
   ```
-- [ ] Test: `docker compose up` → semua service running tanpa error
-- [ ] Pastikan backend dapat connect ke PostgreSQL di dalam Docker network
+- [x] Test: `docker compose up` → semua service running tanpa error
+- [x] Pastikan backend dapat connect ke PostgreSQL di dalam Docker network
 
 ### CI/CD Pipeline Awal
-- [ ] Buat `.github/workflows/ci.yml`:
+- [x] Buat `.github/workflows/ci.yml`:
   ```yaml
   name: CI
   on:
@@ -256,16 +256,16 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
         - run: npm run build
           working-directory: frontend
   ```
-- [ ] Setup branch protection rule di GitHub: PR ke `main` wajib pass CI
+- [x] Setup branch protection rule di GitHub: PR ke `main` wajib pass CI
 
 ---
 
 ## Done Criteria
 
-- [ ] `docker compose up` berhasil → PostgreSQL dan backend berjalan tanpa error
-- [ ] `GET http://localhost:8080/api/v1/health` → `{ "status": "ok" }`
-- [ ] `cd frontend && npm run dev` → Next.js berjalan di `http://localhost:3000`
-- [ ] `cd frontend && npm run build` → build sukses tanpa error TypeScript
-- [ ] GitHub Actions CI berjalan hijau pada push pertama
-- [ ] Tidak ada file `.env` yang ter-commit (hanya `.env.example`)
-- [ ] Struktur folder backend dan frontend sesuai diagram di atas
+- [x] `docker compose up` berhasil → PostgreSQL dan backend berjalan tanpa error
+- [x] `GET http://localhost:8080/api/v1/health` → `{ "status": "ok" }`
+- [x] `cd frontend && npm run dev` → Next.js berjalan di `http://localhost:3000`
+- [x] `cd frontend && npm run build` → build sukses tanpa error TypeScript
+- [x] GitHub Actions CI berjalan hijau pada push pertama
+- [x] Tidak ada file `.env` yang ter-commit (hanya `.env.example`)
+- [x] Struktur folder backend dan frontend sesuai diagram di atas

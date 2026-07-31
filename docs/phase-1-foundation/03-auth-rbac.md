@@ -16,7 +16,7 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
 ## Checklist
 
 ### Auth Service & Repository
-- [ ] Buat `internal/domain/repository/auth_repository.go` — interface:
+- [x] Buat `internal/domain/repository/auth_repository.go` — interface:
   ```go
   type AuthRepository interface {
     FindUserByEmail(ctx context.Context, email string) (*entity.User, error)
@@ -30,10 +30,10 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
     UpdatePassword(ctx context.Context, userID uuid.UUID, passwordHash string) error
   }
   ```
-- [ ] Buat implementasi `internal/repository/auth_repository_impl.go` dengan GORM
+- [x] Buat implementasi `internal/repository/auth_repository_impl.go` dengan GORM
 
 ### Auth Use Case
-- [ ] Buat `internal/usecase/auth_usecase.go`:
+- [x] Buat `internal/usecase/auth_usecase.go`:
   - `Login(email, password string)` → validate credentials, check account lock, generate tokens
   - `Logout(tokenJTI string, expiresAt time.Time)` → blacklist token
   - `RefreshToken(refreshToken string)` → validate, rotate, return new access token
@@ -42,7 +42,7 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
   - `ResetPassword(token, newPassword string)` → validate token, update password
 
 ### Auth Handler (HTTP)
-- [ ] Buat `internal/handler/auth_handler.go` dengan Gin:
+- [x] Buat `internal/handler/auth_handler.go` dengan Gin:
 
   **POST `/api/v1/auth/login`**
   - Request: `{ "email": "...", "password": "..." }`
@@ -89,10 +89,10 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
   - Response: `{ "success": true, "message": "Password berhasil diubah" }`
 
 ### JWT Helper (`pkg/jwt/jwt.go`)
-- [ ] `GenerateAccessToken(userID, role, email string) (string, string, error)` — return (token, jti, error)
-- [ ] `GenerateRefreshToken(userID string) (string, error)`
-- [ ] `ValidateToken(tokenString string) (*Claims, error)`
-- [ ] JWT Claims struct:
+- [x] `GenerateAccessToken(userID, role, email string) (string, string, error)` — return (token, jti, error)
+- [x] `GenerateRefreshToken(userID string) (string, error)`
+- [x] `ValidateToken(tokenString string) (*Claims, error)`
+- [x] JWT Claims struct:
   ```go
   type Claims struct {
     UserID string `json:"user_id"`
@@ -106,35 +106,35 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
 ### Middleware
 
 #### `internal/middleware/auth.go` — AuthMiddleware
-- [ ] Ekstrak token dari header `Authorization: Bearer <token>`
-- [ ] Validasi signature dan expiry
-- [ ] Cek token tidak ada di `token_blacklist`
-- [ ] Inject ke Gin context: `c.Set("userID", claims.UserID)`, `c.Set("userRole", claims.Role)`, `c.Set("userEmail", claims.Email)`
-- [ ] Return `401 Unauthorized` jika token invalid/expired/blacklisted
+- [x] Ekstrak token dari header `Authorization: Bearer <token>`
+- [x] Validasi signature dan expiry
+- [x] Cek token tidak ada di `token_blacklist`
+- [x] Inject ke Gin context: `c.Set("userID", claims.UserID)`, `c.Set("userRole", claims.Role)`, `c.Set("userEmail", claims.Email)`
+- [x] Return `401 Unauthorized` jika token invalid/expired/blacklisted
 
 #### `internal/middleware/rbac.go` — RoleMiddleware
-- [ ] `RequireRole(roles ...string) gin.HandlerFunc`
-- [ ] Cek role dari context (di-set AuthMiddleware)
-- [ ] Return `403 Forbidden` jika role tidak diizinkan
-- [ ] Response format: `{ "success": false, "message": "Akses ditolak: role tidak diizinkan" }`
+- [x] `RequireRole(roles ...string) gin.HandlerFunc`
+- [x] Cek role dari context (di-set AuthMiddleware)
+- [x] Return `403 Forbidden` jika role tidak diizinkan
+- [x] Response format: `{ "success": false, "message": "Akses ditolak: role tidak diizinkan" }`
 
 #### `internal/middleware/rate_limit.go` — RateLimitMiddleware
-- [ ] Rate limit pada `POST /api/v1/auth/login`: max 10 req/menit per IP
-- [ ] Gunakan in-memory map dengan sliding window (cukup untuk 100 user v1.0)
-- [ ] Return `429 Too Many Requests` jika limit terlampaui
+- [x] Rate limit pada `POST /api/v1/auth/login`: max 10 req/menit per IP
+- [x] Gunakan in-memory map dengan sliding window (cukup untuk 100 user v1.0)
+- [x] Return `429 Too Many Requests` jika limit terlampaui
 
 #### `internal/middleware/security.go` — SecurityHeadersMiddleware
-- [ ] Tambah headers:
+- [x] Tambah headers:
   ```
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
   ```
-- [ ] CORS: konfigurasi dari env `CORS_ALLOWED_ORIGINS`
+- [x] CORS: konfigurasi dari env `CORS_ALLOWED_ORIGINS`
 
 ### Route Registration
-- [ ] Buat `internal/handler/router.go` — setup semua route dengan groups:
+- [x] Buat `internal/handler/router.go` — setup semua route dengan groups:
   ```go
   v1 := router.Group("/api/v1")
 
@@ -183,23 +183,23 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
 | GET /dashboard/summary | ✅ | ✅ | ❌ | ❌ | ❌ |
 
 ### Security — Password Policy
-- [ ] Validasi password baru: minimal 8 karakter, minimal 1 huruf kapital, 1 angka
-- [ ] Gunakan `bcrypt` dengan cost factor 12
-- [ ] Jangan log atau expose password hash di response/log
+- [x] Validasi password baru: minimal 8 karakter, minimal 1 huruf kapital, 1 angka
+- [x] Gunakan `bcrypt` dengan cost factor 12
+- [x] Jangan log atau expose password hash di response/log
 
 ---
 
 ## Done Criteria
 
-- [ ] `POST /api/v1/auth/login` credential valid → return access token + refresh token
-- [ ] `POST /api/v1/auth/login` credential salah → `401 Unauthorized`
-- [ ] `POST /api/v1/auth/login` gagal 5x → akun terkunci, response `403` dengan pesan lock
-- [ ] `GET /api/v1/auth/me` dengan valid token → return user data
-- [ ] `GET /api/v1/auth/me` tanpa token → `401 Unauthorized`
-- [ ] `GET /api/v1/auth/me` dengan expired token → `401 Unauthorized`
-- [ ] `POST /api/v1/auth/logout` → token di-blacklist
-- [ ] Token yang sudah di-blacklist → `401 Unauthorized` jika digunakan lagi
-- [ ] Akses endpoint `/admin/users` dengan token role `mahasiswa` → `403 Forbidden`
-- [ ] Alur forgot password + reset password berhasil end-to-end
-- [ ] Rate limiting: lebih dari 10 request login/menit dari 1 IP → `429`
-- [ ] Security headers muncul di semua response
+- [x] `POST /api/v1/auth/login` credential valid → return access token + refresh token
+- [x] `POST /api/v1/auth/login` credential salah → `401 Unauthorized`
+- [x] `POST /api/v1/auth/login` gagal 5x → akun terkunci, response `403` dengan pesan lock
+- [x] `GET /api/v1/auth/me` dengan valid token → return user data
+- [x] `GET /api/v1/auth/me` tanpa token → `401 Unauthorized`
+- [x] `GET /api/v1/auth/me` dengan expired token → `401 Unauthorized`
+- [x] `POST /api/v1/auth/logout` → token di-blacklist
+- [x] Token yang sudah di-blacklist → `401 Unauthorized` jika digunakan lagi
+- [x] Akses endpoint `/admin/users` dengan token role `mahasiswa` → `403 Forbidden`
+- [x] Alur forgot password + reset password berhasil end-to-end
+- [x] Rate limiting: lebih dari 10 request login/menit dari 1 IP → `429`
+- [x] Security headers muncul di semua response
