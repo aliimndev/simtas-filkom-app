@@ -23,9 +23,9 @@ Implementasi sistem notifikasi email penuh menggunakan Resend sebagai provider, 
 
 ### Email Service — Implementasi Resend
 
-Ganti `pkg/email/stub_email_service.go` dengan implementasi nyata:
+Ganti `backend/pkg/email/stub_email_service.go` dengan implementasi nyata:
 
-- [ ] Buat `pkg/email/resend_email_service.go`:
+- [ ] Buat `backend/pkg/email/resend_email_service.go`:
   ```go
   type ResendEmailService struct {
     client    *resend.Client
@@ -50,7 +50,7 @@ Ganti `pkg/email/stub_email_service.go` dengan implementasi nyata:
 
 ### 7 Event Templates (v1.0)
 
-Buat folder `pkg/email/templates/` dengan file HTML per event:
+Buat folder `backend/pkg/email/templates/` dengan file HTML per event:
 
 #### Template 1: `thesis_submitted.html`
 - **Trigger:** Mahasiswa submit pengajuan judul
@@ -128,7 +128,7 @@ Buat folder `pkg/email/templates/` dengan file HTML per event:
   - Logo FILKOM Unida
 
 ### Template HTML Base Layout
-- [ ] Buat `pkg/email/templates/base.html` — layout yang digunakan semua template:
+- [ ] Buat `backend/pkg/email/templates/base.html` — layout yang digunakan semua template:
   ```html
   <!-- Header: Logo FILKOM Unida + nama sistem -->
   <!-- Body: konten dinamis -->

@@ -16,7 +16,7 @@ Implementasi modul manajemen bimbingan: pencatatan log konsultasi oleh mahasiswa
 ## Checklist
 
 ### Consultation Repository & Use Case
-- [ ] Buat `internal/domain/repository/consultation_repository.go` — interface:
+- [ ] Buat `backend/internal/domain/repository/consultation_repository.go` — interface:
   ```go
   type ConsultationRepository interface {
     Create(ctx context.Context, log *entity.ConsultationLog) error
@@ -28,10 +28,10 @@ Implementasi modul manajemen bimbingan: pencatatan log konsultasi oleh mahasiswa
   }
   ```
 - [ ] `ConsultationFilter`: `Status`, `DateFrom`, `DateTo`, `Page`, `PerPage`
-- [ ] Buat `internal/usecase/consultation_usecase.go`
+- [ ] Buat `backend/internal/usecase/consultation_usecase.go`
 
 ### Validasi Akses (Ownership)
-Buat helper `internal/usecase/helpers.go` — fungsi yang akan digunakan berulang:
+Buat helper `backend/internal/usecase/helpers.go` — fungsi yang akan digunakan berulang:
 - [ ] `IsThesisOwner(userID, thesisID)` — cek apakah user adalah mahasiswa pemilik thesis
 - [ ] `IsSupervisor(userID, thesisID)` — cek apakah user adalah pembimbing thesis ini
 - [ ] `IsExaminer(userID, seminarID/defenseID)` — cek apakah user adalah penguji (digunakan di job berikutnya)

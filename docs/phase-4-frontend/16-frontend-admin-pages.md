@@ -17,7 +17,7 @@ Implementasi semua halaman Admin Fakultas: manajemen pengguna (CRUD, import, res
 
 ### Halaman Manajemen User (`/admin/users`)
 
-**File:** `src/app/(dashboard)/admin/users/page.tsx`
+**File:** `frontend/src/app/(dashboard)/admin/users/page.tsx`
 
 #### Tabel Pengguna
 - [ ] Kolom: No, Nama, Email, NIM/NIDN, Role, Prodi, Status, Aksi
@@ -45,7 +45,7 @@ Implementasi semua halaman Admin Fakultas: manajemen pengguna (CRUD, import, res
 
 ### Modal Tambah / Edit User
 
-**File:** `src/components/features/users/UserFormModal.tsx`
+**File:** `frontend/src/components/features/users/UserFormModal.tsx`
 
 - [ ] Modal dengan form React Hook Form + Zod:
   ```ts
@@ -64,7 +64,7 @@ Implementasi semua halaman Admin Fakultas: manajemen pengguna (CRUD, import, res
 
 ### Modal Import User
 
-**File:** `src/components/features/users/ImportUserModal.tsx`
+**File:** `frontend/src/components/features/users/ImportUserModal.tsx`
 
 - [ ] Step 1 — Upload:
   - Komponen FileUpload untuk file `.csv` atau `.xlsx`
@@ -78,7 +78,7 @@ Implementasi semua halaman Admin Fakultas: manajemen pengguna (CRUD, import, res
 
 ### Halaman Detail User (`/admin/users/:id`)
 
-**File:** `src/app/(dashboard)/admin/users/[id]/page.tsx`
+**File:** `frontend/src/app/(dashboard)/admin/users/[id]/page.tsx`
 
 - [ ] Info lengkap user: semua field + tanggal dibuat, last login
 - [ ] Riwayat audit log untuk user ini (ambil dari `GET /admin/audit-logs?user_id=xxx`)
@@ -87,7 +87,7 @@ Implementasi semua halaman Admin Fakultas: manajemen pengguna (CRUD, import, res
 
 ### Halaman Manajemen Tahun Akademik (`/admin/academic-years`)
 
-**File:** `src/app/(dashboard)/admin/academic-years/page.tsx`
+**File:** `frontend/src/app/(dashboard)/admin/academic-years/page.tsx`
 
 - [ ] Tabel: Nama, Semester, Tanggal Mulai, Tanggal Selesai, Status (Aktif/Nonaktif), Aksi
 - [ ] Tombol "Tambah Tahun Akademik"
@@ -101,7 +101,7 @@ Implementasi semua halaman Admin Fakultas: manajemen pengguna (CRUD, import, res
 
 ### Halaman Jadwal (Admin) (`/admin/schedules`)
 
-**File:** `src/app/(dashboard)/admin/schedules/page.tsx`
+**File:** `frontend/src/app/(dashboard)/admin/schedules/page.tsx`
 
 - [ ] Tab: "Seminar Proposal" | "Sidang Skripsi"
 - [ ] Tabel jadwal mendatang dan yang sudah lewat
@@ -111,7 +111,7 @@ Implementasi semua halaman Admin Fakultas: manajemen pengguna (CRUD, import, res
 
 #### Modal Penjadwalan Seminar/Sidang
 
-**File:** `src/components/features/schedules/ScheduleModal.tsx`
+**File:** `frontend/src/components/features/schedules/ScheduleModal.tsx`
 
 - [ ] Step 1: Pilih mahasiswa dari dropdown (thesis dengan status sesuai)
 - [ ] Step 2: Isi jadwal:
@@ -124,7 +124,7 @@ Implementasi semua halaman Admin Fakultas: manajemen pengguna (CRUD, import, res
 
 ### Halaman Audit Log (`/admin/audit-logs`)
 
-**File:** `src/app/(dashboard)/admin/audit-logs/page.tsx`
+**File:** `frontend/src/app/(dashboard)/admin/audit-logs/page.tsx`
 
 - [ ] Tabel: Waktu, User, Action, Entitas, IP Address
 - [ ] Filter: Action (dropdown), Tanggal Dari–Sampai, User (search)

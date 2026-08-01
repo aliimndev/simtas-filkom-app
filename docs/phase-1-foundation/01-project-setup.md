@@ -20,8 +20,10 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
 - [x] Setup struktur monorepo:
   ```
   simtas-filkom-app/
-  ├── api/          # Go application
-  ├── client/         # Next.js application
+  ├── backend/          # Go application
+  ├── frontend/         # Next.js application
+  ├── infrastructure/   # Nginx, monitoring, konfigurasi deploy
+  ├── scripts/          # Script operasional (backup DB, dll)
   ├── docs/             # Dokumentasi
   ├── docker-compose.yml
   ├── .gitignore
@@ -74,7 +76,7 @@ Menyiapkan seluruh fondasi proyek: struktur repository, konfigurasi environment 
   └── go.mod
   ```
 - [x] Implementasi `GET /api/v1/health` endpoint — return `{ "status": "ok", "version": "1.0.0", "timestamp": "..." }`
-- [x] Buat `pkg/response/response.go` — standard response format:
+- [x] Buat `backend/pkg/response/response.go` — standard response format:
   ```json
   {
     "success": true,

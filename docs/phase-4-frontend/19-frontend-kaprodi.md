@@ -17,7 +17,7 @@ Implementasi semua halaman untuk Kaprodi: review pengajuan judul, penunjukan pem
 
 ### Halaman Review Pengajuan Judul (`/kaprodi/thesis-reviews`)
 
-**File:** `src/app/(dashboard)/kaprodi/thesis-reviews/page.tsx`
+**File:** `frontend/src/app/(dashboard)/kaprodi/thesis-reviews/page.tsx`
 
 - [ ] Tab: **Menunggu Review** | **Disetujui** | **Ditolak** | **Semua**
 - [ ] Badge count di tab "Menunggu Review"
@@ -29,7 +29,7 @@ Implementasi semua halaman untuk Kaprodi: review pengajuan judul, penunjukan pem
 
 #### Modal Review Pengajuan
 
-**File:** `src/components/features/thesis/ThesisReviewModal.tsx`
+**File:** `frontend/src/components/features/thesis/ThesisReviewModal.tsx`
 
 - [ ] Tampilkan info lengkap pengajuan:
   - Nama & NIM mahasiswa
@@ -52,7 +52,7 @@ Implementasi semua halaman untuk Kaprodi: review pengajuan judul, penunjukan pem
 
 #### Modal Penunjukan Dosen Pembimbing
 
-**File:** `src/components/features/thesis/AssignSupervisorModal.tsx`
+**File:** `frontend/src/components/features/thesis/AssignSupervisorModal.tsx`
 
 - [ ] Tampilkan judul thesis yang baru disetujui
 - [ ] Pilih 1 atau 2 dosen pembimbing dari daftar:
@@ -65,7 +65,7 @@ Implementasi semua halaman untuk Kaprodi: review pengajuan judul, penunjukan pem
 
 ### Halaman Semua Thesis (`/kaprodi/theses`)
 
-**File:** `src/app/(dashboard)/kaprodi/theses/page.tsx`
+**File:** `frontend/src/app/(dashboard)/kaprodi/theses/page.tsx`
 
 - [ ] Tabel semua thesis dengan filter lengkap:
   - Search (judul, nama, NIM)
@@ -80,7 +80,7 @@ Implementasi semua halaman untuk Kaprodi: review pengajuan judul, penunjukan pem
 
 ### Halaman Detail Thesis (Kaprodi View) (`/kaprodi/theses/:id`)
 
-**File:** `src/app/(dashboard)/kaprodi/theses/[id]/page.tsx`
+**File:** `frontend/src/app/(dashboard)/kaprodi/theses/[id]/page.tsx`
 
 - [ ] Halaman komprehensif dengan tab:
   - **Overview**: info dasar, pembimbing, progress
@@ -96,7 +96,7 @@ Implementasi semua halaman untuk Kaprodi: review pengajuan judul, penunjukan pem
 
 ### Halaman Manajemen Seminar (`/kaprodi/seminars`)
 
-**File:** `src/app/(dashboard)/kaprodi/seminars/page.tsx`
+**File:** `frontend/src/app/(dashboard)/kaprodi/seminars/page.tsx`
 
 - [ ] Tab: **Menunggu Jadwal** | **Terjadwal** | **Selesai**
 - [ ] Badge count di "Menunggu Jadwal"
@@ -107,14 +107,14 @@ Implementasi semua halaman untuk Kaprodi: review pengajuan judul, penunjukan pem
 
 ### Halaman Manajemen Sidang (`/kaprodi/defenses`)
 
-**File:** `src/app/(dashboard)/kaprodi/defenses/page.tsx`
+**File:** `frontend/src/app/(dashboard)/kaprodi/defenses/page.tsx`
 
 - [ ] Struktur sama persis dengan halaman seminar
 - [ ] Tombol tambahan di baris yang sudah selesai dan lulus: "Tetapkan Yudisium"
 
 #### Modal Penetapan Yudisium
 
-**File:** `src/components/features/defense/GraduationModal.tsx`
+**File:** `frontend/src/components/features/defense/GraduationModal.tsx`
 
 - [ ] Tampilkan info:
   - Nama mahasiswa, NIM, judul
@@ -130,7 +130,7 @@ Implementasi semua halaman untuk Kaprodi: review pengajuan judul, penunjukan pem
 
 ### Halaman Monitoring (`/kaprodi/monitoring`)
 
-**File:** `src/app/(dashboard)/kaprodi/monitoring/page.tsx`
+**File:** `frontend/src/app/(dashboard)/kaprodi/monitoring/page.tsx`
 
 - [ ] Tampilan tabel ringkas semua mahasiswa aktif dengan:
   - Status tahap saat ini

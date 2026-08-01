@@ -15,7 +15,7 @@ Menyiapkan fondasi frontend Next.js 16: design system, komponen UI reusable, lay
 
 ## Checklist
 
-### Komponen UI Dasar (`src/components/ui/`)
+### Komponen UI Dasar (`frontend/src/components/ui/`)
 
 Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai shadcn atau library UI eksternal — agar full kontrol atas desain):
 
@@ -53,7 +53,7 @@ Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai
   - Implementasi menggunakan React context + portal
   - API: `useToast()` hook → `toast.success("...")`, `toast.error("...")`
 
-### Design System (`src/lib/utils/`)
+### Design System (`frontend/src/lib/utils/`)
 
 - [ ] **`cn(...classes)`** — merge Tailwind classes dengan `clsx` + `tailwind-merge`
 - [ ] **`formatDate(date, format?)`** — format tanggal ke Bahasa Indonesia (misal: "15 Oktober 2026")
@@ -79,9 +79,9 @@ Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai
 - [ ] Custom font: `Inter` dari Google Fonts (atau `Geist` dari Next.js default)
 - [ ] Custom border radius, shadow, dan spacing jika diperlukan
 
-### API Client Layer (`src/lib/api/`)
+### API Client Layer (`frontend/src/lib/api/`)
 
-- [ ] **`src/lib/api/client.ts`** — Axios instance:
+- [ ] **`frontend/src/lib/api/client.ts`** — Axios instance:
   ```ts
   const apiClient = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -108,7 +108,7 @@ Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai
   )
   ```
 
-- [ ] **`src/lib/api/endpoints/`** — fungsi per modul:
+- [ ] **`frontend/src/lib/api/endpoints/`** — fungsi per modul:
   ```
   auth.ts        → login, logout, refreshToken, getMe, forgotPassword, resetPassword
   users.ts       → getUsers, createUser, updateUser, deleteUser, importUsers, getTemplate
@@ -132,7 +132,7 @@ Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai
   }
   ```
 
-### TypeScript Types (`src/types/`)
+### TypeScript Types (`frontend/src/types/`)
 
 - [ ] **`index.ts`** — re-export semua types
 - [ ] **`auth.ts`** — `User`, `LoginRequest`, `LoginResponse`, `AuthState`
@@ -165,9 +165,9 @@ Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai
   }
   ```
 
-### Auth State Management (`src/lib/stores/`)
+### Auth State Management (`frontend/src/lib/stores/`)
 
-- [ ] Buat `src/lib/stores/auth-store.ts` menggunakan Zustand:
+- [ ] Buat `frontend/src/lib/stores/auth-store.ts` menggunakan Zustand:
   ```ts
   interface AuthStore {
     user: User | null
@@ -184,18 +184,18 @@ Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai
 - [ ] Token disimpan di `localStorage` (access token) dan `httpOnly cookie` (refresh token — via backend Set-Cookie)
 - [ ] `initializeAuth()` dipanggil di root layout saat mount pertama
 
-### Layout & Routing (`src/app/`)
+### Layout & Routing (`frontend/src/app/`)
 
-#### Root Layout (`src/app/layout.tsx`)
+#### Root Layout (`frontend/src/app/layout.tsx`)
 - [ ] Setup providers: QueryClientProvider, ToastProvider, AuthProvider
 - [ ] Panggil `initializeAuth()` saat mount
 - [ ] Font dan metadata aplikasi
 
-#### Auth Layout (`src/app/(auth)/layout.tsx`)
+#### Auth Layout (`frontend/src/app/(auth)/layout.tsx`)
 - [ ] Layout minimal: centered card, logo FILKOM di atas
 - [ ] Redirect ke `/dashboard` jika sudah login
 
-#### Dashboard Layout (`src/app/(dashboard)/layout.tsx`)
+#### Dashboard Layout (`frontend/src/app/(dashboard)/layout.tsx`)
 - [ ] Redirect ke `/login` jika belum login
 - [ ] Sidebar + topbar layout
 - [ ] Sidebar menampilkan menu berbeda per role:
@@ -243,7 +243,7 @@ Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai
 - [ ] Active menu item di-highlight sesuai current route
 
 #### Protected Route Helper
-- [ ] Buat `src/lib/hooks/useAuth.ts`:
+- [ ] Buat `frontend/src/lib/hooks/useAuth.ts`:
   ```ts
   export function useRequireAuth(allowedRoles?: UserRole[]) {
     // Jika tidak authenticated → redirect /login
@@ -251,7 +251,7 @@ Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai
   }
   ```
 
-### Custom Hooks (`src/lib/hooks/`)
+### Custom Hooks (`frontend/src/lib/hooks/`)
 
 - [ ] **`useToast()`** — akses toast context
 - [ ] **`useAuth()`** — akses auth store
@@ -269,7 +269,7 @@ Bangun semua komponen berikut dari scratch menggunakan Tailwind CSS (tidak pakai
   if (ok) { /* lakukan hapus */ }
   ```
 
-### Constants (`src/constants/`)
+### Constants (`frontend/src/constants/`)
 
 - [ ] **`routes.ts`** — semua path route
 - [ ] **`queryKeys.ts`** — TanStack Query keys (untuk cache invalidation)

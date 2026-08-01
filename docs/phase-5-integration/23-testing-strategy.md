@@ -26,18 +26,18 @@ go get github.com/DATA-DOG/go-sqlmock
 
 #### Prioritas Test (berdasarkan business criticality):
 
-**1. Grading Calculator** (`pkg/grading/calculator_test.go`)
+**1. Grading Calculator** (`backend/pkg/grading/calculator_test.go`)
 - [ ] Test `CalculateFinalScore` dengan 2 penguji, nilai berbeda, bobot standar
 - [ ] Test nilai akhir tepat di batas: 59.9 (failed), 60.0 (passed), 74.9 (passed with revision), 75.0 (passed)
 - [ ] Test dengan 1 penguji (edge case minimum)
 - [ ] Test kalkulasi tidak melebihi 100 dan tidak kurang dari 0
 
-**2. Thesis State Machine** (`pkg/statemachine/thesis_state_test.go`)
+**2. Thesis State Machine** (`backend/pkg/statemachine/thesis_state_test.go`)
 - [ ] Test setiap transisi valid (semua pasangan from→to yang diizinkan)
 - [ ] Test setiap transisi invalid (contoh: `submitted` → `graduated` langsung)
 - [ ] Test semua status memiliki at least 1 valid transition
 
-**3. Auth Use Case** (`internal/usecase/auth_usecase_test.go`)
+**3. Auth Use Case** (`backend/internal/usecase/auth_usecase_test.go`)
 - [ ] Test login sukses → return token
 - [ ] Test login gagal (password salah) → increment attempt count
 - [ ] Test login setelah 5 kali gagal → account locked
@@ -45,13 +45,13 @@ go get github.com/DATA-DOG/go-sqlmock
 - [ ] Test reset password: token valid → password berubah
 - [ ] Test reset password: token expired → error
 
-**4. Gate Checker** (`internal/usecase/gate_checker_test.go`)
+**4. Gate Checker** (`backend/internal/usecase/gate_checker_test.go`)
 - [ ] Test `CanSubmitSeminar`: dokumen `seminar_doc` belum approved → false
 - [ ] Test `CanSubmitSeminar`: dokumen `seminar_doc` approved → true
 - [ ] Test `CanSubmitDefense`: seminar belum `passed` → false
 - [ ] Test `CanSubmitDefense`: seminar `passed` + dokumen `defense_doc` approved → true
 
-**5. Document Versioning** (`internal/usecase/document_usecase_test.go`)
+**5. Document Versioning** (`backend/internal/usecase/document_usecase_test.go`)
 - [ ] Test upload dokumen baru → version = 1
 - [ ] Test upload lagi dengan type yang sama → version = 2
 - [ ] Test file size validation > 10MB → error
@@ -59,7 +59,7 @@ go get github.com/DATA-DOG/go-sqlmock
 
 #### Mock Setup
 - [ ] Buat mock repository menggunakan `testify/mock` untuk semua repository interface
-- [ ] Struktur: `internal/usecase/mocks/mock_user_repository.go`, dst.
+- [ ] Struktur: `backend/internal/usecase/mocks/mock_user_repository.go`, dst.
 - [ ] Atau gunakan `mockery` untuk auto-generate:
   ```bash
   go install github.com/vektra/mockery/v2@latest
@@ -68,7 +68,7 @@ go get github.com/DATA-DOG/go-sqlmock
 
 ### Backend — Integration Tests
 
-**File:** `internal/handler/*_handler_test.go`
+**File:** `backend/internal/handler/*_handler_test.go`
 
 Setup test environment:
 ```go

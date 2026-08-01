@@ -22,7 +22,7 @@ Merancang dan mengimplementasikan seluruh skema database PostgreSQL menggunakan 
   ```
 - [x] Buat folder `backend/migrations/`
 - [x] Konvensi penamaan: `000001_create_roles_table.up.sql` / `000001_create_roles_table.down.sql`
-- [x] Buat helper `pkg/database/migrate.go` untuk jalankan migrasi saat startup (via flag `--migrate`)
+- [x] Buat helper `backend/pkg/database/migrate.go` untuk jalankan migrasi saat startup (via flag `--migrate`)
 
 ### Migrasi — Grup 1: Master Data
 

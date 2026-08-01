@@ -16,7 +16,7 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
 ## Checklist
 
 ### Defense Repository & Use Case
-- [ ] Buat `internal/domain/repository/defense_repository.go` — interface:
+- [ ] Buat `backend/internal/domain/repository/defense_repository.go` — interface:
   ```go
   type DefenseRepository interface {
     Create(ctx context.Context, defense *entity.ThesisDefense) error
@@ -36,10 +36,10 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
   }
   ```
 - [ ] `DefenseFilter`: `Status`, `ThesisID`, `ExaminerID`, `DateFrom`, `DateTo`, `Page`, `PerPage`
-- [ ] Buat `internal/usecase/defense_usecase.go`
+- [ ] Buat `backend/internal/usecase/defense_usecase.go`
 
 ### Komponen Penilaian Sidang (Bobot Tetap v1.0)
-- [ ] Tambahkan ke `internal/domain/entity/grading.go`:
+- [ ] Tambahkan ke `backend/internal/domain/entity/grading.go`:
   ```go
   // Bobot sidang sama dengan seminar di v1.0
   var DefenseGradingComponents = []GradingComponent{
@@ -49,10 +49,10 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
     {Name: "Kemampuan Menjawab", Weight: 15.0},
   }
   ```
-- [ ] Reuse `pkg/grading/calculator.go` dari Job 08
+- [ ] Reuse `backend/pkg/grading/calculator.go` dari Job 08
 
 ### Gate Checker — Sidang
-- [ ] Tambahkan ke `internal/usecase/gate_checker.go`:
+- [ ] Tambahkan ke `backend/internal/usecase/gate_checker.go`:
   ```go
   func (uc *DefenseUseCase) CanSubmitDefense(ctx context.Context, thesisID uuid.UUID) (bool, string, error)
   // Return: (canSubmit, reason jika tidak bisa, error)

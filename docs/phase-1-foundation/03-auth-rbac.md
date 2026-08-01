@@ -16,7 +16,7 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
 ## Checklist
 
 ### Auth Service & Repository
-- [x] Buat `internal/domain/repository/auth_repository.go` — interface:
+- [x] Buat `backend/internal/domain/repository/auth_repository.go` — interface:
   ```go
   type AuthRepository interface {
     FindUserByEmail(ctx context.Context, email string) (*entity.User, error)
@@ -30,10 +30,10 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
     UpdatePassword(ctx context.Context, userID uuid.UUID, passwordHash string) error
   }
   ```
-- [x] Buat implementasi `internal/repository/auth_repository_impl.go` dengan GORM
+- [x] Buat implementasi `backend/internal/repository/auth_repository_impl.go` dengan GORM
 
 ### Auth Use Case
-- [x] Buat `internal/usecase/auth_usecase.go`:
+- [x] Buat `backend/internal/usecase/auth_usecase.go`:
   - `Login(email, password string)` → validate credentials, check account lock, generate tokens
   - `Logout(tokenJTI string, expiresAt time.Time)` → blacklist token
   - `RefreshToken(refreshToken string)` → validate, rotate, return new access token
@@ -42,7 +42,7 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
   - `ResetPassword(token, newPassword string)` → validate token, update password
 
 ### Auth Handler (HTTP)
-- [x] Buat `internal/handler/auth_handler.go` dengan Gin:
+- [x] Buat `backend/internal/handler/auth_handler.go` dengan Gin:
 
   **POST `/api/v1/auth/login`**
   - Request: `{ "email": "...", "password": "..." }`
@@ -88,7 +88,7 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
   - Validasi: token exist, belum expired, belum used, password match, min 8 char
   - Response: `{ "success": true, "message": "Password berhasil diubah" }`
 
-### JWT Helper (`pkg/jwt/jwt.go`)
+### JWT Helper (`backend/pkg/jwt/jwt.go`)
 - [x] `GenerateAccessToken(userID, role, email string) (string, string, error)` — return (token, jti, error)
 - [x] `GenerateRefreshToken(userID string) (string, error)`
 - [x] `ValidateToken(tokenString string) (*Claims, error)`
@@ -105,25 +105,25 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
 
 ### Middleware
 
-#### `internal/middleware/auth.go` — AuthMiddleware
+#### `backend/internal/middleware/auth.go` — AuthMiddleware
 - [x] Ekstrak token dari header `Authorization: Bearer <token>`
 - [x] Validasi signature dan expiry
 - [x] Cek token tidak ada di `token_blacklist`
 - [x] Inject ke Gin context: `c.Set("userID", claims.UserID)`, `c.Set("userRole", claims.Role)`, `c.Set("userEmail", claims.Email)`
 - [x] Return `401 Unauthorized` jika token invalid/expired/blacklisted
 
-#### `internal/middleware/rbac.go` — RoleMiddleware
+#### `backend/internal/middleware/rbac.go` — RoleMiddleware
 - [x] `RequireRole(roles ...string) gin.HandlerFunc`
 - [x] Cek role dari context (di-set AuthMiddleware)
 - [x] Return `403 Forbidden` jika role tidak diizinkan
 - [x] Response format: `{ "success": false, "message": "Akses ditolak: role tidak diizinkan" }`
 
-#### `internal/middleware/rate_limit.go` — RateLimitMiddleware
+#### `backend/internal/middleware/rate_limit.go` — RateLimitMiddleware
 - [x] Rate limit pada `POST /api/v1/auth/login`: max 10 req/menit per IP
 - [x] Gunakan in-memory map dengan sliding window (cukup untuk 100 user v1.0)
 - [x] Return `429 Too Many Requests` jika limit terlampaui
 
-#### `internal/middleware/security.go` — SecurityHeadersMiddleware
+#### `backend/internal/middleware/security.go` — SecurityHeadersMiddleware
 - [x] Tambah headers:
   ```
   X-Content-Type-Options: nosniff
@@ -134,7 +134,7 @@ Implementasi sistem autentikasi JWT lengkap dengan access token + refresh token,
 - [x] CORS: konfigurasi dari env `CORS_ALLOWED_ORIGINS`
 
 ### Route Registration
-- [x] Buat `internal/handler/router.go` — setup semua route dengan groups:
+- [x] Buat `backend/internal/handler/router.go` — setup semua route dengan groups:
   ```go
   v1 := router.Group("/api/v1")
 

@@ -23,7 +23,7 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
   ```
 
 ### User Repository & Use Case
-- [x] Buat `internal/domain/repository/user_repository.go` — interface:
+- [x] Buat `backend/internal/domain/repository/user_repository.go` — interface:
   ```go
   type UserRepository interface {
     FindAll(ctx context.Context, filter UserFilter) ([]*entity.User, int64, error)
@@ -39,7 +39,7 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
   }
   ```
 - [x] `UserFilter` struct: `Role`, `IsActive`, `StudyProgram`, `Search` (nama/email/NIM), `Page`, `PerPage`
-- [x] Buat `internal/usecase/user_usecase.go` dengan logic:
+- [x] Buat `backend/internal/usecase/user_usecase.go` dengan logic:
   - Auto-generate password saat create: 12 karakter random (huruf besar + kecil + angka)
   - Send welcome email setelah create sukses
   - `InvalidateUserSessions` dipanggil saat deactivate akun
@@ -157,7 +157,7 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
 - [x] Set `is_active = false` pada semua tahun akademik lain (hanya 1 aktif)
 
 ### Helper: Pagination
-- [x] Buat `pkg/pagination/pagination.go`:
+- [x] Buat `backend/pkg/pagination/pagination.go`:
   ```go
   type Pagination struct {
     Page      int   `json:"page"`
@@ -171,7 +171,7 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
   ```
 
 ### Helper: Auto-generate Password
-- [x] Buat `pkg/utils/password.go`:
+- [x] Buat `backend/pkg/utils/password.go`:
   ```go
   func GenerateRandomPassword(length int) string
   // Karakter: huruf besar + kecil + angka, min 1 dari tiap kategori

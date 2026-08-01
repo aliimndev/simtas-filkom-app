@@ -16,7 +16,7 @@ Implementasi sistem manajemen dokumen dengan upload bertahap dan mekanisme appro
 ## Checklist
 
 ### Document Repository & Use Case
-- [ ] Buat `internal/domain/repository/document_repository.go` — interface:
+- [ ] Buat `backend/internal/domain/repository/document_repository.go` — interface:
   ```go
   type DocumentRepository interface {
     Create(ctx context.Context, doc *entity.Document) error
@@ -29,7 +29,7 @@ Implementasi sistem manajemen dokumen dengan upload bertahap dan mekanisme appro
   }
   ```
 - [ ] `DocumentFilter`: `DocumentType`, `Status`, `Page`, `PerPage`
-- [ ] Buat `internal/usecase/document_usecase.go`
+- [ ] Buat `backend/internal/usecase/document_usecase.go`
 
 ### Tipe Dokumen & Gate Logic
 Definisikan konstanta dan aturan gate:
@@ -53,7 +53,7 @@ var SeminarGate = []string{DocTypeSeminarDoc}
 var DefenseGate = []string{DocTypeDefenseDoc}
 ```
 
-- [ ] Buat `internal/usecase/gate_checker.go`:
+- [ ] Buat `backend/internal/usecase/gate_checker.go`:
   ```go
   func (uc *DocumentUseCase) CanSubmitSeminar(ctx context.Context, thesisID uuid.UUID) (bool, error)
   func (uc *DocumentUseCase) CanSubmitDefense(ctx context.Context, thesisID uuid.UUID) (bool, error)
@@ -147,7 +147,7 @@ var DefenseGate = []string{DocTypeDefenseDoc}
 - [ ] Email notification ke mahasiswa (stub)
 
 ### Storage Interface (Stub untuk Job 07)
-- [ ] Buat `internal/domain/service/storage_service.go`:
+- [ ] Buat `backend/internal/domain/service/storage_service.go`:
   ```go
   type StorageService interface {
     Upload(ctx context.Context, path string, file io.Reader, size int64, contentType string) (string, error)
@@ -155,10 +155,10 @@ var DefenseGate = []string{DocTypeDefenseDoc}
     Delete(ctx context.Context, path string) error
   }
   ```
-- [ ] Buat `pkg/storage/stub_storage_service.go` — simpan file ke folder lokal `./tmp/uploads/` untuk development, return path lokal sebagai URL
+- [ ] Buat `backend/pkg/storage/stub_storage_service.go` — simpan file ke folder lokal `./tmp/uploads/` untuk development, return path lokal sebagai URL
 
 ### Validasi File Helper
-- [ ] Buat `pkg/utils/file_validator.go`:
+- [ ] Buat `backend/pkg/utils/file_validator.go`:
   ```go
   func ValidatePDF(file multipart.File, header *multipart.FileHeader) error
   // Cek: ekstensi .pdf, MIME type application/pdf, ukuran <= maxSize

@@ -16,7 +16,7 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
 ## Checklist
 
 ### Dashboard Repository
-- [ ] Buat `internal/domain/repository/dashboard_repository.go` — interface:
+- [ ] Buat `backend/internal/domain/repository/dashboard_repository.go` — interface:
   ```go
   type DashboardRepository interface {
     // Admin & Kaprodi
@@ -49,7 +49,7 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
   ```
 
 ### Struct Hasil Query
-- [ ] Definisikan semua response struct di `internal/handler/dto/dashboard_dto.go`:
+- [ ] Definisikan semua response struct di `backend/internal/handler/dto/dashboard_dto.go`:
   ```go
   type AcademicSummary struct {
     TotalActive        int     `json:"total_active"`

@@ -17,7 +17,7 @@ Implementasi semua halaman yang digunakan mahasiswa: pengajuan judul, halaman th
 
 ### Halaman Thesis Saya (`/student/thesis`)
 
-**File:** `src/app/(dashboard)/student/thesis/page.tsx`
+**File:** `frontend/src/app/(dashboard)/student/thesis/page.tsx`
 
 - [ ] Jika belum punya thesis aktif → tampilkan empty state dengan tombol "Ajukan Judul Skripsi"
 - [ ] Jika sudah punya thesis → tampilkan detail thesis:
@@ -34,7 +34,7 @@ Implementasi semua halaman yang digunakan mahasiswa: pengajuan judul, halaman th
 
 #### Modal Pengajuan Judul
 
-**File:** `src/components/features/thesis/ThesisSubmitModal.tsx`
+**File:** `frontend/src/components/features/thesis/ThesisSubmitModal.tsx`
 
 - [ ] Form React Hook Form + Zod:
   ```ts
@@ -53,7 +53,7 @@ Implementasi semua halaman yang digunakan mahasiswa: pengajuan judul, halaman th
 
 ### Halaman Bimbingan (`/student/consultations`)
 
-**File:** `src/app/(dashboard)/student/consultations/page.tsx`
+**File:** `frontend/src/app/(dashboard)/student/consultations/page.tsx`
 
 - [ ] Summary card di atas: Total Bimbingan | Disetujui | Menunggu | Bimbingan Terakhir
 - [ ] Timeline log konsultasi (diurutkan dari terbaru):
@@ -66,7 +66,7 @@ Implementasi semua halaman yang digunakan mahasiswa: pengajuan judul, halaman th
 
 #### Modal Form Log Bimbingan
 
-**File:** `src/components/features/consultations/ConsultationFormModal.tsx`
+**File:** `frontend/src/components/features/consultations/ConsultationFormModal.tsx`
 
 - [ ] Form:
   ```ts
@@ -82,7 +82,7 @@ Implementasi semua halaman yang digunakan mahasiswa: pengajuan judul, halaman th
 
 ### Halaman Dokumen (`/student/documents`)
 
-**File:** `src/app/(dashboard)/student/documents/page.tsx`
+**File:** `frontend/src/app/(dashboard)/student/documents/page.tsx`
 
 - [ ] Grid dokumen dikelompokkan per tipe:
   ```
@@ -100,7 +100,7 @@ Implementasi semua halaman yang digunakan mahasiswa: pengajuan judul, halaman th
 
 #### Modal Upload Dokumen
 
-**File:** `src/components/features/documents/DocumentUploadModal.tsx`
+**File:** `frontend/src/components/features/documents/DocumentUploadModal.tsx`
 
 - [ ] Komponen `FileUpload` dengan:
   - Drag & drop atau klik untuk pilih file
@@ -113,14 +113,14 @@ Implementasi semua halaman yang digunakan mahasiswa: pengajuan judul, halaman th
 
 #### Modal Riwayat Versi
 
-**File:** `src/components/features/documents/DocumentHistoryModal.tsx`
+**File:** `frontend/src/components/features/documents/DocumentHistoryModal.tsx`
 
 - [ ] Tabel riwayat: Versi, Tanggal Upload, Status, Catatan Reviewer, Aksi (Download)
 - [ ] Versi aktif di-highlight
 
 ### Halaman Seminar Proposal (`/student/seminar`)
 
-**File:** `src/app/(dashboard)/student/seminar/page.tsx`
+**File:** `frontend/src/app/(dashboard)/student/seminar/page.tsx`
 
 - [ ] Jika belum ada seminar → check gate:
   - Jika dokumen seminar belum approved → tampilkan info "Upload dan dapatkan persetujuan dokumen seminar terlebih dahulu" + link ke halaman dokumen
@@ -140,7 +140,7 @@ Implementasi semua halaman yang digunakan mahasiswa: pengajuan judul, halaman th
 
 ### Halaman Sidang Skripsi (`/student/defense`)
 
-**File:** `src/app/(dashboard)/student/defense/page.tsx`
+**File:** `frontend/src/app/(dashboard)/student/defense/page.tsx`
 
 - [ ] Struktur sama seperti halaman seminar, dengan perbedaan:
   - Gate: seminar harus `passed` + dokumen sidang harus `approved`
@@ -149,7 +149,7 @@ Implementasi semua halaman yang digunakan mahasiswa: pengajuan judul, halaman th
 
 ### Halaman Arsip (`/archives`) — Shared semua role
 
-**File:** `src/app/(dashboard)/archives/page.tsx`
+**File:** `frontend/src/app/(dashboard)/archives/page.tsx`
 
 - [ ] Search bar full-text yang prominent di atas halaman
 - [ ] Filter collapsible: Tahun Lulus, Bidang Keahlian, Program Studi

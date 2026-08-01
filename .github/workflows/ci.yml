@@ -7,11 +7,11 @@ on:
     branches: [main]
 
 jobs:
-  api:
+  backend:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: api
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -23,11 +23,11 @@ jobs:
       - run: go vet ./...
       - run: go test ./...
 
-  client:
+  frontend:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: client
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
