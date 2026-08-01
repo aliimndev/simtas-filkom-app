@@ -19,6 +19,7 @@ type User struct {
 	ProfilePhotoURL    *string        `gorm:"type:text" json:"profile_photo_url,omitempty"`
 	IsActive           bool           `gorm:"not null;default:true" json:"is_active"`
 	MustChangePassword bool           `gorm:"not null;default:true" json:"must_change_password"`
+	TokenVersion       int            `gorm:"not null;default:0" json:"-"`
 	LoginAttemptCount  int            `gorm:"not null;default:0" json:"-"`
 	LockedUntil        *time.Time     `json:"-"`
 	LastLoginAt        *time.Time     `json:"last_login_at,omitempty"`

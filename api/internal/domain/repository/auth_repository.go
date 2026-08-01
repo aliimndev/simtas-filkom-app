@@ -25,4 +25,7 @@ type AuthRepository interface {
 
 	UpdatePassword(ctx context.Context, userID uuid.UUID, passwordHash string) error
 	ClearMustChangePassword(ctx context.Context, userID uuid.UUID) error
+
+	// GetUserTokenVersion returns the current token_version for session validation.
+	GetUserTokenVersion(ctx context.Context, userID string) (int, error)
 }

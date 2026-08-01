@@ -117,3 +117,17 @@ func (r *authRepository) ClearMustChangePassword(ctx context.Context, userID uui
 		Where("id = ?", userID).
 		Update("must_change_password", false).Error
 }
+
+func (r *authRepository) GetUserTokenVersion(ctx context.Context, userID string) (int, error) {
+	// First() returns ErrRecordNotFound for missing AND soft-deleted users
+	// (gorm auto-appends deleted_at IS NULL), so deleted users' tokens die.
+	var user entity.User
+	err := r.db.WithContext(ctx).
+		Select("token_version").
+		Where("id = ?", userID).
+		First(&user).Error
+	if err != nil {
+		return 0, err
+	}
+	return user.TokenVersion, nil
+}

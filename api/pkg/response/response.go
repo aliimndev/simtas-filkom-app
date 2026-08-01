@@ -7,9 +7,10 @@ import (
 )
 
 type Meta struct {
-	Page    int   `json:"page,omitempty"`
-	PerPage int   `json:"per_page,omitempty"`
-	Total   int64 `json:"total,omitempty"`
+	Page       int   `json:"page,omitempty"`
+	PerPage    int   `json:"per_page,omitempty"`
+	Total      int64 `json:"total,omitempty"`
+	TotalPages int   `json:"total_pages,omitempty"`
 }
 
 type APIResponse struct {
@@ -36,15 +37,20 @@ func Created(c *gin.Context, data interface{}) {
 	})
 }
 
-// Paginated responds with 200 and pagination metadata
+// Paginated responds with 200 and pagination metadata including total_pages
 func Paginated(c *gin.Context, data interface{}, page, perPage int, total int64) {
+	totalPages := 0
+	if perPage > 0 {
+		totalPages = int((total + int64(perPage) - 1) / int64(perPage))
+	}
 	c.JSON(http.StatusOK, APIResponse{
 		Success: true,
 		Data:    data,
 		Meta: &Meta{
-			Page:    page,
-			PerPage: perPage,
-			Total:   total,
+			Page:       page,
+			PerPage:    perPage,
+			Total:      total,
+			TotalPages: totalPages,
 		},
 	})
 }

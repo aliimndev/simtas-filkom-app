@@ -2,10 +2,12 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 
 	"github.com/aliimndev/simtas-filkom-app/api/pkg/jwt"
 	"github.com/aliimndev/simtas-filkom-app/api/pkg/response"
@@ -17,13 +19,20 @@ type TokenBlacklistChecker interface {
 	IsTokenBlacklisted(ctx context.Context, jti string) (bool, error)
 }
 
-type AuthMiddleware struct {
-	jwtManager  *jwt.JWTManager
-	blacklistFn TokenBlacklistChecker
+// SessionVersionChecker provides the current token_version of a user so the
+// middleware can reject tokens issued before an admin invalidated sessions.
+type SessionVersionChecker interface {
+	GetUserTokenVersion(ctx context.Context, userID string) (int, error)
 }
 
-func NewAuthMiddleware(jwtManager *jwt.JWTManager, blacklistFn TokenBlacklistChecker) *AuthMiddleware {
-	return &AuthMiddleware{jwtManager: jwtManager, blacklistFn: blacklistFn}
+type AuthMiddleware struct {
+	jwtManager *jwt.JWTManager
+	sessionSvc SessionVersionChecker
+	blacklist  TokenBlacklistChecker
+}
+
+func NewAuthMiddleware(jwtManager *jwt.JWTManager, sessionSvc SessionVersionChecker, blacklist TokenBlacklistChecker) *AuthMiddleware {
+	return &AuthMiddleware{jwtManager: jwtManager, sessionSvc: sessionSvc, blacklist: blacklist}
 }
 
 // Authenticate validates Bearer token and injects claims into Gin context
@@ -57,16 +66,38 @@ func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 		}
 
 		// Check blacklist
-		blacklisted, err := m.blacklistFn.IsTokenBlacklisted(c.Request.Context(), claims.JTI)
-		if err != nil {
-			response.Error(c, http.StatusInternalServerError, "Terjadi kesalahan server", nil)
-			c.Abort()
-			return
+		if m.blacklist != nil {
+			blacklisted, err := m.blacklist.IsTokenBlacklisted(c.Request.Context(), claims.JTI)
+			if err != nil {
+				response.Error(c, http.StatusInternalServerError, "Terjadi kesalahan server", nil)
+				c.Abort()
+				return
+			}
+			if blacklisted {
+				response.Error(c, http.StatusUnauthorized, "Token sudah tidak valid", nil)
+				c.Abort()
+				return
+			}
 		}
-		if blacklisted {
-			response.Error(c, http.StatusUnauthorized, "Token sudah tidak valid", nil)
-			c.Abort()
-			return
+
+		// Check session version: tokens issued before session invalidation are rejected,
+		// and tokens of deleted/nonexistent users are rejected too.
+		if m.sessionSvc != nil {
+			currentVersion, err := m.sessionSvc.GetUserTokenVersion(c.Request.Context(), claims.UserID)
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					response.Error(c, http.StatusUnauthorized, "Sesi Anda telah berakhir, silakan login kembali", nil)
+				} else {
+					response.Error(c, http.StatusInternalServerError, "Terjadi kesalahan server", nil)
+				}
+				c.Abort()
+				return
+			}
+			if currentVersion != claims.TokenVersion {
+				response.Error(c, http.StatusUnauthorized, "Sesi Anda telah berakhir, silakan login kembali", nil)
+				c.Abort()
+				return
+			}
 		}
 
 		// Inject claims into context

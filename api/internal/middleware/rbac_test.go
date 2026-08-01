@@ -51,11 +51,16 @@ func TestRequireRole(t *testing.T) {
 }
 
 type fakeBlacklist struct {
-	blacklisted map[string]bool
+	blacklisted   map[string]bool
+	tokenVersions map[string]int
 }
 
 func (f *fakeBlacklist) IsTokenBlacklisted(_ context.Context, jti string) (bool, error) {
 	return f.blacklisted[jti], nil
+}
+
+func (f *fakeBlacklist) GetUserTokenVersion(_ context.Context, userID string) (int, error) {
+	return f.tokenVersions[userID], nil
 }
 
 func TestAuthMiddleware(t *testing.T) {
@@ -65,7 +70,7 @@ func TestAuthMiddleware(t *testing.T) {
 	userID := uuid.New()
 
 	makeToken := func() string {
-		token, _, err := manager.GenerateAccessToken(userID, RoleMahasiswa, "student@test.com")
+		token, _, err := manager.GenerateAccessToken(userID, RoleMahasiswa, "student@test.com", 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -86,7 +91,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := NewAuthMiddleware(manager, tt.blacklist)
+			m := NewAuthMiddleware(manager, tt.blacklist, tt.blacklist)
 			r := gin.New()
 			r.GET("/", m.Authenticate(), func(c *gin.Context) {
 				c.Status(http.StatusOK)
@@ -111,12 +116,12 @@ func TestBlacklistedTokenRejected(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	manager := jwt.NewJWTManager("test-secret", time.Hour, time.Hour)
-	token, jti, err := manager.GenerateAccessToken(uuid.New(), RoleMahasiswa, "s@t.com")
+	token, jti, err := manager.GenerateAccessToken(uuid.New(), RoleMahasiswa, "s@t.com", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	m := NewAuthMiddleware(manager, &fakeBlacklist{blacklisted: map[string]bool{jti: true}})
+	m := NewAuthMiddleware(manager, &fakeBlacklist{blacklisted: map[string]bool{jti: true}}, &fakeBlacklist{blacklisted: map[string]bool{jti: true}})
 	r := gin.New()
 	r.GET("/", m.Authenticate(), func(c *gin.Context) { c.Status(http.StatusOK) })
 

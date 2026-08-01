@@ -126,7 +126,7 @@ func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest) (*LoginRespo
 	_ = uc.authRepo.UpdateLastLogin(ctx, user.ID)
 
 	// Generate tokens
-	accessToken, _, err := uc.jwtManager.GenerateAccessToken(user.ID, user.Role.Name, user.Email)
+	accessToken, _, err := uc.jwtManager.GenerateAccessToken(user.ID, user.Role.Name, user.Email, user.TokenVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func (uc *AuthUseCase) RefreshToken(ctx context.Context, refreshToken string) (*
 		return nil, errors.New("akun tidak aktif")
 	}
 
-	accessToken, _, err := uc.jwtManager.GenerateAccessToken(user.ID, user.Role.Name, user.Email)
+	accessToken, _, err := uc.jwtManager.GenerateAccessToken(user.ID, user.Role.Name, user.Email, user.TokenVersion)
 	if err != nil {
 		return nil, err
 	}

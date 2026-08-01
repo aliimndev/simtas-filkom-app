@@ -67,6 +67,9 @@ func (f *fakeAuthRepo) UpdatePassword(_ context.Context, _ uuid.UUID, _ string) 
 func (f *fakeAuthRepo) ClearMustChangePassword(_ context.Context, _ uuid.UUID) error {
 	return nil
 }
+func (f *fakeAuthRepo) GetUserTokenVersion(_ context.Context, _ string) (int, error) {
+	return 0, nil
+}
 
 func TestResetPasswordValidation(t *testing.T) {
 	uc := NewAuthUseCase(&fakeAuthRepo{}, nil)

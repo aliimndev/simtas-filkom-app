@@ -14,10 +14,11 @@ var (
 )
 
 type Claims struct {
-	UserID string `json:"user_id"`
-	Role   string `json:"role"`
-	Email  string `json:"email"`
-	JTI    string `json:"jti"`
+	UserID       string `json:"user_id"`
+	Role         string `json:"role"`
+	Email        string `json:"email"`
+	JTI          string `json:"jti"`
+	TokenVersion int    `json:"token_version"`
 	gojwt.RegisteredClaims
 }
 
@@ -36,14 +37,15 @@ func NewJWTManager(secretKey string, accessTokenExpy, refreshTokenExpy time.Dura
 }
 
 // GenerateAccessToken creates a new access token and returns (token, jti, error)
-func (j *JWTManager) GenerateAccessToken(userID uuid.UUID, role, email string) (string, string, error) {
+func (j *JWTManager) GenerateAccessToken(userID uuid.UUID, role, email string, tokenVersion int) (string, string, error) {
 	tokenJTI := uuid.New().String()
 
 	claims := &Claims{
-		UserID: userID.String(),
-		Role:   role,
-		Email:  email,
-		JTI:    tokenJTI,
+		UserID:       userID.String(),
+		Role:         role,
+		Email:        email,
+		JTI:          tokenJTI,
+		TokenVersion: tokenVersion,
 		RegisteredClaims: gojwt.RegisteredClaims{
 			ExpiresAt: gojwt.NewNumericDate(time.Now().Add(j.accessTokenExpy)),
 			IssuedAt:  gojwt.NewNumericDate(time.Now()),
