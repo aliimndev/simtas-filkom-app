@@ -19,7 +19,7 @@ Implementasi semua halaman untuk Dosen Pembimbing (mahasiswa bimbingan, review d
 
 ### Halaman Mahasiswa Bimbingan (`/supervisor/students`)
 
-**File:** `src/app/(dashboard)/supervisor/students/page.tsx`
+**File:** `frontend/src/app/(dashboard)/supervisor/students/page.tsx`
 
 - [ ] Kartu ringkasan di atas: Total Mahasiswa | Dokumen Pending Review | Jadwal Minggu Ini
 - [ ] Tabel mahasiswa bimbingan:
@@ -32,7 +32,7 @@ Implementasi semua halaman untuk Dosen Pembimbing (mahasiswa bimbingan, review d
 
 ### Halaman Detail Mahasiswa Bimbingan (`/supervisor/students/:thesis_id`)
 
-**File:** `src/app/(dashboard)/supervisor/students/[thesisId]/page.tsx`
+**File:** `frontend/src/app/(dashboard)/supervisor/students/[thesisId]/page.tsx`
 
 - [ ] Breadcrumb: Dashboard > Mahasiswa Bimbingan > Nama Mahasiswa
 - [ ] Header: info mahasiswa (nama, NIM, judul, status)
@@ -54,7 +54,7 @@ Implementasi semua halaman untuk Dosen Pembimbing (mahasiswa bimbingan, review d
 
 #### Modal Review Dokumen
 
-**File:** `src/components/features/documents/DocumentReviewModal.tsx`
+**File:** `frontend/src/components/features/documents/DocumentReviewModal.tsx`
 
 - [ ] Tampilkan info dokumen: nama file, tipe, versi, tanggal upload, ukuran
 - [ ] Tombol "Preview / Download" → buka presigned URL di tab baru
@@ -74,7 +74,7 @@ Implementasi semua halaman untuk Dosen Pembimbing (mahasiswa bimbingan, review d
 
 ### Halaman Dokumen Pending Review (`/supervisor/documents`)
 
-**File:** `src/app/(dashboard)/supervisor/documents/page.tsx`
+**File:** `frontend/src/app/(dashboard)/supervisor/documents/page.tsx`
 
 - [ ] Agregasi semua dokumen `pending_review` dari semua mahasiswa bimbingan
 - [ ] Tabel: Mahasiswa, Tipe Dokumen, Versi, Tanggal Upload, Aksi
@@ -85,7 +85,7 @@ Implementasi semua halaman untuk Dosen Pembimbing (mahasiswa bimbingan, review d
 
 ### Halaman Jadwal Dosen Pembimbing (`/supervisor/schedules`)
 
-**File:** `src/app/(dashboard)/supervisor/schedules/page.tsx`
+**File:** `frontend/src/app/(dashboard)/supervisor/schedules/page.tsx`
 
 - [ ] Daftar seminar dan sidang mahasiswa bimbingan yang terjadwal
 - [ ] Tab: Mendatang | Sudah Lewat
@@ -98,7 +98,7 @@ Implementasi semua halaman untuk Dosen Pembimbing (mahasiswa bimbingan, review d
 
 ### Halaman Jadwal Pengujian (`/examiner/schedules`)
 
-**File:** `src/app/(dashboard)/examiner/schedules/page.tsx`
+**File:** `frontend/src/app/(dashboard)/examiner/schedules/page.tsx`
 
 - [ ] Header cards: Jadwal Mendatang | Nilai Belum Diinput | Sudah Dinilai
 - [ ] Tab: Mendatang | Perlu Input Nilai | Sudah Selesai
@@ -114,7 +114,7 @@ Implementasi semua halaman untuk Dosen Pembimbing (mahasiswa bimbingan, review d
 
 ### Halaman Input Nilai (`/examiner/scoring/:seminar_id` atau `/:defense_id`)
 
-**File:** `src/app/(dashboard)/examiner/scoring/[type]/[id]/page.tsx`
+**File:** `frontend/src/app/(dashboard)/examiner/scoring/[type]/[id]/page.tsx`
 
 - [ ] Header: info seminar/sidang (mahasiswa, judul, tanggal)
 - [ ] Link download dokumen skripsi sebelum menilai
@@ -153,7 +153,7 @@ Implementasi semua halaman untuk Dosen Pembimbing (mahasiswa bimbingan, review d
 
 ### Halaman Riwayat Penilaian (`/examiner/scoring`)
 
-**File:** `src/app/(dashboard)/examiner/scoring/page.tsx`
+**File:** `frontend/src/app/(dashboard)/examiner/scoring/page.tsx`
 
 - [ ] List semua seminar/sidang yang sudah dinilai oleh penguji ini
 - [ ] Tabel: Mahasiswa, Judul, Tipe, Tanggal, Nilai Saya, Nilai Akhir (jika semua sudah submit)

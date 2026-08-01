@@ -17,7 +17,7 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
 
 ### Halaman Login (`/login`)
 
-**File:** `src/app/(auth)/login/page.tsx`
+**File:** `frontend/src/app/(auth)/login/page.tsx`
 
 - [ ] Form dengan React Hook Form + Zod validation:
   ```ts
@@ -61,7 +61,7 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
 
 ### Halaman Lupa Password (`/forgot-password`)
 
-**File:** `src/app/(auth)/forgot-password/page.tsx`
+**File:** `frontend/src/app/(auth)/forgot-password/page.tsx`
 
 - [ ] Form:
   ```ts
@@ -79,7 +79,7 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
 
 ### Halaman Reset Password (`/reset-password?token=xxx`)
 
-**File:** `src/app/(auth)/reset-password/page.tsx`
+**File:** `frontend/src/app/(auth)/reset-password/page.tsx`
 
 - [ ] Baca `token` dari query parameter saat halaman mount
 - [ ] Jika tidak ada token → redirect ke `/forgot-password`
@@ -102,7 +102,7 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
 
 ### Halaman Ganti Password Pertama Kali (`/change-password`)
 
-**File:** `src/app/(dashboard)/change-password/page.tsx`
+**File:** `frontend/src/app/(dashboard)/change-password/page.tsx`
 
 - [ ] Muncul otomatis jika `must_change_password === true` setelah login
 - [ ] Redirect paksa: jika `must_change_password === true`, akses halaman lain selalu diarahkan ke sini dulu
@@ -112,7 +112,7 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
 
 ### Halaman Profil (`/profile`)
 
-**File:** `src/app/(dashboard)/profile/page.tsx`
+**File:** `frontend/src/app/(dashboard)/profile/page.tsx`
 
 - [ ] Tampilkan info user:
   - Avatar / inisial nama
@@ -132,7 +132,7 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
 
 ### TanStack Query — Auth Queries
 
-Buat `src/lib/api/hooks/useAuth.ts`:
+Buat `frontend/src/lib/api/hooks/useAuth.ts`:
 - [ ] `useCurrentUser()` — query `GET /auth/me`, enabled saat ada token
 - [ ] `useLoginMutation()` — mutation login
 - [ ] `useLogoutMutation()` — mutation logout (invalidate semua query cache + clear auth store)
@@ -141,7 +141,7 @@ Buat `src/lib/api/hooks/useAuth.ts`:
 
 ### Helper Error Message
 
-- [ ] Buat `src/lib/utils/error.ts`:
+- [ ] Buat `frontend/src/lib/utils/error.ts`:
   ```ts
   export function getErrorMessage(error: unknown): string {
     if (axios.isAxiosError(error)) {

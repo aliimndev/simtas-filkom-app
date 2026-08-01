@@ -19,7 +19,7 @@ Implementasi sistem audit log terpusat yang sudah dipanggil sebagai stub di semu
 
 Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplementasikannya secara nyata.
 
-- [ ] Buat `internal/domain/repository/audit_repository.go`:
+- [ ] Buat `backend/internal/domain/repository/audit_repository.go`:
   ```go
   type AuditRepository interface {
     Create(ctx context.Context, log *entity.AuditLog) error
@@ -40,7 +40,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     PerPage    int
   }
   ```
-- [ ] Buat `pkg/audit/audit_service.go` — service yang bisa diinjeksi ke semua use case:
+- [ ] Buat `backend/pkg/audit/audit_service.go` — service yang bisa diinjeksi ke semua use case:
   ```go
   type AuditService struct {
     repo AuditRepository
@@ -70,7 +70,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
 - [ ] Helper untuk extract IP dan UserAgent dari Gin context
 
 ### Konstanta Action
-- [ ] Buat `pkg/audit/actions.go` — semua konstanta action:
+- [ ] Buat `backend/pkg/audit/actions.go` — semua konstanta action:
   ```go
   const (
     // Auth
@@ -164,7 +164,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
 
 ### Structured Application Logger
 
-- [ ] Buat `pkg/logger/logger.go` — wrapper untuk `log/slog` (Go standard library):
+- [ ] Buat `backend/pkg/logger/logger.go` — wrapper untuk `log/slog` (Go standard library):
   ```go
   var Logger *slog.Logger
 
@@ -183,7 +183,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     slog.SetDefault(Logger)
   }
   ```
-- [ ] Buat `internal/middleware/request_logger.go` — log setiap HTTP request:
+- [ ] Buat `backend/internal/middleware/request_logger.go` — log setiap HTTP request:
   ```go
   // Log format: METHOD PATH STATUS LATENCY IP
   // Contoh: GET /api/v1/theses 200 12ms 192.168.1.1
@@ -193,7 +193,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
 
 ### Global Error Handler
 
-- [ ] Buat `internal/middleware/error_handler.go` — Gin recovery middleware yang menangkap panic:
+- [ ] Buat `backend/internal/middleware/error_handler.go` — Gin recovery middleware yang menangkap panic:
   ```go
   func ErrorHandler() gin.HandlerFunc {
     return func(c *gin.Context) {
@@ -212,7 +212,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     }
   }
   ```
-- [ ] Buat `pkg/apperror/errors.go` — custom error types:
+- [ ] Buat `backend/pkg/apperror/errors.go` — custom error types:
   ```go
   type AppError struct {
     Code    int
@@ -233,7 +233,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
 - [ ] Handler Gin menggunakan `AppError` untuk return response yang konsisten
 
 ### Token Blacklist Cleanup (Scheduled Task)
-- [ ] Buat `pkg/scheduler/token_cleanup.go` — goroutine yang berjalan setiap 1 jam:
+- [ ] Buat `backend/pkg/scheduler/token_cleanup.go` — goroutine yang berjalan setiap 1 jam:
   ```go
   func StartTokenCleanup(db *gorm.DB) {
     ticker := time.NewTicker(1 * time.Hour)

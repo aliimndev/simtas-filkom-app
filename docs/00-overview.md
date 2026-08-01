@@ -91,11 +91,11 @@ Gunakan tabel ini untuk melacak progress harian:
 
 | Job | Nama | Status | Tanggal Selesai |
 |-----|------|--------|-----------------|
-| 01 | Project Setup | ⬜ Belum | — |
-| 02 | Database Schema | ⬜ Belum | — |
-| 03 | Auth & RBAC | ⬜ Belum | — |
-| 04 | User Management | ⬜ Belum | — |
-| 05 | Thesis Submission | ⬜ Belum | — |
+| 01 | Project Setup | ✅ Selesai | — |
+| 02 | Database Schema | ✅ Selesai | — |
+| 03 | Auth & RBAC | ✅ Selesai | — |
+| 04 | User Management | ✅ Selesai | — |
+| 05 | Thesis Submission | ✅ Selesai | — |
 | 06 | Supervision | ⬜ Belum | — |
 | 07 | Document Management | ⬜ Belum | — |
 | 08 | Seminar Module | ⬜ Belum | — |

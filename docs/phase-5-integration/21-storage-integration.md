@@ -21,7 +21,7 @@ Mengganti stub storage di backend dengan implementasi nyata Supabase Storage, da
   ```bash
   go get github.com/supabase-community/storage-go
   ```
-- [ ] Buat `pkg/storage/supabase_storage.go` — implementasi `StorageService` interface:
+- [ ] Buat `backend/pkg/storage/supabase_storage.go` — implementasi `StorageService` interface:
   ```go
   type SupabaseStorageService struct {
     client     *storage_go.Client
@@ -80,7 +80,7 @@ attachments/
 ### Backend — Swap Stub ke Real Storage
 
 - [ ] Di `cmd/server/main.go`: inisiasi `SupabaseStorageService` dan inject ke handler dokumen
-- [ ] Update `internal/handler/document_handler.go`:
+- [ ] Update `backend/internal/handler/document_handler.go`:
   - Upload file dari multipart request ke Supabase
   - Simpan `file_url` (path relatif) ke database
   - Bukan menyimpan URL publik langsung (agar akses dikontrol via presigned URL)

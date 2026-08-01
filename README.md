@@ -30,10 +30,24 @@ git clone https://github.com/aliimndev/simtas-filkom-app.git
 cd simtas-filkom-app
 ```
 
+## Struktur Repository
+
+```
+simtas-filkom-app/
+├── backend/          # Go API (Gin, GORM, Clean Architecture)
+├── frontend/         # Next.js 16 + React 19 + TypeScript
+├── docs/             # Dokumentasi & timeline (30 job)
+├── infrastructure/   # Nginx, monitoring, konfigurasi deploy
+├── scripts/          # Script operasional (backup DB, dll)
+├── .github/          # CI/CD (GitHub Actions)
+├── docker-compose.yml
+└── README.md
+```
+
 ### 2. Backend Setup
 
 ```bash
-cd api
+cd backend
 cp .env.example .env
 # Edit .env sesuai konfigurasi lokal Anda
 go mod download
@@ -43,7 +57,7 @@ go run ./cmd/server
 ### 3. Frontend Setup
 
 ```bash
-cd client
+cd frontend
 cp .env.local.example .env.local
 npm install
 npm run dev
@@ -52,7 +66,7 @@ npm run dev
 ### 4. Docker (Opsional)
 
 ```bash
-# Jalankan semua service (PostgreSQL + API)
+# Jalankan semua service (PostgreSQL + Backend)
 docker compose up -d
 ```
 

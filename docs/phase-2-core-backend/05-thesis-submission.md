@@ -16,7 +16,7 @@ Implementasi alur pengajuan judul skripsi oleh mahasiswa dan proses review/appro
 ## Checklist
 
 ### Thesis Repository & Use Case
-- [ ] Buat `internal/domain/repository/thesis_repository.go` — interface:
+- [x] Buat `backend/internal/domain/repository/thesis_repository.go` — interface:
   ```go
   type ThesisRepository interface {
     Create(ctx context.Context, thesis *entity.Thesis) error
@@ -30,8 +30,8 @@ Implementasi alur pengajuan judul skripsi oleh mahasiswa dan proses review/appro
     FindActiveByStudentID(ctx context.Context, studentID uuid.UUID) (*entity.Thesis, error)
   }
   ```
-- [ ] `ThesisFilter` struct: `Status`, `AcademicYearID`, `StudyProgram`, `FieldOfStudy`, `SupervisorID`, `Search` (judul/nama/NIM), `Page`, `PerPage`
-- [ ] Buat `internal/usecase/thesis_usecase.go`
+- [x] `ThesisFilter` struct: `Status`, `AcademicYearID`, `StudyProgram`, `FieldOfStudy`, `SupervisorID`, `Search` (judul/nama/NIM), `Page`, `PerPage` (ditambah `StudentID` & `ExaminerID` untuk scope per role)
+- [x] Buat `backend/internal/usecase/thesis_usecase.go`
 
 ### State Machine Thesis Status
 Dokumentasikan dan implementasikan transisi status yang valid:
@@ -62,7 +62,7 @@ defense_done
 * cancelled bisa dari status apapun (oleh Admin/Kaprodi)
 ```
 
-- [ ] Buat `pkg/statemachine/thesis_state.go` — validasi transisi:
+- [x] Buat `backend/pkg/statemachine/thesis_state.go` — validasi transisi:
   ```go
   var ValidTransitions = map[string][]string{
     "submitted":     {"approved", "rejected", "cancelled"},
@@ -70,17 +70,18 @@ defense_done
     "in_progress":   {"seminar_ready", "cancelled"},
     "seminar_ready": {"seminar_done"},
     "seminar_done":  {"defense_ready"},
-    "defense_ready": {"defence_done"},
+    "defense_ready": {"defense_done"},   // diperbaiki dari typo "defence_done"
     "defense_done":  {"graduated"},
   }
 
   func CanTransition(from, to string) bool
   ```
+  > Catatan: typo `defence_done` pada dokumen diperbaiki menjadi `defense_done` agar konsisten dengan enum di database. `cancelled` bisa dari status apapun (di-handle di `CanTransition`), dan status terminal (`rejected`, `graduated`, `cancelled`) terdaftar sebagai key agar `ValidStatus` mengenalinya.
 
 ### Handler — Endpoint Mahasiswa
 
 **POST `/api/v1/theses`** _(Mahasiswa only)_
-- [ ] Request body:
+- [x] Request body:
   ```json
   {
     "title": "Judul Skripsi Mahasiswa",
@@ -89,29 +90,29 @@ defense_done
     "thesis_type": "skripsi"
   }
   ```
-- [ ] Validasi:
+- [x] Validasi:
   - Judul minimal 10 kata, maksimal 500 karakter
   - Abstrak minimal 100 kata
   - `thesis_type`: `skripsi` atau `tugas_akhir`
   - Mahasiswa tidak boleh punya thesis aktif (status bukan `cancelled` atau `graduated`)
-- [ ] Set `academic_year_id` dari tahun akademik yang sedang aktif
-- [ ] Set status awal: `submitted`
-- [ ] Audit log: `THESIS_SUBMITTED`
-- [ ] Email notification ke Kaprodi (semua akun dengan role `kaprodi`)
-- [ ] Response: `201 Created`
+- [x] Set `academic_year_id` dari tahun akademik yang sedang aktif (via `FindActive` baru di `AcademicYearRepository`)
+- [x] Set status awal: `submitted`
+- [x] Audit log: `THESIS_SUBMITTED`
+- [x] Email notification ke Kaprodi (semua akun dengan role `kaprodi`, via `FindByRole` baru di `UserRepository`)
+- [x] Response: `201 Created`
 
 ### Handler — Endpoint Kaprodi
 
 **GET `/api/v1/theses`** _(Admin + Kaprodi: semua; Dosen Pembimbing: miliknya; Mahasiswa: miliknya)_
-- [ ] Query params: `status`, `academic_year_id`, `study_program`, `field_of_study`, `supervisor_id`, `search`, `page`, `per_page`
-- [ ] Scope data berdasarkan role (implementasi di use case layer):
+- [x] Query params: `status`, `academic_year_id`, `study_program`, `field_of_study`, `supervisor_id`, `search`, `page`, `per_page`
+- [x] Scope data berdasarkan role (implementasi di use case layer):
   - Admin/Kaprodi → semua thesis
   - Dosen Pembimbing → thesis dengan `thesis_supervisors.supervisor_id = me`
-  - Dosen Penguji → thesis yang dia ditugaskan sebagai penguji
+  - Dosen Penguji → thesis yang dia ditugaskan sebagai penguji (via `defense_examiners` / `seminar_examiners`)
   - Mahasiswa → thesis miliknya sendiri
 
 **GET `/api/v1/theses/:id`** _(semua role, scope sama)_
-- [ ] Return detail thesis lengkap:
+- [x] Return detail thesis lengkap (DTO `ThesisDetail`):
   ```json
   {
     "id": "uuid",
@@ -130,7 +131,7 @@ defense_done
   ```
 
 **PUT `/api/v1/theses/:id/review`** _(Kaprodi only)_
-- [ ] Request body:
+- [x] Request body:
   ```json
   {
     "decision": "approved",
@@ -144,31 +145,31 @@ defense_done
     "notes": "Judul terlalu luas, harap dipersempit ke topik spesifik"
   }
   ```
-- [ ] Validasi: `decision` harus `approved` atau `rejected`
-- [ ] Validasi state machine: status harus `submitted`
-- [ ] Update status thesis sesuai decision
-- [ ] Set `approved_at` jika decision = approved
-- [ ] Audit log: `THESIS_APPROVED` atau `THESIS_REJECTED`
-- [ ] Email notification ke mahasiswa
+- [x] Validasi: `decision` harus `approved` atau `rejected`
+- [x] Validasi state machine: status harus `submitted` (selain itu → `422 Unprocessable Entity`)
+- [x] Update status thesis sesuai decision
+- [x] Set `approved_at` jika decision = approved
+- [x] Audit log: `THESIS_APPROVED` atau `THESIS_REJECTED`
+- [x] Email notification ke mahasiswa
 
 **PUT `/api/v1/theses/:id/assign-supervisor`** _(Kaprodi only)_
-- [ ] Request body:
+- [x] Request body:
   ```json
   {
     "supervisor_ids": ["uuid-dosen-1", "uuid-dosen-2"]
   }
   ```
-- [ ] Validasi:
+- [x] Validasi:
   - Status thesis harus `approved`
-  - Minimal 1, maksimal 2 supervisor
-  - Setiap ID harus user dengan role `dosen_pembimbing` dan `is_active = true`
-- [ ] Insert ke `thesis_supervisors`
-- [ ] Update status thesis → `in_progress`
-- [ ] Audit log: `SUPERVISOR_ASSIGNED`
-- [ ] Email notification ke mahasiswa dan setiap dosen pembimbing yang ditunjuk
+  - Minimal 1, maksimal 2 supervisor (duplikat ID dideduplikasi)
+  - Setiap ID harus user dengan role `dosen_pembimbing` dan `is_active = true` (via `FindByRole`)
+- [x] Insert ke `thesis_supervisors`
+- [x] Update status thesis → `in_progress`
+- [x] Audit log: `SUPERVISOR_ASSIGNED`
+- [x] Email notification ke mahasiswa dan setiap dosen pembimbing yang ditunjuk
 
 **GET `/api/v1/lecturers`** _(Kaprodi + Admin)_
-- [ ] Return list dosen pembimbing aktif dengan info beban bimbingan:
+- [x] Return list dosen pembimbing aktif dengan info beban bimbingan:
   ```json
   {
     "data": [
@@ -181,47 +182,47 @@ defense_done
     ]
   }
   ```
-- [ ] Urutkan dari beban paling rendah (memudahkan load balancing)
+- [x] Urutkan dari beban paling rendah (memudahkan load balancing)
 
 **PATCH `/api/v1/theses/:id/cancel`** _(Admin + Kaprodi)_
-- [ ] Set status → `cancelled`
-- [ ] Request body: `{ "reason": "..." }`
-- [ ] Audit log: `THESIS_CANCELLED`
+- [x] Set status → `cancelled`
+- [x] Request body: `{ "reason": "..." }` (opsional)
+- [x] Audit log: `THESIS_CANCELLED`
 
 ### Email Notification (gunakan email service dari Job 11 — stub dulu)
-- [ ] Saat status `submitted` → email ke semua Kaprodi
-- [ ] Saat status `approved` → email ke mahasiswa
-- [ ] Saat status `rejected` → email ke mahasiswa
-- [ ] Saat pembimbing ditunjuk → email ke mahasiswa + dosen pembimbing
+- [x] Saat status `submitted` → email ke semua Kaprodi
+- [x] Saat status `approved` → email ke mahasiswa
+- [x] Saat status `rejected` → email ke mahasiswa
+- [x] Saat pembimbing ditunjuk → email ke mahasiswa + dosen pembimbing
 
 > **Catatan:** Untuk job ini, implementasikan fungsi email notification sebagai stub (log ke console). Implementasi penuh email service ada di Job 11. Pastikan interface email service sudah didefinisikan agar mudah di-swap nanti.
 
 ### Interface Email Service
-- [ ] Buat `internal/domain/service/email_service.go`:
+- [x] Interface email service — **diperluas di `backend/pkg/email/email_service.go`** (bukan `backend/internal/domain/service/` seperti di dokumen; lokasi ini sudah dipakai Job 04 sehingga direuse agar tidak ada dua interface):
   ```go
   type EmailService interface {
-    SendThesisSubmitted(to []string, thesis *entity.Thesis) error
-    SendThesisApproved(to string, thesis *entity.Thesis) error
-    SendThesisRejected(to string, thesis *entity.Thesis, notes string) error
-    SendSupervisorAssigned(studentEmail string, supervisorEmails []string, thesis *entity.Thesis) error
+    SendThesisSubmitted(ctx context.Context, to []string, thesis *entity.Thesis) error
+    SendThesisApproved(ctx context.Context, to string, thesis *entity.Thesis) error
+    SendThesisRejected(ctx context.Context, to string, thesis *entity.Thesis, notes string) error
+    SendSupervisorAssigned(ctx context.Context, studentEmail string, supervisorEmails []string, thesis *entity.Thesis) error
     // ... method lain ditambahkan di job berikutnya
   }
   ```
-- [ ] Buat `pkg/email/stub_email_service.go` — implementasi yang hanya log ke console (untuk development)
+- [x] Buat `backend/pkg/email/stub_email_service.go` — implementasi yang hanya log ke console (untuk development) — 4 method thesis ditambahkan ke stub yang ada
 
 ---
 
 ## Done Criteria
 
-- [ ] `POST /api/v1/theses` oleh mahasiswa → thesis dibuat, status `submitted`
-- [ ] `POST /api/v1/theses` oleh mahasiswa yang sudah punya thesis aktif → `400 Bad Request`
-- [ ] `PUT /api/v1/theses/:id/review` dengan decision `approved` → status jadi `approved`
-- [ ] `PUT /api/v1/theses/:id/review` oleh mahasiswa → `403 Forbidden`
-- [ ] `PUT /api/v1/theses/:id/review` saat status bukan `submitted` → `422 Unprocessable Entity`
-- [ ] `PUT /api/v1/theses/:id/assign-supervisor` → status jadi `in_progress`, supervisors terdaftar
-- [ ] `PUT /api/v1/theses/:id/assign-supervisor` dengan ID dosen yang rolenya bukan `dosen_pembimbing` → `400`
-- [ ] `GET /api/v1/theses` oleh mahasiswa → hanya return thesis miliknya
-- [ ] `GET /api/v1/theses` oleh Kaprodi → return semua thesis
-- [ ] `GET /api/v1/lecturers` → return dosen diurutkan dari beban terendah
-- [ ] Email notification (stub) tercatat di console untuk setiap event
-- [ ] Semua action tercatat di `audit_logs`
+- [x] `POST /api/v1/theses` oleh mahasiswa → thesis dibuat, status `submitted`
+- [x] `POST /api/v1/theses` oleh mahasiswa yang sudah punya thesis aktif → `400 Bad Request`
+- [x] `PUT /api/v1/theses/:id/review` dengan decision `approved` → status jadi `approved`
+- [x] `PUT /api/v1/theses/:id/review` oleh mahasiswa → `403 Forbidden` (via `RequireRole`)
+- [x] `PUT /api/v1/theses/:id/review` saat status bukan `submitted` → `422 Unprocessable Entity`
+- [x] `PUT /api/v1/theses/:id/assign-supervisor` → status jadi `in_progress`, supervisors terdaftar
+- [x] `PUT /api/v1/theses/:id/assign-supervisor` dengan ID dosen yang rolenya bukan `dosen_pembimbing` → `400`
+- [x] `GET /api/v1/theses` oleh mahasiswa → hanya return thesis miliknya
+- [x] `GET /api/v1/theses` oleh Kaprodi → return semua thesis
+- [x] `GET /api/v1/lecturers` → return dosen diurutkan dari beban terendah
+- [x] Email notification (stub) tercatat di console untuk setiap event
+- [x] Semua action tercatat di `audit_logs`

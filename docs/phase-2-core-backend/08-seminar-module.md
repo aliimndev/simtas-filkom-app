@@ -16,7 +16,7 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
 ## Checklist
 
 ### Seminar Repository & Use Case
-- [ ] Buat `internal/domain/repository/seminar_repository.go` — interface:
+- [ ] Buat `backend/internal/domain/repository/seminar_repository.go` — interface:
   ```go
   type SeminarRepository interface {
     Create(ctx context.Context, seminar *entity.Seminar) error
@@ -36,10 +36,10 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
   }
   ```
 - [ ] `SeminarFilter`: `Status`, `ThesisID`, `ExaminerID`, `DateFrom`, `DateTo`, `Page`, `PerPage`
-- [ ] Buat `internal/usecase/seminar_usecase.go`
+- [ ] Buat `backend/internal/usecase/seminar_usecase.go`
 
 ### Komponen Penilaian (Bobot Tetap v1.0)
-- [ ] Definisikan konstanta bobot di `internal/domain/entity/grading.go`:
+- [ ] Definisikan konstanta bobot di `backend/internal/domain/entity/grading.go`:
   ```go
   var SeminarGradingComponents = []GradingComponent{
     {Name: "Presentasi",         Weight: 30.0},
@@ -53,7 +53,7 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
     Weight float64
   }
   ```
-- [ ] Buat `pkg/grading/calculator.go`:
+- [ ] Buat `backend/pkg/grading/calculator.go`:
   ```go
   // Hitung nilai akhir dari semua score penguji
   // Formula: rata-rata nilai berbobot dari semua penguji

@@ -16,7 +16,7 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
 ## Checklist
 
 ### Archive Repository & Use Case
-- [ ] Buat `internal/domain/repository/archive_repository.go` — interface:
+- [ ] Buat `backend/internal/domain/repository/archive_repository.go` — interface:
   ```go
   type ArchiveRepository interface {
     Create(ctx context.Context, archive *entity.ThesisArchive) error
@@ -38,7 +38,7 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
     PerPage        int
   }
   ```
-- [ ] Buat `internal/usecase/archive_usecase.go`
+- [ ] Buat `backend/internal/usecase/archive_usecase.go`
 
 ### Handler — Archive Endpoints
 
@@ -126,7 +126,7 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
 - [ ] Return sama dengan `GET /api/v1/archives/:id`
 
 ### Full-Text Search — Query Builder
-- [ ] Buat `internal/repository/archive_repository_impl.go` dengan query:
+- [ ] Buat `backend/internal/repository/archive_repository_impl.go` dengan query:
   ```go
   func (r *archiveRepo) Search(ctx context.Context, filter ArchiveFilter) ([]*entity.ThesisArchive, int64, error) {
     query := r.db.WithContext(ctx).

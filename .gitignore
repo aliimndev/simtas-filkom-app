@@ -4,16 +4,16 @@
 .env.production
 
 # Go
-api/vendor/
-api/.env
+backend/vendor/
+backend/.env
 
 # Node
 node_modules/
 .next/
-client/node_modules/
-client/.next/
-client/out/
-client/.env.local
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
 
 # IDE
 .vscode/

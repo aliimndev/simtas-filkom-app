@@ -15,11 +15,11 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    build: ./api
+  backend:
+    build: ./backend
     ports:
       - "8080:8080"
-    env_file: ./api/.env
+    env_file: ./backend/.env
     environment:
       DB_HOST: postgres
     depends_on:

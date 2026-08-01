@@ -16,14 +16,14 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
 ## Checklist
 
 ### Dependencies Tambahan
-- [ ] Install library untuk parsing Excel/CSV:
+- [x] Install library untuk parsing Excel/CSV:
   ```bash
   go get github.com/xuri/excelize/v2   # Excel
   go get github.com/gocarina/gocsv     # CSV
   ```
 
 ### User Repository & Use Case
-- [ ] Buat `internal/domain/repository/user_repository.go` — interface:
+- [x] Buat `backend/internal/domain/repository/user_repository.go` — interface:
   ```go
   type UserRepository interface {
     FindAll(ctx context.Context, filter UserFilter) ([]*entity.User, int64, error)
@@ -38,8 +38,8 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
     InvalidateUserSessions(ctx context.Context, id uuid.UUID) error
   }
   ```
-- [ ] `UserFilter` struct: `Role`, `IsActive`, `StudyProgram`, `Search` (nama/email/NIM), `Page`, `PerPage`
-- [ ] Buat `internal/usecase/user_usecase.go` dengan logic:
+- [x] `UserFilter` struct: `Role`, `IsActive`, `StudyProgram`, `Search` (nama/email/NIM), `Page`, `PerPage`
+- [x] Buat `backend/internal/usecase/user_usecase.go` dengan logic:
   - Auto-generate password saat create: 12 karakter random (huruf besar + kecil + angka)
   - Send welcome email setelah create sukses
   - `InvalidateUserSessions` dipanggil saat deactivate akun
@@ -47,7 +47,7 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
 ### User Handler — Endpoint Admin
 
 **GET `/api/v1/admin/users`** _(Admin only)_
-- [ ] Query params: `role`, `is_active`, `study_program`, `search`, `page` (default 1), `per_page` (default 20)
+- [x] Query params: `role`, `is_active`, `study_program`, `search`, `page` (default 1), `per_page` (default 20)
 - [ ] Response:
   ```json
   {
@@ -58,11 +58,11 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
   ```
 
 **GET `/api/v1/admin/users/:id`** _(Admin only)_
-- [ ] Return detail user termasuk role name
-- [ ] Return `404` jika tidak ditemukan atau sudah soft-deleted
+- [x] Return detail user termasuk role name
+- [x] Return `404` jika tidak ditemukan atau sudah soft-deleted
 
 **POST `/api/v1/admin/users`** _(Admin only)_
-- [ ] Request body:
+- [x] Request body:
   ```json
   {
     "email": "mahasiswa@example.com",
@@ -72,51 +72,51 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
     "study_program": "Teknik Informatika"
   }
   ```
-- [ ] Validasi: email valid & unique, role valid, full_name tidak kosong
-- [ ] Auto-generate password, hash dengan bcrypt
-- [ ] Send welcome email dengan password sementara
-- [ ] Audit log: `USER_CREATED`
-- [ ] Response: `201 Created` dengan user object (tanpa password hash)
+- [x] Validasi: email valid & unique, role valid, full_name tidak kosong
+- [x] Auto-generate password, hash dengan bcrypt
+- [x] Send welcome email dengan password sementara
+- [x] Audit log: `USER_CREATED`
+- [x] Response: `201 Created` dengan user object (tanpa password hash)
 
 **PUT `/api/v1/admin/users/:id`** _(Admin only)_
-- [ ] Field yang bisa diupdate: `full_name`, `nim_nidn`, `study_program`, `profile_photo_url`
-- [ ] Email dan role tidak bisa diubah via endpoint ini (butuh endpoint khusus jika diperlukan)
-- [ ] Audit log: `USER_UPDATED` dengan old_value dan new_value
+- [x] Field yang bisa diupdate: `full_name`, `nim_nidn`, `study_program`, `profile_photo_url`
+- [x] Email dan role tidak bisa diubah via endpoint ini (butuh endpoint khusus jika diperlukan)
+- [x] Audit log: `USER_UPDATED` dengan old_value dan new_value
 
 **DELETE `/api/v1/admin/users/:id`** _(Admin only)_
-- [ ] Soft delete (set `deleted_at`)
-- [ ] Validasi: tidak bisa hapus diri sendiri
-- [ ] Audit log: `USER_DELETED`
+- [x] Soft delete (set `deleted_at`)
+- [x] Validasi: tidak bisa hapus diri sendiri
+- [x] Audit log: `USER_DELETED`
 
 **PATCH `/api/v1/admin/users/:id/activate`** _(Admin only)_
-- [ ] Set `is_active = true`
-- [ ] Audit log: `USER_ACTIVATED`
+- [x] Set `is_active = true`
+- [x] Audit log: `USER_ACTIVATED`
 
 **PATCH `/api/v1/admin/users/:id/deactivate`** _(Admin only)_
-- [ ] Set `is_active = false`
-- [ ] Invalidate semua session aktif (blacklist token via JTI lookup — atau set flag di user)
-- [ ] Validasi: tidak bisa deactivate diri sendiri
-- [ ] Audit log: `USER_DEACTIVATED`
+- [x] Set `is_active = false`
+- [x] Invalidate semua session aktif (blacklist token via JTI lookup — atau set flag di user) — via `token_version` claim
+- [x] Validasi: tidak bisa deactivate diri sendiri
+- [x] Audit log: `USER_DEACTIVATED`
 
 **POST `/api/v1/admin/users/:id/reset-password`** _(Admin only)_
-- [ ] Auto-generate password baru (12 karakter)
-- [ ] Hash dan update di database
-- [ ] Set `must_change_password = true`
-- [ ] Send email ke user dengan password baru
-- [ ] Audit log: `USER_PASSWORD_RESET`
+- [x] Auto-generate password baru (12 karakter)
+- [x] Hash dan update di database
+- [x] Set `must_change_password = true`
+- [x] Send email ke user dengan password baru
+- [x] Audit log: `USER_PASSWORD_RESET`
 
 ### Import User
 
 **GET `/api/v1/admin/users/import-template`** _(Admin only)_
-- [ ] Return file Excel template dengan kolom: `email`, `full_name`, `nim_nidn`, `role`, `study_program`
-- [ ] Sertakan sheet "Petunjuk" dengan keterangan nilai valid untuk kolom `role`
-- [ ] Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- [x] Return file Excel template dengan kolom: `email`, `full_name`, `nim_nidn`, `role`, `study_program`
+- [x] Sertakan sheet "Petunjuk" dengan keterangan nilai valid untuk kolom `role`
+- [x] Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 
 **POST `/api/v1/admin/users/import`** _(Admin only)_
-- [ ] Accept: `multipart/form-data` dengan field `file`
-- [ ] Support format: `.csv` dan `.xlsx`
-- [ ] Ukuran file maksimal: 5 MB
-- [ ] Proses parsing:
+- [x] Accept: `multipart/form-data` dengan field `file`
+- [x] Support format: `.csv` dan `.xlsx`
+- [x] Ukuran file maksimal: 5 MB
+- [x] Proses parsing:
   1. Baca semua baris
   2. Validasi per baris: email valid, role valid, field wajib tidak kosong, email belum terdaftar
   3. Baris valid → bulk insert dalam 1 transaction
@@ -138,26 +138,26 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
     }
   }
   ```
-- [ ] Audit log: `USER_BULK_IMPORTED` dengan info jumlah success/error
+- [x] Audit log: `USER_BULK_IMPORTED` dengan info jumlah success/error
 
 ### Manajemen Tahun Akademik
 
 **GET `/api/v1/academic-years`** _(All authenticated)_
-- [ ] Return list semua tahun akademik, diurutkan terbaru dulu
+- [x] Return list semua tahun akademik, diurutkan terbaru dulu
 
 **POST `/api/v1/academic-years`** _(Admin only)_
-- [ ] Request: `{ "name": "2026/2027", "semester": "ganjil", "start_date": "2026-09-01", "end_date": "2027-01-31" }`
-- [ ] Validasi: `semester` harus `ganjil` atau `genap`
+- [x] Request: `{ "name": "2026/2027", "semester": "ganjil", "start_date": "2026-09-01", "end_date": "2027-01-31" }`
+- [x] Validasi: `semester` harus `ganjil` atau `genap`
 
 **PUT `/api/v1/academic-years/:id`** _(Admin only)_
-- [ ] Update data tahun akademik (kecuali yang sudah aktif & ada thesis berjalan)
+- [x] Update data tahun akademik (kecuali yang sudah aktif & ada thesis berjalan)
 
 **PATCH `/api/v1/academic-years/:id/activate`** _(Admin only)_
-- [ ] Set `is_active = true` pada tahun akademik ini
-- [ ] Set `is_active = false` pada semua tahun akademik lain (hanya 1 aktif)
+- [x] Set `is_active = true` pada tahun akademik ini
+- [x] Set `is_active = false` pada semua tahun akademik lain (hanya 1 aktif)
 
 ### Helper: Pagination
-- [ ] Buat `pkg/pagination/pagination.go`:
+- [x] Buat `backend/pkg/pagination/pagination.go`:
   ```go
   type Pagination struct {
     Page      int   `json:"page"`
@@ -171,7 +171,7 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
   ```
 
 ### Helper: Auto-generate Password
-- [ ] Buat `pkg/utils/password.go`:
+- [x] Buat `backend/pkg/utils/password.go`:
   ```go
   func GenerateRandomPassword(length int) string
   // Karakter: huruf besar + kecil + angka, min 1 dari tiap kategori
@@ -181,11 +181,11 @@ Implementasi seluruh fitur manajemen pengguna oleh Admin Fakultas: CRUD user, im
 
 ## Done Criteria
 
-- [ ] `POST /api/v1/admin/users` → buat user, welcome email terkirim, response 201
-- [ ] `GET /api/v1/admin/users?search=ali&role=mahasiswa&page=1` → hasil terfilter + pagination benar
-- [ ] `PATCH /api/v1/admin/users/:id/deactivate` → user tidak bisa login
-- [ ] `POST /api/v1/admin/users/import` dengan file 50 baris (3 error) → 47 user dibuat, 3 error dilaporkan
-- [ ] `GET /api/v1/admin/users/import-template` → file Excel template berhasil didownload
-- [ ] `PATCH /api/v1/academic-years/:id/activate` → hanya 1 tahun akademik yang `is_active = true`
-- [ ] Semua operasi tercatat di `audit_logs`
-- [ ] Endpoint admin tidak bisa diakses oleh role non-admin → `403 Forbidden`
+- [x] `POST /api/v1/admin/users` → buat user, welcome email terkirim, response 201
+- [x] `GET /api/v1/admin/users?search=ali&role=mahasiswa&page=1` → hasil terfilter + pagination benar
+- [x] `PATCH /api/v1/admin/users/:id/deactivate` → user tidak bisa login (token_version invalidasi)
+- [x] `POST /api/v1/admin/users/import` dengan file 50 baris (3 error) → 47 user dibuat, 3 error dilaporkan
+- [x] `GET /api/v1/admin/users/import-template` → file Excel template berhasil didownload
+- [x] `PATCH /api/v1/academic-years/:id/activate` → hanya 1 tahun akademik yang `is_active = true`
+- [x] Semua operasi tercatat di `audit_logs`
+- [x] Endpoint admin tidak bisa diakses oleh role non-admin → `403 Forbidden` (via `RequireRole` middleware)

@@ -17,7 +17,7 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 
 ### Route Dashboard Utama
 
-**File:** `src/app/(dashboard)/dashboard/page.tsx`
+**File:** `frontend/src/app/(dashboard)/dashboard/page.tsx`
 
 - [ ] Render komponen dashboard sesuai role dari auth store:
   ```tsx
@@ -39,8 +39,8 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 
 ### Dashboard Admin & Kaprodi
 
-**File:** `src/components/features/dashboard/AdminDashboard.tsx`
-**File:** `src/components/features/dashboard/KaprodiDashboard.tsx`
+**File:** `frontend/src/components/features/dashboard/AdminDashboard.tsx`
+**File:** `frontend/src/components/features/dashboard/KaprodiDashboard.tsx`
 
 > Kedua komponen hampir identik — buat `AdminKaprodiDashboardBase` sebagai shared component, perbedaan hanya di tombol aksi yang tersedia.
 
@@ -104,7 +104,7 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 
 ### Dashboard Mahasiswa
 
-**File:** `src/components/features/dashboard/StudentDashboard.tsx`
+**File:** `frontend/src/components/features/dashboard/StudentDashboard.tsx`
 
 - [ ] **Greeting Header**: "Selamat pagi, [Nama]! 👋"
 - [ ] **Progress Stepper** (prominent, full width):
@@ -132,7 +132,7 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 
 ### Dashboard Dosen Pembimbing
 
-**File:** `src/components/features/dashboard/SupervisorDashboard.tsx`
+**File:** `frontend/src/components/features/dashboard/SupervisorDashboard.tsx`
 
 - [ ] **Summary cards**: Total Bimbingan | Dokumen Pending Review | Jadwal Minggu Ini
 - [ ] **Mahasiswa yang Butuh Perhatian** (prioritas):
@@ -146,7 +146,7 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 
 ### Dashboard Dosen Penguji
 
-**File:** `src/components/features/dashboard/ExaminerDashboard.tsx`
+**File:** `frontend/src/components/features/dashboard/ExaminerDashboard.tsx`
 
 - [ ] **Summary cards**: Jadwal Mendatang | Nilai Belum Diinput | Total Sudah Dinilai
 - [ ] **Perlu Tindakan** (jika ada pending):
