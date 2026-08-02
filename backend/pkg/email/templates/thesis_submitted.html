@@ -1,0 +1,8 @@
+{{define "content"}}
+<h1 style="margin:0 0 12px 0;font-size:20px;color:#111827;">Pengajuan Judul Skripsi Baru</h1>
+{{if .Greeting}}<p style="margin:0 0 16px 0;font-size:14px;color:#374151;line-height:1.7;">{{.Greeting}}</p>{{end}}
+{{if .Message}}<p style="margin:0 0 16px 0;font-size:14px;color:#374151;line-height:1.7;">{{.Message}}</p>{{end}}
+<p style="margin:0 0 8px 0;font-size:13px;color:#6b7280;">Seorang mahasiswa telah mengajukan judul skripsi baru dan menunggu review Anda:</p>
+{{template "detailTable" .}}
+{{template "ctaButton" .}}
+{{end}}

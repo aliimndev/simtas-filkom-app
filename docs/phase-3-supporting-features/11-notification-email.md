@@ -16,16 +16,16 @@ Implementasi sistem notifikasi email penuh menggunakan Resend sebagai provider, 
 ## Checklist
 
 ### Dependencies
-- [ ] Install Resend Go SDK:
+- [x] Install Resend Go SDK:
   ```bash
   go get github.com/resend/resend-go/v2
   ```
 
 ### Email Service — Implementasi Resend
 
-Ganti `backend/pkg/email/stub_email_service.go` dengan implementasi nyata:
+Ganti `backend/pkg/email/stub_email_service.go` dengan implementasi nyata (stub dihapus, digantikan `ResendEmailService`):
 
-- [ ] Buat `backend/pkg/email/resend_email_service.go`:
+- [x] Buat `backend/pkg/email/resend_email_service.go`:
   ```go
   type ResendEmailService struct {
     client    *resend.Client
@@ -36,9 +36,9 @@ Ganti `backend/pkg/email/stub_email_service.go` dengan implementasi nyata:
 
   func NewResendEmailService(apiKey, fromEmail, fromName string, db *gorm.DB) *ResendEmailService
   ```
-- [ ] Implementasikan semua method dari `EmailService` interface yang sudah didefinisikan di Job 05
-- [ ] Setiap method: render template → kirim via Resend → log ke `email_logs`
-- [ ] Pengiriman async menggunakan goroutine:
+- [x] Implementasikan semua method dari `EmailService` interface yang sudah didefinisikan di Job 05
+- [x] Setiap method: render template → kirim via Resend → log ke `email_logs`
+- [x] Pengiriman async menggunakan goroutine:
   ```go
   func (s *ResendEmailService) sendAsync(to []string, subject, html string, eventType string) {
     go func() {
@@ -53,10 +53,10 @@ Ganti `backend/pkg/email/stub_email_service.go` dengan implementasi nyata:
 Buat folder `backend/pkg/email/templates/` dengan file HTML per event:
 
 #### Template 1: `thesis_submitted.html`
-- **Trigger:** Mahasiswa submit pengajuan judul
-- **Penerima:** Kaprodi (semua akun role kaprodi)
-- **Subjek:** `[SIMTAS] Pengajuan Judul Baru — {nama_mahasiswa}`
-- **Konten:**
+- [x] **Trigger:** Mahasiswa submit pengajuan judul
+- [x] **Penerima:** Kaprodi (semua akun role kaprodi)
+- [x] **Subjek:** `[SIMTAS] Pengajuan Judul Baru — {nama_mahasiswa}`
+- [x] **Konten:**
   - Nama dan NIM mahasiswa
   - Judul yang diajukan
   - Abstrak singkat
@@ -64,83 +64,83 @@ Buat folder `backend/pkg/email/templates/` dengan file HTML per event:
   - Tombol/link "Review Pengajuan" → ke halaman review Kaprodi
 
 #### Template 2: `thesis_reviewed.html`
-- **Trigger:** Kaprodi approve/reject judul
-- **Penerima:** Mahasiswa
-- **Subjek (approved):** `[SIMTAS] Judul Skripsi Anda Disetujui`
-- **Subjek (rejected):** `[SIMTAS] Judul Skripsi Anda Perlu Revisi`
-- **Konten:**
+- [x] **Trigger:** Kaprodi approve/reject judul
+- [x] **Penerima:** Mahasiswa
+- [x] **Subjek (approved):** `[SIMTAS] Judul Skripsi Anda Disetujui`
+- [x] **Subjek (rejected):** `[SIMTAS] Judul Skripsi Anda Perlu Revisi`
+- [x] **Konten:**
   - Status keputusan (dengan warna: hijau untuk approved, merah untuk rejected)
   - Judul yang diajukan
   - Catatan/feedback dari Kaprodi
   - Tombol "Lihat Detail" → ke halaman thesis mahasiswa
 
 #### Template 3: `supervisor_assigned.html`
-- **Trigger:** Kaprodi tetapkan dosen pembimbing
-- **Penerima:** Mahasiswa + setiap Dosen Pembimbing yang ditunjuk
-- **Subjek:** `[SIMTAS] Dosen Pembimbing Telah Ditetapkan`
-- **Konten (ke mahasiswa):**
+- [x] **Trigger:** Kaprodi tetapkan dosen pembimbing
+- [x] **Penerima:** Mahasiswa + setiap Dosen Pembimbing yang ditunjuk
+- [x] **Subjek:** `[SIMTAS] Dosen Pembimbing Telah Ditetapkan`
+- [x] **Konten (ke mahasiswa):**
   - Nama dosen pembimbing yang ditunjuk (jika 2 dosen, list keduanya)
   - Informasi kontak dosen (email, NIDN)
   - Petunjuk langkah selanjutnya (mulai bimbingan)
-- **Konten (ke dosen):**
+- [x] **Konten (ke dosen):**
   - Nama dan NIM mahasiswa yang dibimbing
   - Judul skripsi mahasiswa
   - Informasi kontak mahasiswa
 
 #### Template 4: `seminar_scheduled.html`
-- **Trigger:** Admin/Kaprodi jadwalkan seminar proposal
-- **Penerima:** Mahasiswa + Dosen Pembimbing + setiap Dosen Penguji
-- **Subjek:** `[SIMTAS] Jadwal Seminar Proposal — {nama_mahasiswa}`
-- **Konten:**
+- [x] **Trigger:** Admin/Kaprodi jadwalkan seminar proposal
+- [x] **Penerima:** Mahasiswa + Dosen Pembimbing + setiap Dosen Penguji
+- [x] **Subjek:** `[SIMTAS] Jadwal Seminar Proposal — {nama_mahasiswa}`
+- [x] **Konten:**
   - Tanggal, waktu, ruangan seminar
   - Judul skripsi
   - Daftar penguji (untuk mahasiswa & pembimbing)
   - Daftar mahasiswa dan pembimbing (untuk penguji)
   - Catatan persiapan
-- **Reschedule:** subjek berubah menjadi `[SIMTAS] Perubahan Jadwal Seminar Proposal`
+- [x] **Reschedule:** subjek berubah menjadi `[SIMTAS] Perubahan Jadwal Seminar Proposal`
 
 #### Template 5: `seminar_result.html`
-- **Trigger:** Semua penguji submit nilai seminar (auto-finalize)
-- **Penerima:** Mahasiswa + Dosen Pembimbing
-- **Subjek (passed):** `[SIMTAS] Selamat! Anda Lulus Seminar Proposal`
-- **Subjek (failed):** `[SIMTAS] Hasil Seminar Proposal`
-- **Konten:**
+- [x] **Trigger:** Semua penguji submit nilai seminar (auto-finalize)
+- [x] **Penerima:** Mahasiswa + Dosen Pembimbing
+- [x] **Subjek (passed):** `[SIMTAS] Selamat! Anda Lulus Seminar Proposal`
+- [x] **Subjek (failed):** `[SIMTAS] Hasil Seminar Proposal`
+- [x] **Konten:**
   - Nilai akhir seminar
   - Status (Lulus / Tidak Lulus)
   - Breakdown nilai per komponen (tanpa nama penguji — anonim)
   - Langkah selanjutnya (jika lulus: persiapkan dokumen sidang)
 
 #### Template 6: `defense_scheduled.html`
-- **Trigger:** Admin/Kaprodi jadwalkan sidang
-- **Penerima:** Mahasiswa + Dosen Pembimbing + setiap Dosen Penguji
-- **Subjek:** `[SIMTAS] Jadwal Sidang Skripsi — {nama_mahasiswa}`
-- **Konten:** Sama seperti seminar_scheduled, dengan tambahan informasi bahwa ini adalah sidang skripsi final
-- **Reschedule:** subjek berubah menjadi `[SIMTAS] Perubahan Jadwal Sidang Skripsi`
+- [x] **Trigger:** Admin/Kaprodi jadwalkan sidang
+- [x] **Penerima:** Mahasiswa + Dosen Pembimbing + setiap Dosen Penguji
+- [x] **Subjek:** `[SIMTAS] Jadwal Sidang Skripsi — {nama_mahasiswa}`
+- [x] **Konten:** Sama seperti seminar_scheduled, dengan tambahan informasi bahwa ini adalah sidang skripsi final
+- [x] **Reschedule:** subjek berubah menjadi `[SIMTAS] Perubahan Jadwal Sidang Skripsi`
 
 #### Template 7: `graduation.html`
-- **Trigger:** Kaprodi tetapkan status graduated (yudisium)
-- **Penerima:** Mahasiswa + Dosen Pembimbing
-- **Subjek:** `[SIMTAS] Selamat! Skripsi Anda Dinyatakan Lulus`
-- **Konten:**
+- [x] **Trigger:** Kaprodi tetapkan status graduated (yudisium)
+- [x] **Penerima:** Mahasiswa + Dosen Pembimbing
+- [x] **Subjek:** `[SIMTAS] Selamat! Skripsi Anda Dinyatakan Lulus`
+- [x] **Konten:**
   - Ucapan selamat
   - Ringkasan: judul skripsi, nilai sidang, tanggal yudisium
   - Informasi langkah selanjutnya: upload skripsi final untuk arsip
   - Logo FILKOM Unida
 
 ### Template HTML Base Layout
-- [ ] Buat `backend/pkg/email/templates/base.html` — layout yang digunakan semua template:
+- [x] Buat `backend/pkg/email/templates/base.html` — layout yang digunakan semua template:
   ```html
   <!-- Header: Logo FILKOM Unida + nama sistem -->
   <!-- Body: konten dinamis -->
   <!-- Footer: Kontak Admin Fakultas | Fakultas Ilmu Komputer Universitas Djuanda | disclaimer -->
   ```
-- [ ] Gunakan inline CSS (kompatibel dengan semua email client)
-- [ ] Responsif untuk mobile (max-width 600px)
-- [ ] Warna brand: sesuaikan dengan identitas FILKOM Unida
-- [ ] Semua link menggunakan URL dari env `FRONTEND_URL`
+- [x] Gunakan inline CSS (kompatibel dengan semua email client)
+- [x] Responsif untuk mobile (max-width 600px)
+- [x] Warna brand: sesuaikan dengan identitas FILKOM Unida
+- [x] Semua link menggunakan URL dari env `FRONTEND_URL`
 
 ### Template Engine
-- [ ] Gunakan Go `html/template` package:
+- [x] Gunakan Go `html/template` package:
   ```go
   func renderTemplate(templateName string, data interface{}) (string, error) {
     tmpl, err := template.ParseFiles(
@@ -152,7 +152,7 @@ Buat folder `backend/pkg/email/templates/` dengan file HTML per event:
   ```
 
 ### Email Logging
-- [ ] Setelah setiap pengiriman (berhasil atau gagal), insert ke `email_logs`:
+- [x] Setelah setiap pengiriman (berhasil atau gagal), insert ke `email_logs`:
   ```go
   emailLog := &entity.EmailLog{
     RecipientEmail: to,
@@ -163,27 +163,27 @@ Buat folder `backend/pkg/email/templates/` dengan file HTML per event:
     ErrorMessage:   "",  // isi jika failed
   }
   ```
-- [ ] Log error ke application logger jika pengiriman gagal (jangan panic)
+- [x] Log error ke application logger jika pengiriman gagal (jangan panic)
 
 ### Swap Stub → Real Implementation
-- [ ] Update `cmd/server/main.go`: inisiasi `ResendEmailService` dan inject ke semua use case yang membutuhkan
-- [ ] Pastikan `EmailService` interface dipakai (bukan struct langsung) — mudah swap ke provider lain
-- [ ] Tambah env variable: `FRONTEND_URL=https://simtas.filkom.unida.ac.id`
+- [x] Update `cmd/server/main.go`: inisiasi `ResendEmailService` dan inject ke semua use case yang membutuhkan
+- [x] Pastikan `EmailService` interface dipakai (bukan struct langsung) — mudah swap ke provider lain
+- [x] Tambah env variable: `FRONTEND_URL=https://simtas.filkom.unida.ac.id`
 
 ### Testing Email (Development)
-- [ ] Tambahkan env `EMAIL_DEV_MODE=true` — jika true, log email ke console TANPA mengirim ke Resend
-- [ ] Endpoint internal (hanya di `development` env): `POST /api/v1/internal/test-email` — kirim email test ke address tertentu
+- [x] Tambahkan env `EMAIL_DEV_MODE=true` — jika true, log email ke console TANPA mengirim ke Resend
+- [x] Endpoint internal (hanya di `development` env): `POST /api/v1/internal/test-email` — kirim email test ke address tertentu
 
 ---
 
 ## Done Criteria
 
 - [ ] `ResendEmailService` berhasil mengirim email nyata ke inbox (test dengan akun Resend sandbox)
-- [ ] Semua 7 template ter-render tanpa error
+- [x] Semua template ter-render tanpa error
 - [ ] Template tampil dengan benar di Gmail dan Outlook (test manual)
-- [ ] Email dikirim async — HTTP response tidak menunggu email terkirim
-- [ ] Setiap pengiriman tercatat di tabel `email_logs`
-- [ ] Email gagal → status `failed` di `email_logs`, tidak crash aplikasi
-- [ ] `EMAIL_DEV_MODE=true` → email tidak terkirim, hanya log ke console
-- [ ] Semua stub di job 05–10 berhasil diganti dengan implementasi nyata
+- [x] Email dikirim async — HTTP response tidak menunggu email terkirim
+- [x] Setiap pengiriman tercatat di tabel `email_logs`
+- [x] Email gagal → status `failed` di `email_logs`, tidak crash aplikasi
+- [x] `EMAIL_DEV_MODE=true` → email tidak terkirim, hanya log ke console
+- [x] Semua stub di job 05–10 berhasil diganti dengan implementasi nyata
 - [ ] Trigger event 1–7 berhasil mengirim email ke penerima yang tepat dalam end-to-end test

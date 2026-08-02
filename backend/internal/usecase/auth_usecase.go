@@ -13,6 +13,7 @@ import (
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/jwt"
 )
 
@@ -76,17 +77,19 @@ type RefreshTokenResponse struct {
 type AuthUseCase struct {
 	authRepo   domainRepo.AuthRepository
 	jwtManager *jwt.JWTManager
+	auditSvc   *audit.AuditService
 }
 
-func NewAuthUseCase(authRepo domainRepo.AuthRepository, jwtManager *jwt.JWTManager) *AuthUseCase {
+func NewAuthUseCase(authRepo domainRepo.AuthRepository, jwtManager *jwt.JWTManager, auditSvc *audit.AuditService) *AuthUseCase {
 	return &AuthUseCase{
 		authRepo:   authRepo,
 		jwtManager: jwtManager,
+		auditSvc:   auditSvc,
 	}
 }
 
 // Login authenticates user and returns tokens
-func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
+func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest, actor Actor) (*LoginResponse, error) {
 	user, err := uc.authRepo.FindUserByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, ErrInvalidCredentials
@@ -95,6 +98,8 @@ func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest) (*LoginRespo
 	// Check account lock
 	if user.LockedUntil != nil && user.LockedUntil.After(time.Now()) {
 		remaining := time.Until(*user.LockedUntil).Round(time.Minute)
+		// Audit: blocked login attempt on a locked account (Job 13)
+		uc.logAuthAudit(ctx, user.ID, audit.ActionUserLoginFailed, actor)
 		return nil, fmt.Errorf("%w. Coba lagi dalam %v", ErrAccountLocked, remaining)
 	}
 
@@ -109,6 +114,10 @@ func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest) (*LoginRespo
 		}
 
 		_ = uc.authRepo.UpdateLoginAttempt(ctx, user.ID, newCount, lockedUntil)
+
+		// Audit: failed login attempt (Job 13). Note: attempts against
+		// unknown emails are intentionally NOT logged (anti-enumeration).
+		uc.logAuthAudit(ctx, user.ID, audit.ActionUserLoginFailed, actor)
 
 		if lockedUntil != nil {
 			return nil, fmt.Errorf("%w. Coba lagi dalam %v menit", ErrAccountLocked, LockDuration.Minutes())
@@ -136,6 +145,10 @@ func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest) (*LoginRespo
 		return nil, err
 	}
 
+	// Audit: successful login (Job 13), recorded only after tokens are minted
+	// so a USER_LOGIN is never written for a login that did not complete.
+	uc.logAuthAudit(ctx, user.ID, audit.ActionUserLogin, actor)
+
 	return &LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
@@ -151,7 +164,7 @@ func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest) (*LoginRespo
 }
 
 // Logout blacklists the access token JTI
-func (uc *AuthUseCase) Logout(ctx context.Context, accessToken string) error {
+func (uc *AuthUseCase) Logout(ctx context.Context, accessToken string, actor Actor) error {
 	claims, err := uc.jwtManager.ValidateToken(accessToken)
 	if err != nil {
 		return err
@@ -161,12 +174,35 @@ func (uc *AuthUseCase) Logout(ctx context.Context, accessToken string) error {
 	if err != nil {
 		return err
 	}
+	// Idempotent logout: clients routinely retry with an already-blacklisted
+	// token, so we skip the USER_LOGOUT audit on that path to avoid noise.
 	if blacklisted {
 		return nil
 	}
 
 	expiresAt := claims.ExpiresAt.Time
-	return uc.authRepo.BlacklistToken(ctx, claims.JTI, expiresAt)
+	if err := uc.authRepo.BlacklistToken(ctx, claims.JTI, expiresAt); err != nil {
+		return err
+	}
+
+	// Audit: logout (Job 13)
+	if userID, err := uuid.Parse(claims.UserID); err == nil {
+		uc.logAuthAudit(ctx, userID, audit.ActionUserLogout, actor)
+	}
+	return nil
+}
+
+// logAuthAudit writes an auth-related audit entry (login, failed login, or
+// logout) scoped to a user. Nil-safe: the audit service may be absent in tests.
+func (uc *AuthUseCase) logAuthAudit(ctx context.Context, userID uuid.UUID, action string, actor Actor) {
+	uc.auditSvc.Log(ctx, audit.AuditParams{
+		UserID:     &userID,
+		Action:     action,
+		EntityType: "user",
+		EntityID:   &userID,
+		IPAddress:  actor.IPAddress,
+		UserAgent:  actor.UserAgent,
+	})
 }
 
 // RefreshToken validates refresh token and issues new access token

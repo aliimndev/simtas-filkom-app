@@ -1,16 +1,16 @@
 import axios from 'axios'
+import { API_BASE } from '@/constants/api'
+import { useAuthStore } from '@/lib/stores/auth-store'
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
 })
 
 apiClient.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('access_token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
+  const token = useAuthStore.getState().accessToken
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
@@ -19,9 +19,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      if (typeof window !== 'undefined') {
+      useAuthStore.getState().clearAuth()
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
         window.location.href = '/login'
       }
     } else if (error.response?.status === 403) {

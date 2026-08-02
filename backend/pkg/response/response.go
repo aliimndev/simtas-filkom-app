@@ -1,9 +1,12 @@
 package response
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/apperror"
 )
 
 type Meta struct {
@@ -37,6 +40,16 @@ func Created(c *gin.Context, data interface{}) {
 	})
 }
 
+// SuccessWithMeta responds with 200 and both data and explicit pagination metadata.
+// Used when the data shape differs from a plain list (e.g. list + summary).
+func SuccessWithMeta(c *gin.Context, data interface{}, meta Meta) {
+	c.JSON(http.StatusOK, APIResponse{
+		Success: true,
+		Data:    data,
+		Meta:    &meta,
+	})
+}
+
 // Paginated responds with 200 and pagination metadata including total_pages
 func Paginated(c *gin.Context, data interface{}, page, perPage int, total int64) {
 	totalPages := 0
@@ -56,8 +69,15 @@ func Paginated(c *gin.Context, data interface{}, page, perPage int, total int64)
 }
 
 // Error responds with the given HTTP status and an error message.
-// The err argument is optional (used for logging context) and never sent to client.
-func Error(c *gin.Context, statusCode int, message string, _ error) {
+// When err is an *apperror.AppError its Code/Message take precedence, which
+// keeps every handler's error output consistent (Job 13). The err argument is
+// optional and never sent to the client.
+func Error(c *gin.Context, statusCode int, message string, err error) {
+	var appErr *apperror.AppError
+	if errors.As(err, &appErr) {
+		statusCode = apperror.CodeOf(err)
+		message = apperror.MessageOf(err)
+	}
 	c.JSON(statusCode, APIResponse{
 		Success: false,
 		Message: message,

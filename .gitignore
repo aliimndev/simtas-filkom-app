@@ -6,6 +6,9 @@
 # Go
 backend/vendor/
 backend/.env
+backend/coverage.out
+backend/coverage.html
+backend/seed
 
 # Node
 node_modules/

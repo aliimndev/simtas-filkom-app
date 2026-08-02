@@ -1,0 +1,93 @@
+name: CD — Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push-backend:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/simtas-backend
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest
+
+      - name: Login ke GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-backend:
+    name: Deploy Backend ke VPS
+    runs-on: ubuntu-latest
+    needs: build-and-push-backend
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ${{ secrets.VPS_DEPLOY_PATH }}
+
+            # Pull image terbaru
+            echo ${{ secrets.GHCR_TOKEN }} | \
+              docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull ghcr.io/${{ github.repository }}/simtas-backend:latest
+
+            # Update IMAGE_TAG di environment
+            export IMAGE_TAG=latest
+
+            # Rolling restart (zero-downtime)
+            docker compose -f docker-compose.prod.yml up -d --no-deps backend
+
+            # Jalankan migrasi jika ada
+            docker compose -f docker-compose.prod.yml run --rm \
+              backend ./simtas-api --migrate
+
+            # Health check
+            sleep 5
+            curl -f http://localhost:8080/api/v1/health || \
+              (echo "Health check gagal!" && exit 1)
+
+            # Cleanup image lama
+            docker image prune -f
+
+  deploy-frontend:
+    name: Deploy Frontend ke Vercel
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy ke Vercel Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: frontend
+          vercel-args: '--prod'

@@ -16,7 +16,7 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
 ## Checklist
 
 ### Defense Repository & Use Case
-- [ ] Buat `backend/internal/domain/repository/defense_repository.go` — interface:
+- [x] Buat `backend/internal/domain/repository/defense_repository.go` — interface:
   ```go
   type DefenseRepository interface {
     Create(ctx context.Context, defense *entity.ThesisDefense) error
@@ -35,11 +35,11 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
     CheckScheduleConflict(ctx context.Context, room string, scheduledAt time.Time, excludeID *uuid.UUID) (bool, error)
   }
   ```
-- [ ] `DefenseFilter`: `Status`, `ThesisID`, `ExaminerID`, `DateFrom`, `DateTo`, `Page`, `PerPage`
-- [ ] Buat `backend/internal/usecase/defense_usecase.go`
+- [x] `DefenseFilter`: `Status`, `ThesisID`, `ExaminerID`, `DateFrom`, `DateTo`, `Page`, `PerPage`
+- [x] Buat `backend/internal/usecase/defense_usecase.go`
 
 ### Komponen Penilaian Sidang (Bobot Tetap v1.0)
-- [ ] Tambahkan ke `backend/internal/domain/entity/grading.go`:
+- [x] Tambahkan ke `backend/internal/domain/entity/grading.go`:
   ```go
   // Bobot sidang sama dengan seminar di v1.0
   var DefenseGradingComponents = []GradingComponent{
@@ -49,10 +49,10 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
     {Name: "Kemampuan Menjawab", Weight: 15.0},
   }
   ```
-- [ ] Reuse `backend/pkg/grading/calculator.go` dari Job 08
+- [x] Reuse `backend/pkg/grading/calculator.go` dari Job 08
 
 ### Gate Checker — Sidang
-- [ ] Tambahkan ke `backend/internal/usecase/gate_checker.go`:
+- [x] Tambahkan ke `backend/internal/usecase/gate_checker.go`:
   ```go
   func (uc *DefenseUseCase) CanSubmitDefense(ctx context.Context, thesisID uuid.UUID) (bool, string, error)
   // Return: (canSubmit, reason jika tidak bisa, error)
@@ -63,21 +63,21 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
 ### Handler — Defense Endpoints
 
 **POST `/api/v1/theses/:thesis_id/defenses`** _(Mahasiswa pemilik only)_
-- [ ] Validasi gate:
+- [x] Validasi gate:
   - `CanSubmitDefense()` harus return `true`
   - Tidak boleh ada defense aktif (status bukan `failed`) untuk thesis ini
-- [ ] Buat record defense dengan status `pending`
-- [ ] Update status thesis → `defense_ready`
-- [ ] Audit log: `DEFENSE_SUBMITTED`
-- [ ] Email notification ke Kaprodi dan Admin (stub)
-- [ ] Response: `201 Created`
+- [x] Buat record defense dengan status `pending`
+- [x] Update status thesis → `defense_ready`
+- [x] Audit log: `DEFENSE_SUBMITTED`
+- [x] Email notification ke Kaprodi dan Admin (stub)
+- [x] Response: `201 Created`
 
 **GET `/api/v1/defenses`** _(Admin + Kaprodi: semua; Dosen Penguji: yang dia ditugaskan; Mahasiswa + Dosen Pembimbing: terkait thesis mereka)_
-- [ ] Query params: `status`, `date_from`, `date_to`, `examiner_id`, `page`, `per_page`
-- [ ] Return list defense dengan info lengkap
+- [x] Query params: `status`, `date_from`, `date_to`, `examiner_id`, `page`, `per_page`
+- [x] Return list defense dengan info lengkap
 
 **GET `/api/v1/defenses/:id`** _(akses sama)_
-- [ ] Return detail defense:
+- [x] Return detail defense:
   ```json
   {
     "id": "uuid",
@@ -93,7 +93,7 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
   ```
 
 **PUT `/api/v1/defenses/:id/schedule`** _(Admin + Kaprodi only)_
-- [ ] Request body:
+- [x] Request body:
   ```json
   {
     "scheduled_at": "2026-12-15T09:00:00Z",
@@ -101,24 +101,24 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
     "examiner_ids": ["uuid-penguji-1", "uuid-penguji-2"]
   }
   ```
-- [ ] Validasi:
+- [x] Validasi:
   - Status defense harus `pending` atau `scheduled` (reschedule)
   - `scheduled_at` minimal 7 hari dari sekarang (lebih ketat dari seminar)
   - Minimal 2 penguji, role `dosen_penguji`, `is_active = true`
   - Cek konflik jadwal ruangan dan penguji (sama seperti seminar)
-- [ ] Update status → `scheduled`
-- [ ] Audit log: `DEFENSE_SCHEDULED` atau `DEFENSE_RESCHEDULED`
-- [ ] Email notification ke mahasiswa, pembimbing, penguji (stub)
+- [x] Update status → `scheduled`
+- [x] Audit log: `DEFENSE_SCHEDULED` atau `DEFENSE_RESCHEDULED`
+- [x] Email notification ke mahasiswa, pembimbing, penguji (stub)
 
 **POST `/api/v1/defenses/:id/scores`** _(Dosen Penguji yang ditugaskan only)_
-- [ ] Struktur sama persis dengan seminar scores
-- [ ] Validasi sama: penguji ditugaskan, belum submit, status `scheduled`, semua komponen diisi, nilai 0–100
-- [ ] Trigger `TryFinalizeDefense()` setelah save
-- [ ] Audit log: `DEFENSE_SCORE_SUBMITTED`
+- [x] Struktur sama persis dengan seminar scores
+- [x] Validasi sama: penguji ditugaskan, belum submit, status `scheduled`, semua komponen diisi, nilai 0–100
+- [x] Trigger `TryFinalizeDefense()` setelah save
+- [x] Audit log: `DEFENSE_SCORE_SUBMITTED`
 
 **GET `/api/v1/defenses/:id/result`** _(semua pihak terkait)_
-- [ ] Return hasil lengkap dengan breakdown nilai
-- [ ] Tambahkan field `grade_category` berdasarkan `final_score`:
+- [x] Return hasil lengkap dengan breakdown nilai
+- [x] Tambahkan field `grade_category` berdasarkan `final_score`:
   ```go
   func GetGradeCategory(score float64) string {
     switch {
@@ -132,7 +132,7 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
   ```
 
 ### Auto-Calculate Final Score (Defense)
-- [ ] Implementasikan `TryFinalizeDefense()` di use case:
+- [x] Implementasikan `TryFinalizeDefense()` di use case:
   ```go
   func (uc *DefenseUseCase) TryFinalizeDefense(ctx context.Context, defenseID uuid.UUID) error {
     // Cek apakah semua penguji sudah submit
@@ -149,32 +149,32 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
   ```
 
 **PUT `/api/v1/defenses/:id/revision`** _(Admin + Kaprodi only)_
-- [ ] Request body: `{ "revision_notes": "Perbaiki kesimpulan dan saran di BAB 5..." }`
-- [ ] Hanya bisa dilakukan setelah defense selesai dinilai
-- [ ] Set `revision_notes`
-- [ ] Set status defense → `revision_required` jika belum
-- [ ] Audit log: `DEFENSE_REVISION_NOTED`
-- [ ] Email notification ke mahasiswa (stub)
+- [x] Request body: `{ "revision_notes": "Perbaiki kesimpulan dan saran di BAB 5..." }`
+- [x] Hanya bisa dilakukan setelah defense selesai dinilai
+- [x] Set `revision_notes`
+- [x] Set status defense → `revision_required` jika belum
+- [x] Audit log: `DEFENSE_REVISION_NOTED`
+- [x] Email notification ke mahasiswa (stub)
 
 ### Yudisium
 
 **PUT `/api/v1/theses/:thesis_id/graduation`** _(Kaprodi only)_
-- [ ] Validasi gate:
+- [x] Validasi gate:
   - Thesis harus berstatus `defense_done`
   - Defense harus berstatus `passed` atau `revision_required` (revisi sudah selesai)
   - Dokumen `final_thesis` harus berstatus `approved` (mahasiswa sudah upload skripsi final setelah revisi)
-- [ ] Request body: `{ "notes": "Selamat, skripsi Anda telah memenuhi semua persyaratan." }`
-- [ ] Set thesis status → `graduated`
-- [ ] Set `graduated_at = NOW()`
-- [ ] Audit log: `THESIS_GRADUATED`
-- [ ] Email notification khusus "Selamat, skripsi Anda dinyatakan lulus" ke mahasiswa (stub)
+- [x] Request body: `{ "notes": "Selamat, skripsi Anda telah memenuhi semua persyaratan." }`
+- [x] Set thesis status → `graduated`
+- [x] Set `graduated_at = NOW()`
+- [x] Audit log: `THESIS_GRADUATED`
+- [x] Email notification khusus "Selamat, skripsi Anda dinyatakan lulus" ke mahasiswa (stub)
 
 ### Endpoint Kombinasi — Jadwal Mendatang (untuk Dashboard)
 
 **GET `/api/v1/schedules/upcoming`** _(Admin + Kaprodi)_
-- [ ] Return seminar + sidang yang terjadwal dalam 14 hari ke depan
-- [ ] Digunakan oleh dashboard operasional
-- [ ] Response:
+- [x] Return seminar + sidang yang terjadwal dalam 14 hari ke depan
+- [x] Digunakan oleh dashboard operasional
+- [x] Response:
   ```json
   {
     "seminars": [ { seminar objects dengan info mahasiswa } ],
@@ -186,17 +186,17 @@ Implementasi alur lengkap sidang skripsi: pengajuan (dengan gate lulus seminar +
 
 ## Done Criteria
 
-- [ ] `POST .../defenses` sebelum seminar lulus → `422` dengan pesan jelas
-- [ ] `POST .../defenses` sebelum dokumen defense di-approve → `422`
-- [ ] `POST .../defenses` setelah semua gate terpenuhi → defense dibuat, status `pending`
-- [ ] `PUT /defenses/:id/schedule` dengan jadwal <7 hari → `400`
-- [ ] `POST /defenses/:id/scores` dengan semua penguji submit → `final_score` terhitung otomatis
-- [ ] `final_score` < 60 → status defense `failed`, thesis kembali ke `defense_ready`
-- [ ] `final_score` >= 60 → status defense `passed`, thesis ke `defense_done`
-- [ ] `GET /defenses/:id/result` → breakdown nilai per penguji + `grade_category`
-- [ ] `PUT .../graduation` sebelum defense `passed` → `422`
-- [ ] `PUT .../graduation` setelah semua prasyarat terpenuhi → thesis status `graduated`, `graduated_at` di-set
-- [ ] `GET /schedules/upcoming` → return seminar dan sidang dalam 14 hari ke depan
-- [ ] Email notification (stub) terpicu untuk semua event
-- [ ] Semua action tercatat di `audit_logs`
-- [ ] **MILESTONE:** Seluruh alur akademik backend (Job 05–09) dapat dijalankan end-to-end: pengajuan → approval → bimbingan → dokumen → seminar → sidang → yudisium
+- [x] `POST .../defenses` sebelum seminar lulus → `422` dengan pesan jelas
+- [x] `POST .../defenses` sebelum dokumen defense di-approve → `422`
+- [x] `POST .../defenses` setelah semua gate terpenuhi → defense dibuat, status `pending`
+- [x] `PUT /defenses/:id/schedule` dengan jadwal <7 hari → `400`
+- [x] `POST /defenses/:id/scores` dengan semua penguji submit → `final_score` terhitung otomatis
+- [x] `final_score` < 60 → status defense `failed`, thesis kembali ke `defense_ready`
+- [x] `final_score` >= 60 → status defense `passed`, thesis ke `defense_done`
+- [x] `GET /defenses/:id/result` → breakdown nilai per penguji + `grade_category`
+- [x] `PUT .../graduation` sebelum defense `passed` → `422`
+- [x] `PUT .../graduation` setelah semua prasyarat terpenuhi → thesis status `graduated`, `graduated_at` di-set
+- [x] `GET /schedules/upcoming` → return seminar dan sidang dalam 14 hari ke depan
+- [x] Email notification (stub) terpicu untuk semua event
+- [x] Semua action tercatat di `audit_logs`
+- [x] **MILESTONE:** Seluruh alur akademik backend (Job 05–09) dapat dijalankan end-to-end: pengajuan → approval → bimbingan → dokumen → seminar → sidang → yudisium

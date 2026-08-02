@@ -1,0 +1,8 @@
+{{define "content"}}
+<h1 style="margin:0 0 12px 0;font-size:20px;color:#111827;">Selamat! Skripsi Anda Dinyatakan Lulus 🎉</h1>
+{{if .Greeting}}<p style="margin:0 0 16px 0;font-size:14px;color:#374151;line-height:1.7;">{{.Greeting}}</p>{{end}}
+{{if .Message}}<p style="margin:0 0 16px 0;font-size:14px;color:#374151;line-height:1.7;">{{.Message}}</p>{{end}}
+{{template "detailTable" .}}
+<p style="margin:16px 0 0 0;font-size:13px;color:#6b7280;line-height:1.7;">Langkah selanjutnya: unggah skripsi final Anda untuk diarsipkan di perpustakaan digital FILKOM Unida.</p>
+{{template "ctaButton" .}}
+{{end}}

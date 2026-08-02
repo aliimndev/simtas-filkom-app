@@ -156,6 +156,16 @@ func (r *userRepository) ResetPassword(ctx context.Context, id uuid.UUID, passwo
 		}).Error
 }
 
+func (r *userRepository) ChangePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
+	return r.db.WithContext(ctx).
+		Model(&entity.User{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"password_hash":        passwordHash,
+			"must_change_password": false,
+		}).Error
+}
+
 func (r *userRepository) InvalidateUserSessions(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).
 		Model(&entity.User{}).

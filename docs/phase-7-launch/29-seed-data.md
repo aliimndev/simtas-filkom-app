@@ -18,9 +18,9 @@ Menyiapkan data awal production yang diperlukan sebelum sistem digunakan: role, 
 ### Strategi Seed Data
 
 - [ ] Pisahkan seed data antara **development** (data dummy banyak) dan **production** (data minimal dan nyata)
-- [ ] Buat script seed production: `backend/migrations/seeds/production/`
+- [x] Buat script seed production: `backend/cmd/seed` (idempotent, password acak kuat)
 - [ ] Script production tidak boleh berisi data dummy atau password default yang lemah
-- [ ] Jalankan seed hanya sekali (idempotent — aman dijalankan ulang tanpa duplikat data)
+- [x] Jalankan seed hanya sekali (idempotent — aman dijalankan ulang tanpa duplikat data)
 
 ### 1. Roles (sudah ada dari Job 02, verifikasi saja)
 
@@ -58,10 +58,10 @@ Menyiapkan data awal production yang diperlukan sebelum sistem digunakan: role, 
   Admin 1: admin@filkom.unida.ac.id
   Admin 2: admin2@filkom.unida.ac.id (atau email teknisi IT kampus)
   ```
-- [ ] Password: generate strong password (16 karakter, random)
+- [x] Password: generate strong password (16 karakter, random)
 - [ ] Set `must_change_password = true` agar admin ganti password saat pertama login
 - [ ] Catat password sementara dan sampaikan ke admin yang bersangkutan secara aman (jangan via chat publik)
-- [ ] Script:
+- [x] Script: `go run ./cmd/seed` (production, flag `--dev` untuk password sederhana di development) — password acak 16 karakter, dicetak sekali ke stdout
   ```go
   // Jalankan via: go run cmd/seed/main.go --env=production
   adminPassword := generateStrongPassword(16)

@@ -19,21 +19,21 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
 
 **File:** `frontend/src/app/(auth)/login/page.tsx`
 
-- [ ] Form dengan React Hook Form + Zod validation:
+- [x] Form dengan React Hook Form + Zod validation:
   ```ts
   const loginSchema = z.object({
     email: z.string().email("Format email tidak valid"),
     password: z.string().min(1, "Password tidak boleh kosong"),
   })
   ```
-- [ ] Layout:
+- [x] Layout:
   - Card centered di tengah layar dengan background subtle
   - Logo FILKOM Unida di atas form
   - Judul: "SIMTAS FILKOM" + subtitle "Sistem Manajemen Tugas Akhir dan Skripsi"
   - Field: Email, Password (dengan toggle show/hide)
   - Tombol "Masuk" dengan loading state saat submit
   - Link "Lupa Password?" di bawah tombol
-- [ ] Submit handler menggunakan TanStack Query `useMutation`:
+- [x] Submit handler menggunakan TanStack Query `useMutation`:
   ```ts
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
@@ -52,38 +52,38 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
     },
   })
   ```
-- [ ] Handling error spesifik:
+- [x] Handling error spesifik:
   - 401 → "Email atau password salah"
   - 403 (locked) → "Akun Anda terkunci. Silakan hubungi Admin Fakultas."
   - 429 → "Terlalu banyak percobaan. Tunggu beberapa menit."
-- [ ] Jika sudah login → redirect otomatis ke `/dashboard`
-- [ ] Responsive: tampil baik di mobile, tablet, desktop
+- [x] Jika sudah login → redirect otomatis ke `/dashboard`
+- [x] Responsive: tampil baik di mobile, tablet, desktop
 
 ### Halaman Lupa Password (`/forgot-password`)
 
 **File:** `frontend/src/app/(auth)/forgot-password/page.tsx`
 
-- [ ] Form:
+- [x] Form:
   ```ts
   const forgotSchema = z.object({
     email: z.string().email("Format email tidak valid"),
   })
   ```
-- [ ] Setelah submit sukses → tampilkan success state (bukan form lagi):
+- [x] Setelah submit sukses → tampilkan success state (bukan form lagi):
   ```
   ✅ Tautan reset password telah dikirim ke email Anda.
      Silakan cek inbox atau folder spam.
   ```
-- [ ] Tombol "Kembali ke Login"
-- [ ] Note: response selalu 200 dari backend (prevent email enumeration), tampilkan pesan yang sama apapun hasilnya
+- [x] Tombol "Kembali ke Login"
+- [x] Note: response selalu 200 dari backend (prevent email enumeration), tampilkan pesan yang sama apapun hasilnya
 
 ### Halaman Reset Password (`/reset-password?token=xxx`)
 
 **File:** `frontend/src/app/(auth)/reset-password/page.tsx`
 
-- [ ] Baca `token` dari query parameter saat halaman mount
-- [ ] Jika tidak ada token → redirect ke `/forgot-password`
-- [ ] Form:
+- [x] Baca `token` dari query parameter saat halaman mount
+- [x] Jika tidak ada token → redirect ke `/forgot-password`
+- [x] Form:
   ```ts
   const resetSchema = z.object({
     new_password: z.string()
@@ -96,29 +96,29 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
     path: ["confirm_password"],
   })
   ```
-- [ ] Password strength indicator visual (weak/medium/strong)
-- [ ] Setelah sukses → toast "Password berhasil diubah" + redirect ke `/login` setelah 2 detik
-- [ ] Jika token invalid/expired → tampilkan error state dengan link ke `/forgot-password`
+- [x] Password strength indicator visual (weak/medium/strong)
+- [x] Setelah sukses → toast "Password berhasil diubah" + redirect ke `/login` setelah 2 detik
+- [x] Jika token invalid/expired → tampilkan error state dengan link ke `/forgot-password`
 
 ### Halaman Ganti Password Pertama Kali (`/change-password`)
 
 **File:** `frontend/src/app/(dashboard)/change-password/page.tsx`
 
-- [ ] Muncul otomatis jika `must_change_password === true` setelah login
-- [ ] Redirect paksa: jika `must_change_password === true`, akses halaman lain selalu diarahkan ke sini dulu
-- [ ] Layout: halaman full (bukan modal), penjelasan singkat "Ini adalah login pertama Anda. Harap ganti password default."
-- [ ] Form sama seperti reset password
-- [ ] Setelah sukses → update `must_change_password = false` di auth store → redirect ke `/dashboard`
+- [x] Muncul otomatis jika `must_change_password === true` setelah login
+- [x] Redirect paksa: jika `must_change_password === true`, akses halaman lain selalu diarahkan ke sini dulu
+- [x] Layout: halaman full (bukan modal), penjelasan singkat "Ini adalah login pertama Anda. Harap ganti password default."
+- [x] Form sama seperti reset password
+- [x] Setelah sukses → update `must_change_password = false` di auth store → redirect ke `/dashboard`
 
 ### Halaman Profil (`/profile`)
 
 **File:** `frontend/src/app/(dashboard)/profile/page.tsx`
 
-- [ ] Tampilkan info user:
+- [x] Tampilkan info user:
   - Avatar / inisial nama
   - Nama lengkap, email, NIM/NIDN, program studi, role
   - Tombol "Edit Profil" (hanya untuk field tertentu: nama, foto profil)
-- [ ] Section Ubah Password:
+- [x] Section Ubah Password:
   ```ts
   const changePasswordSchema = z.object({
     current_password: z.string().min(1),
@@ -126,22 +126,22 @@ Implementasi semua halaman autentikasi: login, forgot password, reset password, 
     confirm_password: z.string(),
   }).refine(...)
   ```
-- [ ] Submit ubah password → call `PUT /api/v1/users/me/password`
+- [x] Submit ubah password → call `PUT /api/v1/users/me/password`
   - Sukses → toast "Password berhasil diubah", clear form
   - Error (wrong current password) → "Password lama tidak sesuai"
 
 ### TanStack Query — Auth Queries
 
 Buat `frontend/src/lib/api/hooks/useAuth.ts`:
-- [ ] `useCurrentUser()` — query `GET /auth/me`, enabled saat ada token
-- [ ] `useLoginMutation()` — mutation login
-- [ ] `useLogoutMutation()` — mutation logout (invalidate semua query cache + clear auth store)
-- [ ] `useForgotPasswordMutation()`
-- [ ] `useResetPasswordMutation()`
+- [x] `useCurrentUser()` — query `GET /auth/me`, enabled saat ada token
+- [x] `useLoginMutation()` — mutation login
+- [x] `useLogoutMutation()` — mutation logout (invalidate semua query cache + clear auth store)
+- [x] `useForgotPasswordMutation()`
+- [x] `useResetPasswordMutation()`
 
 ### Helper Error Message
 
-- [ ] Buat `frontend/src/lib/utils/error.ts`:
+- [x] Buat `frontend/src/lib/utils/error.ts`:
   ```ts
   export function getErrorMessage(error: unknown): string {
     if (axios.isAxiosError(error)) {
@@ -155,15 +155,15 @@ Buat `frontend/src/lib/api/hooks/useAuth.ts`:
 
 ## Done Criteria
 
-- [ ] Login dengan credential valid → redirect ke `/dashboard` sesuai role
-- [ ] Login gagal → toast error dengan pesan yang sesuai
-- [ ] Login saat akun terkunci → pesan spesifik tentang akun terkunci
-- [ ] `/forgot-password` → form submit → success state tampil
-- [ ] `/reset-password?token=valid` → ganti password → redirect ke login
-- [ ] `/reset-password?token=expired` → tampil error state dengan link ke forgot-password
-- [ ] Login pertama (`must_change_password=true`) → redirect paksa ke `/change-password`
-- [ ] Setelah ganti password pertama → bisa akses halaman lain
-- [ ] `/profile` → info user tampil, ubah password berfungsi
-- [ ] Semua form menampilkan error validasi inline (bukan alert)
-- [ ] Tombol submit menampilkan spinner saat loading
-- [ ] Responsive di semua ukuran layar
+- [x] Login dengan credential valid → redirect ke `/dashboard` sesuai role
+- [x] Login gagal → toast error dengan pesan yang sesuai
+- [x] Login saat akun terkunci → pesan spesifik tentang akun terkunci
+- [x] `/forgot-password` → form submit → success state tampil
+- [x] `/reset-password?token=valid` → ganti password → redirect ke login
+- [x] `/reset-password?token=expired` → tampil error state dengan link ke forgot-password
+- [x] Login pertama (`must_change_password=true`) → redirect paksa ke `/change-password`
+- [x] Setelah ganti password pertama → bisa akses halaman lain
+- [x] `/profile` → info user tampil, ubah password berfungsi
+- [x] Semua form menampilkan error validasi inline (bukan alert)
+- [x] Tombol submit menampilkan spinner saat loading
+- [x] Responsive di semua ukuran layar

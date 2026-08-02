@@ -16,7 +16,7 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
 ## Checklist
 
 ### Seminar Repository & Use Case
-- [ ] Buat `backend/internal/domain/repository/seminar_repository.go` — interface:
+- [x] Buat `backend/internal/domain/repository/seminar_repository.go` — interface:
   ```go
   type SeminarRepository interface {
     Create(ctx context.Context, seminar *entity.Seminar) error
@@ -35,11 +35,11 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
     CheckScheduleConflict(ctx context.Context, room string, scheduledAt time.Time, excludeID *uuid.UUID) (bool, error)
   }
   ```
-- [ ] `SeminarFilter`: `Status`, `ThesisID`, `ExaminerID`, `DateFrom`, `DateTo`, `Page`, `PerPage`
-- [ ] Buat `backend/internal/usecase/seminar_usecase.go`
+- [x] `SeminarFilter`: `Status`, `ThesisID`, `ExaminerID`, `DateFrom`, `DateTo`, `Page`, `PerPage`
+- [x] Buat `backend/internal/usecase/seminar_usecase.go`
 
 ### Komponen Penilaian (Bobot Tetap v1.0)
-- [ ] Definisikan konstanta bobot di `backend/internal/domain/entity/grading.go`:
+- [x] Definisikan konstanta bobot di `backend/internal/domain/entity/grading.go`:
   ```go
   var SeminarGradingComponents = []GradingComponent{
     {Name: "Presentasi",         Weight: 30.0},
@@ -53,7 +53,7 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
     Weight float64
   }
   ```
-- [ ] Buat `backend/pkg/grading/calculator.go`:
+- [x] Buat `backend/pkg/grading/calculator.go`:
   ```go
   // Hitung nilai akhir dari semua score penguji
   // Formula: rata-rata nilai berbobot dari semua penguji
@@ -66,22 +66,22 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
 ### Handler — Seminar Endpoints
 
 **POST `/api/v1/theses/:thesis_id/seminars`** _(Mahasiswa pemilik only)_
-- [ ] Validasi gate:
+- [x] Validasi gate:
   - `CanSubmitSeminar()` harus return `true` (dokumen `seminar_doc` sudah `approved`)
   - Thesis harus berstatus `in_progress`
   - Tidak boleh ada seminar aktif (status bukan `failed`) untuk thesis ini
-- [ ] Buat record seminar dengan status `pending`
-- [ ] Update status thesis → `seminar_ready`
-- [ ] Audit log: `SEMINAR_SUBMITTED`
-- [ ] Email notification ke Kaprodi dan Admin (stub)
-- [ ] Response: `201 Created`
+- [x] Buat record seminar dengan status `pending`
+- [x] Update status thesis → `seminar_ready`
+- [x] Audit log: `SEMINAR_SUBMITTED`
+- [x] Email notification ke Kaprodi dan Admin (stub)
+- [x] Response: `201 Created`
 
 **GET `/api/v1/seminars`** _(Admin + Kaprodi: semua; Dosen Penguji: yang dia ditugaskan; Mahasiswa + Dosen Pembimbing: terkait thesis mereka)_
-- [ ] Query params: `status`, `date_from`, `date_to`, `examiner_id`, `page`, `per_page`
-- [ ] Return list seminar dengan info thesis, mahasiswa, jadwal, penguji
+- [x] Query params: `status`, `date_from`, `date_to`, `examiner_id`, `page`, `per_page`
+- [x] Return list seminar dengan info thesis, mahasiswa, jadwal, penguji
 
 **GET `/api/v1/seminars/:id`** _(akses sama)_
-- [ ] Return detail seminar:
+- [x] Return detail seminar:
   ```json
   {
     "id": "uuid",
@@ -97,7 +97,7 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
   ```
 
 **PUT `/api/v1/seminars/:id/schedule`** _(Admin + Kaprodi only)_
-- [ ] Request body:
+- [x] Request body:
   ```json
   {
     "scheduled_at": "2026-11-10T09:00:00Z",
@@ -105,20 +105,20 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
     "examiner_ids": ["uuid-penguji-1", "uuid-penguji-2"]
   }
   ```
-- [ ] Validasi:
+- [x] Validasi:
   - Status seminar harus `pending` atau `scheduled` (untuk reschedule)
   - `scheduled_at` minimal 3 hari dari sekarang
   - Minimal 2 penguji
   - Setiap penguji harus role `dosen_penguji` dan `is_active = true`
   - Cek konflik jadwal: ruangan tidak boleh bentrok (dalam ±2 jam di tanggal yang sama)
   - Cek konflik penguji: penguji tidak boleh jadwal seminar/sidang lain di waktu yang sama
-- [ ] Replace examiner list (hapus yang lama, insert yang baru)
-- [ ] Update status → `scheduled`
-- [ ] Audit log: `SEMINAR_SCHEDULED` atau `SEMINAR_RESCHEDULED`
-- [ ] Email notification ke mahasiswa, pembimbing, dan penguji (stub)
+- [x] Replace examiner list (hapus yang lama, insert yang baru)
+- [x] Update status → `scheduled`
+- [x] Audit log: `SEMINAR_SCHEDULED` atau `SEMINAR_RESCHEDULED`
+- [x] Email notification ke mahasiswa, pembimbing, dan penguji (stub)
 
 **POST `/api/v1/seminars/:id/scores`** _(Dosen Penguji yang ditugaskan only)_
-- [ ] Request body:
+- [x] Request body:
   ```json
   {
     "scores": [
@@ -129,20 +129,20 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
     ]
   }
   ```
-- [ ] Validasi:
+- [x] Validasi:
   - Penguji harus terdaftar di `seminar_examiners` untuk seminar ini
   - Penguji belum pernah submit nilai untuk seminar ini (`HasExaminerScored` = false)
   - Status seminar harus `scheduled`
   - Semua komponen wajib diisi (sesuai `SeminarGradingComponents`)
   - Setiap nilai: 0–100
   - Nama komponen harus match dengan konstanta
-- [ ] Simpan semua komponen score dengan bobot yang sesuai
-- [ ] Cek apakah semua penguji sudah input nilai → jika ya, trigger kalkulasi nilai akhir
-- [ ] Audit log: `SEMINAR_SCORE_SUBMITTED`
+- [x] Simpan semua komponen score dengan bobot yang sesuai
+- [x] Cek apakah semua penguji sudah input nilai → jika ya, trigger kalkulasi nilai akhir
+- [x] Audit log: `SEMINAR_SCORE_SUBMITTED`
 
 **GET `/api/v1/seminars/:id/result`** _(semua pihak terkait)_
-- [ ] Cek apakah semua penguji sudah submit nilai
-- [ ] Return hasil lengkap:
+- [x] Cek apakah semua penguji sudah submit nilai
+- [x] Return hasil lengkap:
   ```json
   {
     "seminar_id": "uuid",
@@ -165,7 +165,7 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
   ```
 
 ### Auto-Calculate Final Score (trigger setelah semua penguji submit)
-- [ ] Implementasikan di use case setelah score submission:
+- [x] Implementasikan di use case setelah score submission:
   ```go
   func (uc *SeminarUseCase) TryFinalizeSeminar(ctx context.Context, seminarID uuid.UUID) error {
     examiners := // get seminar examiners count
@@ -186,24 +186,24 @@ Implementasi alur lengkap seminar proposal: pengajuan oleh mahasiswa (dengan gat
   ```
 
 **PUT `/api/v1/seminars/:id/revision`** _(Admin + Kaprodi only)_
-- [ ] Request body: `{ "revision_notes": "Perbaiki rumusan masalah di BAB 1..." }`
-- [ ] Hanya bisa dilakukan setelah seminar `passed`
-- [ ] Simpan catatan revisi di field `notes`
-- [ ] Audit log: `SEMINAR_REVISION_NOTED`
+- [x] Request body: `{ "revision_notes": "Perbaiki rumusan masalah di BAB 1..." }`
+- [x] Hanya bisa dilakukan setelah seminar `passed`
+- [x] Simpan catatan revisi di field `notes`
+- [x] Audit log: `SEMINAR_REVISION_NOTED`
 
 ---
 
 ## Done Criteria
 
-- [ ] `POST .../seminars` sebelum dokumen seminar di-approve → `422 Unprocessable Entity`
-- [ ] `POST .../seminars` setelah dokumen approved → seminar dibuat, status `pending`
-- [ ] `PUT /seminars/:id/schedule` → status jadi `scheduled`, penguji terdaftar
-- [ ] `PUT /seminars/:id/schedule` dengan jadwal <3 hari dari sekarang → `400`
-- [ ] `PUT /seminars/:id/schedule` dengan ruangan konflik → `409 Conflict`
-- [ ] `POST /seminars/:id/scores` oleh penguji yang tidak ditugaskan → `403`
-- [ ] `POST /seminars/:id/scores` oleh penguji yang sudah submit → `409`
-- [ ] Setelah semua penguji submit nilai → `final_score` terhitung, status `passed` atau `failed`
-- [ ] Kalkulasi: 2 penguji, nilai masing-masing 80 dan 90 dengan bobot standar → rata-rata = 85
-- [ ] `GET /seminars/:id/result` → detail breakdown nilai per penguji per komponen
-- [ ] Email notification (stub) terpicu untuk setiap event
-- [ ] Semua action tercatat di `audit_logs`
+- [x] `POST .../seminars` sebelum dokumen seminar di-approve → `422 Unprocessable Entity`
+- [x] `POST .../seminars` setelah dokumen approved → seminar dibuat, status `pending`
+- [x] `PUT /seminars/:id/schedule` → status jadi `scheduled`, penguji terdaftar
+- [x] `PUT /seminars/:id/schedule` dengan jadwal <3 hari dari sekarang → `400`
+- [x] `PUT /seminars/:id/schedule` dengan ruangan konflik → `409 Conflict`
+- [x] `POST /seminars/:id/scores` oleh penguji yang tidak ditugaskan → `403`
+- [x] `POST /seminars/:id/scores` oleh penguji yang sudah submit → `409`
+- [x] Setelah semua penguji submit nilai → `final_score` terhitung, status `passed` atau `failed`
+- [x] Kalkulasi: 2 penguji, nilai masing-masing 80 dan 90 dengan bobot standar → rata-rata = 85
+- [x] `GET /seminars/:id/result` → detail breakdown nilai per penguji per komponen
+- [x] Email notification (stub) terpicu untuk setiap event
+- [x] Semua action tercatat di `audit_logs`

@@ -146,7 +146,7 @@ jobs:
           NEXT_PUBLIC_APP_NAME: SIMTAS FILKOM
 ```
 
-- [ ] Tambah ke `frontend/package.json` script:
+- [x] Tambah ke `frontend/package.json` script (type-check):
   ```json
   "type-check": "tsc --noEmit"
   ```

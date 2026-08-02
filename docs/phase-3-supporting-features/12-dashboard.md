@@ -16,7 +16,7 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
 ## Checklist
 
 ### Dashboard Repository
-- [ ] Buat `backend/internal/domain/repository/dashboard_repository.go` — interface:
+- [x] Buat `backend/internal/domain/repository/dashboard_repository.go` — interface:
   ```go
   type DashboardRepository interface {
     // Admin & Kaprodi
@@ -39,7 +39,7 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
   }
   ```
 
-- [ ] `DashboardFilter`:
+- [x] `DashboardFilter`:
   ```go
   type DashboardFilter struct {
     AcademicYearID *uuid.UUID
@@ -49,7 +49,7 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
   ```
 
 ### Struct Hasil Query
-- [ ] Definisikan semua response struct di `backend/internal/handler/dto/dashboard_dto.go`:
+- [x] Definisikan semua response struct di `backend/internal/handler/dto/dashboard_dto.go`:
   ```go
   type AcademicSummary struct {
     TotalActive        int     `json:"total_active"`
@@ -100,8 +100,8 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
 ### Handler — Dashboard Endpoints
 
 **GET `/api/v1/dashboard/summary`** _(Admin + Kaprodi only)_
-- [ ] Query params: `academic_year_id`, `semester`, `study_program`
-- [ ] Response:
+- [x] Query params: `academic_year_id`, `semester`, `study_program`
+- [x] Response:
   ```json
   {
     "success": true,
@@ -129,8 +129,8 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
   ```
 
 **GET `/api/v1/dashboard/lecturer-analytics`** _(Admin + Kaprodi only)_
-- [ ] Query params: sama
-- [ ] Response:
+- [x] Query params: sama
+- [x] Response:
   ```json
   {
     "success": true,
@@ -157,7 +157,7 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
   ```
 
 **GET `/api/v1/dashboard/operational`** _(Admin + Kaprodi only)_
-- [ ] Response:
+- [x] Response:
   ```json
   {
     "success": true,
@@ -190,7 +190,7 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
   ```
 
 **GET `/api/v1/dashboard/student`** _(Mahasiswa — hanya data miliknya)_
-- [ ] Return `StudentProgress` lengkap:
+- [x] Return `StudentProgress` lengkap:
   ```json
   {
     "success": true,
@@ -215,7 +215,7 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
     }
   }
   ```
-- [ ] `progress_percentage` dihitung berdasarkan stage:
+- [x] `progress_percentage` dihitung berdasarkan stage:
   ```go
   var StageProgress = map[string]int{
     "submitted":     10,
@@ -228,10 +228,10 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
     "graduated":     100,
   }
   ```
-- [ ] `pending_actions` berisi list string aksi yang harus dilakukan mahasiswa saat ini
+- [x] `pending_actions` berisi list string aksi yang harus dilakukan mahasiswa saat ini
 
 **GET `/api/v1/dashboard/supervisor`** _(Dosen Pembimbing)_
-- [ ] Return ringkasan semua mahasiswa bimbingan:
+- [x] Return ringkasan semua mahasiswa bimbingan:
   ```json
   {
     "success": true,
@@ -255,10 +255,10 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
     }
   }
   ```
-- [ ] Urutkan mahasiswa: yang paling lama tidak bimbingan di atas (perlu perhatian lebih)
+- [x] Urutkan mahasiswa: yang paling lama tidak bimbingan di atas (perlu perhatian lebih)
 
 **GET `/api/v1/dashboard/examiner`** _(Dosen Penguji)_
-- [ ] Return:
+- [x] Return:
   ```json
   {
     "success": true,
@@ -280,7 +280,7 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
   ```
 
 ### Query Optimasi
-- [ ] Semua query aggregasi menggunakan SQL langsung (bukan loop di Go):
+- [x] Semua query aggregasi menggunakan SQL langsung (bukan loop di Go):
   ```go
   // Contoh: count thesis per status
   var results []StatusCount
@@ -292,20 +292,20 @@ Implementasi semua endpoint API dashboard untuk setiap role: dashboard komprehen
     GROUP BY status
   `, academicYearID).Scan(&results)
   ```
-- [ ] Tambahkan index di database jika query lambat (EXPLAIN ANALYZE)
-- [ ] Target response time: < 500ms untuk semua dashboard endpoint
+- [x] Tambahkan index di database jika query lambat (EXPLAIN ANALYZE)
+- [x] Target response time: < 500ms untuk semua dashboard endpoint
 
 ---
 
 ## Done Criteria
 
-- [ ] `GET /dashboard/summary` → return data akurat sesuai state database
-- [ ] `GET /dashboard/summary?academic_year_id=xxx` → data terfilter per tahun akademik
-- [ ] `GET /dashboard/lecturer-analytics` → workload per dosen akurat
-- [ ] `GET /dashboard/operational` → pending actions count sesuai data aktual
-- [ ] `GET /dashboard/student` → progress mahasiswa + pending actions tepat
-- [ ] `GET /dashboard/supervisor` → daftar mahasiswa bimbingan + status masing-masing
-- [ ] `GET /dashboard/examiner` → jadwal dan pending scores
-- [ ] Semua endpoint dashboard hanya bisa diakses role yang sesuai
-- [ ] Response time < 500ms untuk dataset 100 user (ukur dengan `time curl`)
-- [ ] `progress_percentage` terhitung dengan benar untuk setiap status
+- [x] `GET /dashboard/summary` → return data akurat sesuai state database
+- [x] `GET /dashboard/summary?academic_year_id=xxx` → data terfilter per tahun akademik
+- [x] `GET /dashboard/lecturer-analytics` → workload per dosen akurat
+- [x] `GET /dashboard/operational` → pending actions count sesuai data aktual
+- [x] `GET /dashboard/student` → progress mahasiswa + pending actions tepat
+- [x] `GET /dashboard/supervisor` → daftar mahasiswa bimbingan + status masing-masing
+- [x] `GET /dashboard/examiner` → jadwal dan pending scores
+- [x] Semua endpoint dashboard hanya bisa diakses role yang sesuai
+- [x] Response time < 500ms untuk dataset 100 user (ukur dengan `time curl`)
+- [x] `progress_percentage` terhitung dengan benar untuk setiap status

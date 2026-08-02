@@ -1,5 +1,25 @@
 package main
 
+// SIMTAS FILKOM API (Job 22)
+//
+//	@title           SIMTAS FILKOM API
+//	@version         1.0
+//	@description     API untuk Sistem Manajemen Tugas Akhir dan Skripsi Fakultas Ilmu Komputer Universitas Djuanda.
+//	@termsOfService  https://filkom.unida.ac.id
+//
+//	@contact.name   Admin SIMTAS FILKOM
+//	@contact.email  admin@filkom.unida.ac.id
+//
+//	@license.name  MIT
+//	@license.url   https://opensource.org/licenses/MIT
+//
+//	@host      localhost:8080
+//	@BasePath  /api/v1
+//
+//	@securityDefinitions.apikey BearerAuth
+//	@in header
+//	@name Authorization
+//	@description Masukkan token dengan format: Bearer {token}
 import (
 	"flag"
 	"fmt"
@@ -8,9 +28,15 @@ import (
 	"path/filepath"
 	"runtime"
 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "github.com/aliimndev/simtas-filkom-app/backend/docs" // generated OpenAPI docs
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/handler"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/config"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/database"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/logger"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/scheduler"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -27,6 +53,9 @@ func main() {
 	}
 
 	cfg := config.Load()
+
+	// ── Structured logging (Job 13) ──────────────────────────────────────
+	logger.Init(cfg.AppEnv)
 
 	// ── Database ──────────────────────────────────────────────────────────
 	db, err := database.Connect(cfg)
@@ -79,6 +108,15 @@ func main() {
 	// Register all routes (auth + middleware)
 	r := handler.NewRouter(engine, db, cfg)
 	r.Setup()
+
+	// ── Swagger UI (Job 22, non-production only) ─────────────────────────
+	if cfg.AppEnv != "production" {
+		engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
+
+	// ── Token blacklist cleanup (Job 13) ─────────────────────────────────
+	stopCleanup := scheduler.StartTokenCleanup(db)
+	defer stopCleanup()
 
 	// ── Start server ──────────────────────────────────────────────────────
 	addr := fmt.Sprintf(":%s", cfg.AppPort)

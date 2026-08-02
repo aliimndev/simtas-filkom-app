@@ -81,7 +81,7 @@ Backend sudah menggunakan `slog` (dari Job 13). Di production, log ditulis ke st
 
 ### Health Check Endpoint Enhancement
 
-- [ ] Update `GET /api/v1/health` agar lebih informatif:
+- [x] Update `GET /api/v1/health` agar lebih informatif:
   ```go
   // Response production health check
   {
@@ -92,11 +92,11 @@ Backend sudah menggunakan `slog` (dari Job 13). Di production, log ditulis ke st
     "database": "ok"   // ping database, return "error" jika gagal
   }
   ```
-- [ ] Jika database ping gagal → status 503 (UptimeRobot akan alert)
+- [x] Jika database ping gagal → status 503 (UptimeRobot akan alert)
 
 ### Error Alerting Sederhana
 
-- [ ] Buat script `scripts/check-errors.sh` yang berjalan via cron setiap jam:
+- [x] Buat script `scripts/check-errors.sh` yang berjalan via cron setiap jam:
   ```bash
   #!/bin/bash
   # Cek apakah ada error 5xx dalam 1 jam terakhir
@@ -122,7 +122,7 @@ Backend sudah menggunakan `slog` (dari Job 13). Di production, log ditulis ke st
 
 ### Runbook — Prosedur Operasional
 
-- [ ] Buat file `docs/runbook.md` dengan prosedur:
+- [x] Buat file `docs/runbook.md` dengan prosedur:
 
   **Restart backend:**
   ```bash

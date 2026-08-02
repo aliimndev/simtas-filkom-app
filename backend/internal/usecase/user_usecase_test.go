@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
@@ -116,6 +117,11 @@ func (f *fakeUserRepo) ResetPassword(_ context.Context, id uuid.UUID, _ string) 
 	return nil
 }
 
+func (f *fakeUserRepo) ChangePassword(_ context.Context, id uuid.UUID, _ string) error {
+	f.resetPw = append(f.resetPw, id)
+	return nil
+}
+
 func (f *fakeUserRepo) InvalidateUserSessions(_ context.Context, id uuid.UUID) error {
 	f.invalidated = append(f.invalidated, id)
 	return nil
@@ -139,6 +145,42 @@ func (f *fakeEmailService) SendThesisRejected(context.Context, string, *entity.T
 	return nil
 }
 func (f *fakeEmailService) SendSupervisorAssigned(context.Context, string, []string, *entity.Thesis) error {
+	return nil
+}
+func (f *fakeEmailService) SendConsultationCreated(context.Context, []string, *entity.ConsultationLog) error {
+	return nil
+}
+func (f *fakeEmailService) SendConsultationApproved(context.Context, string, *entity.ConsultationLog) error {
+	return nil
+}
+func (f *fakeEmailService) SendDocumentUploaded(context.Context, []string, *entity.Document) error {
+	return nil
+}
+func (f *fakeEmailService) SendDocumentReviewed(context.Context, string, *entity.Document, string) error {
+	return nil
+}
+func (f *fakeEmailService) SendSeminarSubmitted(context.Context, []string, *entity.Seminar) error {
+	return nil
+}
+func (f *fakeEmailService) SendSeminarScheduled(context.Context, []string, *entity.Seminar) error {
+	return nil
+}
+func (f *fakeEmailService) SendSeminarFinalized(context.Context, string, *entity.Seminar) error {
+	return nil
+}
+func (f *fakeEmailService) SendDefenseSubmitted(context.Context, []string, *entity.ThesisDefense) error {
+	return nil
+}
+func (f *fakeEmailService) SendDefenseScheduled(context.Context, []string, *entity.ThesisDefense) error {
+	return nil
+}
+func (f *fakeEmailService) SendDefenseFinalized(context.Context, string, *entity.ThesisDefense) error {
+	return nil
+}
+func (f *fakeEmailService) SendGraduated(context.Context, string, *entity.Thesis) error {
+	return nil
+}
+func (f *fakeEmailService) SendArchiveCreated(context.Context, string, *entity.ThesisArchive) error {
 	return nil
 }
 
@@ -261,5 +303,56 @@ func TestResetPassword(t *testing.T) {
 	}
 	if len(repo.resetPw) != 1 || repo.resetPw[0] != target.ID {
 		t.Errorf("expected password reset for target user")
+	}
+}
+
+func TestChangeMyPassword(t *testing.T) {
+	uc, repo := newTestUserUseCase()
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte("OldPass123"), 12)
+	target := &entity.User{Email: "target@example.com", FullName: "Target", RoleID: 3, PasswordHash: string(hash)}
+	_ = repo.Create(context.Background(), target)
+
+	err := uc.ChangeMyPassword(context.Background(), target.ID, ChangePasswordRequest{
+		CurrentPassword: "OldPass123",
+		NewPassword:     "NewPass456",
+	}, Actor{UserID: uuid.New()})
+	if err != nil {
+		t.Fatalf("ChangeMyPassword returned error: %v", err)
+	}
+	if len(repo.resetPw) != 1 || repo.resetPw[0] != target.ID {
+		t.Errorf("expected password change + session invalidation for target user")
+	}
+}
+
+func TestChangeMyPasswordWrongCurrent(t *testing.T) {
+	uc, repo := newTestUserUseCase()
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte("OldPass123"), 12)
+	target := &entity.User{Email: "target@example.com", FullName: "Target", RoleID: 3, PasswordHash: string(hash)}
+	_ = repo.Create(context.Background(), target)
+
+	err := uc.ChangeMyPassword(context.Background(), target.ID, ChangePasswordRequest{
+		CurrentPassword: "WrongPass",
+		NewPassword:     "NewPass456",
+	}, Actor{UserID: uuid.New()})
+	if !errors.Is(err, ErrPasswordMismatch) {
+		t.Errorf("expected ErrPasswordMismatch, got %v", err)
+	}
+}
+
+func TestChangeMyPasswordNotComplex(t *testing.T) {
+	uc, repo := newTestUserUseCase()
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte("OldPass123"), 12)
+	target := &entity.User{Email: "target@example.com", FullName: "Target", RoleID: 3, PasswordHash: string(hash)}
+	_ = repo.Create(context.Background(), target)
+
+	err := uc.ChangeMyPassword(context.Background(), target.ID, ChangePasswordRequest{
+		CurrentPassword: "OldPass123",
+		NewPassword:     "alllowercase",
+	}, Actor{UserID: uuid.New()})
+	if !errors.Is(err, ErrPasswordNotComplex) {
+		t.Errorf("expected ErrPasswordNotComplex, got %v", err)
 	}
 }

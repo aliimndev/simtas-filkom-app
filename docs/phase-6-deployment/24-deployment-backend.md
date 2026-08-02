@@ -58,7 +58,7 @@ Deploy backend Go ke VPS Ubuntu menggunakan Docker, konfigurasi Nginx sebagai re
 
 ### Docker Compose Production
 
-- [ ] Buat `docker-compose.prod.yml` di VPS (bukan di repo):
+- [x] Buat `docker-compose.prod.yml` di VPS (bukan di repo): template tersedia di deploy/docker-compose.prod.yml (copy + isi .env.production di VPS)
   ```yaml
   version: '3.8'
   services:
@@ -170,6 +170,9 @@ Deploy backend Go ke VPS Ubuntu menggunakan Docker, konfigurasi Nginx sebagai re
   FRONTEND_URL=https://simtas.filkom.unida.ac.id
   EMAIL_DEV_MODE=false
   STORAGE_PROVIDER=supabase
+  # Wajib untuk docker-compose.prod.yml (nama image GHCR)
+  GITHUB_REPO=aliimndev/simtas-filkom-app
+  IMAGE_TAG=latest
   ```
 - [ ] Jalankan migrasi saat pertama deploy:
   ```bash
@@ -178,7 +181,7 @@ Deploy backend Go ke VPS Ubuntu menggunakan Docker, konfigurasi Nginx sebagai re
 
 ### Database Backup
 
-- [ ] Script backup harian `backups/backup.sh`:
+- [x] Script backup harian `backups/backup.sh` (ada di scripts/backup.sh):
   ```bash
   #!/bin/bash
   TIMESTAMP=$(date +%Y%m%d_%H%M%S)

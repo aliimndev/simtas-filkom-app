@@ -21,7 +21,17 @@ func NewThesisHandler(uc *usecase.ThesisUseCase) *ThesisHandler {
 	return &ThesisHandler{thesisUseCase: uc}
 }
 
-// CreateThesis handles POST /api/v1/theses (Mahasiswa only)
+// CreateThesis godoc
+// @Summary      Ajukan judul skripsi
+// @Description  Mengajukan judul skripsi baru (Mahasiswa only)
+// @Tags         Thesis Submission
+// @Accept       json
+// @Produce      json
+// @Param        body body usecase.CreateThesisRequest true "Data pengajuan"
+// @Success      201  {object}  response.APIResponse{data=usecase.ThesisDetail} "Pengajuan dibuat"
+// @Failure      400  {object}  response.APIResponse "Data tidak valid / sudah punya thesis aktif"
+// @Security     BearerAuth
+// @Router       /theses [post]
 func (h *ThesisHandler) CreateThesis(c *gin.Context) {
 	var req usecase.CreateThesisRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -40,7 +50,22 @@ func (h *ThesisHandler) CreateThesis(c *gin.Context) {
 	response.Created(c, thesis)
 }
 
-// ListTheses handles GET /api/v1/theses (all roles, scoped by role)
+// ListTheses godoc
+// @Summary      Daftar thesis
+// @Description  Mengambil daftar thesis (scope per role: admin/kaprodi semua, dosen pembimbing miliknya, mahasiswa miliknya)
+// @Tags         Thesis Submission
+// @Produce      json
+// @Param        status query string false "Filter status"
+// @Param        academic_year_id query string false "Filter tahun akademik"
+// @Param        study_program query string false "Filter program studi"
+// @Param        field_of_study query string false "Filter bidang keahlian"
+// @Param        supervisor_id query string false "Filter dosen pembimbing"
+// @Param        search query string false "Cari judul/nama/NIM"
+// @Param        page query int false "Halaman (default 1)"
+// @Param        per_page query int false "Per halaman (default 20)"
+// @Success      200  {object}  response.APIResponse "Daftar thesis"
+// @Security     BearerAuth
+// @Router       /theses [get]
 func (h *ThesisHandler) ListTheses(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	perPage, _ := strconv.Atoi(c.DefaultQuery("per_page", "20"))
@@ -95,9 +120,19 @@ func (h *ThesisHandler) ListTheses(c *gin.Context) {
 	response.Paginated(c, theses, page, perPage, total)
 }
 
-// GetThesis handles GET /api/v1/theses/:id (all roles, scoped by role)
+// GetThesis godoc
+// @Summary      Detail thesis
+// @Description  Mengambil detail thesis lengkap (scope per role)
+// @Tags         Thesis Submission
+// @Produce      json
+// @Param        thesis_id path string true "Thesis ID (UUID)"
+// @Success      200  {object}  response.APIResponse{data=usecase.ThesisDetail} "Detail thesis"
+// @Failure      403  {object}  response.APIResponse "Akses ditolak"
+// @Failure      404  {object}  response.APIResponse "Thesis tidak ditemukan"
+// @Security     BearerAuth
+// @Router       /theses/{thesis_id} [get]
 func (h *ThesisHandler) GetThesis(c *gin.Context) {
-	id, ok := parseUUIDParam(c)
+	id, ok := parseThesisIDParam(c)
 	if !ok {
 		return
 	}
@@ -123,9 +158,21 @@ func (h *ThesisHandler) GetThesis(c *gin.Context) {
 	response.Success(c, http.StatusOK, thesis)
 }
 
-// ReviewThesis handles PUT /api/v1/theses/:id/review (Kaprodi only)
+// ReviewThesis godoc
+// @Summary      Review pengajuan judul
+// @Description  Menyetujui atau menolak pengajuan judul (Kaprodi only)
+// @Tags         Thesis Submission
+// @Accept       json
+// @Produce      json
+// @Param        thesis_id path string true "Thesis ID (UUID)"
+// @Param        body body usecase.ReviewThesisRequest true "Keputusan review"
+// @Success      200  {object}  response.APIResponse{data=usecase.ThesisDetail} "Hasil review"
+// @Failure      400  {object}  response.APIResponse "Decision tidak valid"
+// @Failure      422  {object}  response.APIResponse "Status bukan submitted"
+// @Security     BearerAuth
+// @Router       /theses/{thesis_id}/review [put]
 func (h *ThesisHandler) ReviewThesis(c *gin.Context) {
-	id, ok := parseUUIDParam(c)
+	id, ok := parseThesisIDParam(c)
 	if !ok {
 		return
 	}
@@ -144,9 +191,20 @@ func (h *ThesisHandler) ReviewThesis(c *gin.Context) {
 	response.Success(c, http.StatusOK, thesis)
 }
 
-// AssignSupervisor handles PUT /api/v1/theses/:id/assign-supervisor (Kaprodi only)
+// AssignSupervisor godoc
+// @Summary      Tunjuk dosen pembimbing
+// @Description  Menetapkan 1-2 dosen pembimbing untuk thesis (Kaprodi only)
+// @Tags         Thesis Submission
+// @Accept       json
+// @Produce      json
+// @Param        thesis_id path string true "Thesis ID (UUID)"
+// @Param        body body usecase.AssignSupervisorRequest true "Daftar supervisor"
+// @Success      200  {object}  response.APIResponse{data=usecase.ThesisDetail} "Thesis dengan supervisor"
+// @Failure      400  {object}  response.APIResponse "Supervisor tidak valid"
+// @Security     BearerAuth
+// @Router       /theses/{thesis_id}/assign-supervisor [put]
 func (h *ThesisHandler) AssignSupervisor(c *gin.Context) {
-	id, ok := parseUUIDParam(c)
+	id, ok := parseThesisIDParam(c)
 	if !ok {
 		return
 	}
@@ -165,9 +223,20 @@ func (h *ThesisHandler) AssignSupervisor(c *gin.Context) {
 	response.Success(c, http.StatusOK, thesis)
 }
 
-// CancelThesis handles PATCH /api/v1/theses/:id/cancel (Admin + Kaprodi only)
+// CancelThesis godoc
+// @Summary      Batalkan thesis
+// @Description  Membatalkan thesis (Admin + Kaprodi only)
+// @Tags         Thesis Submission
+// @Accept       json
+// @Produce      json
+// @Param        thesis_id path string true "Thesis ID (UUID)"
+// @Param        body body usecase.CancelThesisRequest false "Alasan pembatalan (opsional)"
+// @Success      200  {object}  response.APIResponse "Thesis berhasil dibatalkan"
+// @Failure      400  {object}  response.APIResponse "Thesis sudah dibatalkan"
+// @Security     BearerAuth
+// @Router       /theses/{thesis_id}/cancel [patch]
 func (h *ThesisHandler) CancelThesis(c *gin.Context) {
-	id, ok := parseUUIDParam(c)
+	id, ok := parseThesisIDParam(c)
 	if !ok {
 		return
 	}
@@ -184,7 +253,14 @@ func (h *ThesisHandler) CancelThesis(c *gin.Context) {
 	response.Success(c, http.StatusOK, gin.H{"message": "Thesis berhasil dibatalkan"})
 }
 
-// ListLecturers handles GET /api/v1/lecturers (Kaprodi + Admin only)
+// ListLecturers godoc
+// @Summary      Daftar dosen pembimbing
+// @Description  Mengambil daftar dosen pembimbing aktif dengan beban bimbingan (Kaprodi + Admin only)
+// @Tags         Thesis Submission
+// @Produce      json
+// @Success      200  {object}  response.APIResponse "Daftar dosen pembimbing"
+// @Security     BearerAuth
+// @Router       /lecturers [get]
 func (h *ThesisHandler) ListLecturers(c *gin.Context) {
 	lecturers, err := h.thesisUseCase.ListLecturers(c.Request.Context())
 	if err != nil {
