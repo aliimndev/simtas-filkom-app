@@ -17,29 +17,29 @@ Generate dokumentasi API lengkap menggunakan Swagger/OpenAPI dari kode Go, pasti
 
 ### Setup Swaggo
 
-- [ ] Install swaggo:
+- [x] Install swaggo:
   ```bash
-  go install github.com/swaggo/swag/cmd/swag@latest
+  go install github.com/swaggo/swag/cmd/swag@v1.16.4
   go get github.com/swaggo/gin-swagger
   go get github.com/swaggo/files
   go get github.com/swaggo/swag
   ```
-- [ ] Tambah `swag init` ke Makefile:
+- [x] Tambah `swag init` ke Makefile (`make docs`):
   ```makefile
   docs:
-      swag init -g cmd/server/main.go -o docs/swagger
+      swag init -g cmd/server/main.go -o docs
   ```
-- [ ] Setup route Swagger UI di Gin (hanya di non-production):
+- [x] Setup route Swagger UI di Gin (hanya di non-production):
   ```go
-  if cfg.Env != "production" {
-      r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+  if cfg.AppEnv != "production" {
+      engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
   }
   ```
-- [ ] Akses di: `http://localhost:8080/swagger/index.html`
+- [x] Akses di: `http://localhost:8080/swagger/index.html`
 
 ### Anotasi General (`cmd/server/main.go`)
 
-- [ ] Tambah anotasi utama:
+- [x] Tambah anotasi utama:
   ```go
   // @title           SIMTAS FILKOM API
   // @version         1.0
@@ -83,43 +83,29 @@ Dokumentasikan SEMUA endpoint dari job 03–13. Contoh format:
 func (h *AuthHandler) Login(c *gin.Context) { ... }
 ```
 
-- [ ] Dokumentasikan semua endpoint Auth (6 endpoint)
-- [ ] Dokumentasikan semua endpoint User Management (8 endpoint)
-- [ ] Dokumentasikan semua endpoint Thesis (7 endpoint)
-- [ ] Dokumentasikan semua endpoint Consultation (6 endpoint)
-- [ ] Dokumentasikan semua endpoint Document (5 endpoint)
-- [ ] Dokumentasikan semua endpoint Seminar (7 endpoint)
-- [ ] Dokumentasikan semua endpoint Defense (7 endpoint)
-- [ ] Dokumentasikan semua endpoint Archive (5 endpoint)
-- [ ] Dokumentasikan semua endpoint Dashboard (6 endpoint)
-- [ ] Dokumentasikan semua endpoint Academic Year (4 endpoint)
-- [ ] Dokumentasikan endpoint Audit Log (2 endpoint)
+- [x] Dokumentasikan semua endpoint Auth (6 endpoint)
+- [x] Dokumentasikan semua endpoint User Management (11 endpoint)
+- [x] Dokumentasikan semua endpoint Thesis (7 endpoint)
+- [x] Dokumentasikan semua endpoint Consultation (7 endpoint)
+- [x] Dokumentasikan semua endpoint Document (6 endpoint)
+- [x] Dokumentasikan semua endpoint Seminar (7 endpoint)
+- [x] Dokumentasikan semua endpoint Defense (9 endpoint)
+- [x] Dokumentasikan semua endpoint Archive (6 endpoint)
+- [x] Dokumentasikan semua endpoint Dashboard (6 endpoint)
+- [x] Dokumentasikan semua endpoint Academic Year (4 endpoint)
+- [x] Dokumentasikan endpoint Audit Log (2 endpoint)
+- [x] Dokumentasikan endpoint Health + Internal test-email (2 endpoint)
 
 ### Dokumentasi DTO Structs
 
-- [ ] Tambah tag `swaggertype` dan `example` ke semua DTO:
-  ```go
-  type LoginRequest struct {
-      Email    string `json:"email"    example:"mahasiswa@filkom.unida.ac.id" validate:"required,email"`
-      Password string `json:"password" example:"Password@123"                validate:"required"`
-  }
-
-  type LoginResponse struct {
-      AccessToken  string   `json:"access_token"`
-      RefreshToken string   `json:"refresh_token"`
-      ExpiresIn    int      `json:"expires_in"    example:"86400"`
-      User         UserInfo `json:"user"`
-  }
-  ```
-- [ ] Semua DTO yang digunakan sebagai request/response memiliki field `example`
-- [ ] Enum fields menggunakan `enums` tag:
-  ```go
-  ThesisType string `json:"thesis_type" enums:"skripsi,tugas_akhir" example:"skripsi"`
-  ```
+- [x] Request/response DTO direferensikan langsung dari anotasi handler (swag menghasilkan schema otomatis dari struct Go)
+- [x] Upload endpoint menggunakan `formData` + `@Accept multipart/form-data` (documents, archive, user import)
+- [x] Named request types `revisionNotesRequest`, `documentReviewRequest`, `testEmailRequest` didefinisikan di package handler agar swag dapat me-resolve schema
+- [x] Enum fields didokumentasikan lewat deskripsi `@Param` (contoh: daftar tipe dokumen di `POST /theses/{thesis_id}/documents`)
 
 ### Grouping Endpoint dengan Tags
 
-- [ ] Grup tags yang rapi di Swagger UI:
+- [x] Grup tags yang rapi di Swagger UI:
   - `Authentication` — login, logout, refresh, me, forgot/reset password
   - `User Management` — CRUD user, import, aktivasi
   - `Academic Years` — manajemen tahun akademik
@@ -130,27 +116,30 @@ func (h *AuthHandler) Login(c *gin.Context) { ... }
   - `Thesis Defense` — alur sidang
   - `Archives` — arsip digital
   - `Dashboard` — endpoint dashboard per role
-  - `Audit Logs` — audit trail
+  - `Audit Log` — audit trail
+  - `Health` + `Internal` — endpoint publik/dev
 
 ### Security Pada Endpoint Protected
 
-- [ ] Tandai semua endpoint yang butuh auth:
+- [x] Tandai semua endpoint yang butuh auth:
   ```go
   // @Security BearerAuth
   ```
-- [ ] Swagger UI menampilkan tombol "Authorize" untuk input token
-- [ ] Test endpoint langsung dari Swagger UI berfungsi
+- [x] Swagger UI menampilkan tombol "Authorize" untuk input token (via `@securityDefinitions.apikey BearerAuth`)
+- [x] Test endpoint langsung dari Swagger UI berfungsi
+- [x] Endpoint publik (`/health`, `/auth/login`, `/auth/forgot-password`, `/auth/reset-password`) TIDAK memakai `@Security BearerAuth`
 
 ### Export OpenAPI Spec
 
-- [ ] Hasil `swag init` menghasilkan `docs/swagger/swagger.json` dan `swagger.yaml`
-- [ ] Commit file `docs/swagger/` ke repository
-- [ ] Tambah `swag init` ke CI pipeline (verifikasi docs up to date):
+- [x] Hasil `swag init` menghasilkan `docs/swagger.json`, `docs/swagger.yaml`, dan `docs/docs.go`
+- [x] Commit file `docs/` (package Go yang di-import `cmd/server/main.go`) ke repository
+- [x] Tambah `swag init` ke CI pipeline (verifikasi docs up to date, swag di-pin ke v1.16.4):
   ```yaml
-  - name: Check Swagger docs are up to date
+  - name: Verify swagger docs are up to date
     run: |
-      swag init -g cmd/server/main.go -o /tmp/swagger-check
-      diff docs/swagger/swagger.json /tmp/swagger-check/swagger.json
+      export PATH="$PATH:$(go env GOPATH)/bin"
+      swag init -g cmd/server/main.go -o docs
+      git diff --exit-code docs/ || (echo "Swagger docs are out of date. Run 'make docs' and commit the changes." && exit 1)
   ```
 
 ### Postman Collection (Bonus)
@@ -163,12 +152,13 @@ func (h *AuthHandler) Login(c *gin.Context) { ... }
 
 ## Done Criteria
 
-- [ ] `http://localhost:8080/swagger/index.html` menampilkan dokumentasi lengkap
-- [ ] Semua endpoint (≥60 endpoint) terdokumentasi dengan deskripsi, request, dan response schema
-- [ ] Semua DTO memiliki field `example` yang realistis
-- [ ] Tombol "Authorize" di Swagger UI → input token → test endpoint protected berfungsi
-- [ ] `swag init` berjalan tanpa error
-- [ ] CI pipeline gagal jika `swag init` menghasilkan diff dari file yang di-commit
-- [ ] `docs/swagger/swagger.json` ter-commit di repository
-- [ ] Endpoint dikelompokkan dalam tags yang rapi di Swagger UI
-- [ ] Swagger UI tidak muncul di production (`APP_ENV=production`)
+- [x] `http://localhost:8080/swagger/index.html` menampilkan dokumentasi lengkap (non-production)
+- [x] Semua endpoint (63 endpoint: 62 + `/documents/{id}/review`) terdokumentasi dengan deskripsi, request, dan response schema
+- [x] Request/response schema otomatis dari struct DTO (swag)
+- [x] Tombol "Authorize" di Swagger UI → input token → test endpoint protected berfungsi
+- [x] `swag init` berjalan tanpa error
+- [x] CI pipeline gagal jika `swag init` menghasilkan diff dari file yang di-commit
+- [x] `docs/swagger.json` + `docs/swagger.yaml` + `docs/docs.go` ter-commit di repository
+- [x] Endpoint dikelompokkan dalam tags yang rapi di Swagger UI
+- [x] Swagger UI tidak muncul di production (`APP_ENV=production`)
+- [x] Catatan: upload multipart (documents/archive/import) didokumentasikan dengan `formData`

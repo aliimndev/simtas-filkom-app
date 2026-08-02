@@ -19,7 +19,18 @@ func NewAuthHandler(authUseCase *usecase.AuthUseCase) *AuthHandler {
 	return &AuthHandler{authUseCase: authUseCase}
 }
 
-// Login handles POST /api/v1/auth/login
+// Login godoc
+// @Summary      Login pengguna
+// @Description  Autentikasi dengan email dan password, return JWT access + refresh token
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        body body usecase.LoginRequest true "Kredensial login"
+// @Success      200  {object}  response.APIResponse{data=usecase.LoginResponse} "Login sukses"
+// @Failure      401  {object}  response.APIResponse "Email atau password salah"
+// @Failure      403  {object}  response.APIResponse "Akun terkunci"
+// @Failure      429  {object}  response.APIResponse "Terlalu banyak percobaan"
+// @Router       /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req usecase.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -27,7 +38,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.authUseCase.Login(c.Request.Context(), req)
+	resp, err := h.authUseCase.Login(c.Request.Context(), req, actorFromContext(c))
 	if err != nil {
 		if errors.Is(err, usecase.ErrAccountLocked) {
 			response.Error(c, http.StatusForbidden, err.Error(), err)
@@ -48,7 +59,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	response.Success(c, http.StatusOK, resp)
 }
 
-// Logout handles POST /api/v1/auth/logout
+// Logout godoc
+// @Summary      Logout pengguna
+// @Description  Menonaktifkan (blacklist) access token saat ini
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  response.APIResponse "Berhasil logout"
+// @Failure      401  {object}  response.APIResponse "Token tidak ditemukan"
+// @Security     BearerAuth
+// @Router       /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	token, exists := c.Get("accessToken")
 	if !exists {
@@ -56,7 +76,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	if err := h.authUseCase.Logout(c.Request.Context(), token.(string)); err != nil {
+	if err := h.authUseCase.Logout(c.Request.Context(), token.(string), actorFromContext(c)); err != nil {
 		response.Error(c, http.StatusInternalServerError, "Gagal logout", err)
 		return
 	}
@@ -64,7 +84,16 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	response.Success(c, http.StatusOK, gin.H{"message": "Berhasil logout"})
 }
 
-// RefreshToken handles POST /api/v1/auth/refresh
+// RefreshToken godoc
+// @Summary      Refresh access token
+// @Description  Menukar refresh token dengan access token baru
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        body body usecase.RefreshTokenRequest true "Refresh token"
+// @Success      200  {object}  response.APIResponse{data=usecase.RefreshTokenResponse} "Access token baru"
+// @Failure      401  {object}  response.APIResponse "Refresh token tidak valid"
+// @Router       /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req usecase.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -89,7 +118,16 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	response.Success(c, http.StatusOK, resp)
 }
 
-// GetMe handles GET /api/v1/auth/me
+// GetMe godoc
+// @Summary      Info user saat ini
+// @Description  Mengambil data user yang sedang terautentikasi
+// @Tags         Authentication
+// @Produce      json
+// @Success      200  {object}  response.APIResponse{data=usecase.UserDTO} "Data user"
+// @Failure      401  {object}  response.APIResponse "Tidak terautentikasi"
+// @Failure      404  {object}  response.APIResponse "User tidak ditemukan"
+// @Security     BearerAuth
+// @Router       /auth/me [get]
 func (h *AuthHandler) GetMe(c *gin.Context) {
 	userIDStr, exists := c.Get("userID")
 	if !exists {
@@ -112,7 +150,15 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 	response.Success(c, http.StatusOK, user)
 }
 
-// ForgotPassword handles POST /api/v1/auth/forgot-password
+// ForgotPassword godoc
+// @Summary      Lupa password
+// @Description  Mengirim tautan reset password ke email. Selalu return 200 untuk mencegah email enumeration
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        body body usecase.ForgotPasswordRequest true "Email user"
+// @Success      200  {object}  response.APIResponse "Jika email terdaftar, tautan reset telah dikirim"
+// @Router       /auth/forgot-password [post]
 func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	var req usecase.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -129,7 +175,16 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	})
 }
 
-// ResetPassword handles POST /api/v1/auth/reset-password
+// ResetPassword godoc
+// @Summary      Reset password
+// @Description  Mengganti password menggunakan token dari email reset
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        body body usecase.ResetPasswordRequest true "Token + password baru"
+// @Success      200  {object}  response.APIResponse "Password berhasil diubah"
+// @Failure      400  {object}  response.APIResponse "Token tidak valid atau password tidak memenuhi syarat"
+// @Router       /auth/reset-password [post]
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	var req usecase.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

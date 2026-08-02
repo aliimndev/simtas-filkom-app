@@ -54,7 +54,7 @@ Deploy frontend Next.js ke Vercel, konfigurasi environment variables production,
 
 ### next.config.ts Production Settings
 
-- [ ] Review dan pastikan konfigurasi ini ada:
+- [x] Review dan pastikan konfigurasi ini ada (security headers aktif di next.config.ts):
   ```ts
   const nextConfig: NextConfig = {
     images: {

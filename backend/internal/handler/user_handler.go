@@ -22,7 +22,21 @@ func NewUserHandler(userUseCase *usecase.UserUseCase) *UserHandler {
 	return &UserHandler{userUseCase: userUseCase}
 }
 
-// ListUsers handles GET /api/v1/admin/users
+// ListUsers godoc
+// @Summary      Daftar user
+// @Description  Mengambil daftar user dengan filter dan pagination (Admin only)
+// @Tags         User Management
+// @Produce      json
+// @Param        role query string false "Filter role"
+// @Param        is_active query boolean false "Filter status aktif"
+// @Param        study_program query string false "Filter program studi"
+// @Param        search query string false "Cari nama/email/NIM"
+// @Param        page query int false "Halaman (default 1)"
+// @Param        per_page query int false "Per halaman (default 20, max 100)"
+// @Success      200  {object}  response.APIResponse "Daftar user"
+// @Failure      400  {object}  response.APIResponse "Parameter tidak valid"
+// @Security     BearerAuth
+// @Router       /admin/users [get]
 func (h *UserHandler) ListUsers(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	perPage, _ := strconv.Atoi(c.DefaultQuery("per_page", "20"))
@@ -63,7 +77,16 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	response.Paginated(c, users, page, perPage, total)
 }
 
-// GetUser handles GET /api/v1/admin/users/:id
+// GetUser godoc
+// @Summary      Detail user
+// @Description  Mengambil detail user berdasarkan ID (Admin only)
+// @Tags         User Management
+// @Produce      json
+// @Param        id path string true "User ID (UUID)"
+// @Success      200  {object}  response.APIResponse "Detail user"
+// @Failure      404  {object}  response.APIResponse "User tidak ditemukan"
+// @Security     BearerAuth
+// @Router       /admin/users/{id} [get]
 func (h *UserHandler) GetUser(c *gin.Context) {
 	id, ok := parseUUIDParam(c)
 	if !ok {
@@ -82,7 +105,18 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	response.Success(c, http.StatusOK, user)
 }
 
-// CreateUser handles POST /api/v1/admin/users
+// CreateUser godoc
+// @Summary      Buat user
+// @Description  Membuat user baru (password otomatis dikirim via email) (Admin only)
+// @Tags         User Management
+// @Accept       json
+// @Produce      json
+// @Param        body body usecase.CreateUserRequest true "Data user"
+// @Success      201  {object}  response.APIResponse "User dibuat"
+// @Failure      400  {object}  response.APIResponse "Request tidak valid"
+// @Failure      409  {object}  response.APIResponse "Email sudah terdaftar"
+// @Security     BearerAuth
+// @Router       /admin/users [post]
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var req usecase.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -109,7 +143,18 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	response.Created(c, user)
 }
 
-// UpdateUser handles PUT /api/v1/admin/users/:id
+// UpdateUser godoc
+// @Summary      Update user
+// @Description  Memperbarui data user (email dan role tidak dapat diubah) (Admin only)
+// @Tags         User Management
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "User ID (UUID)"
+// @Param        body body usecase.UpdateUserRequest true "Data yang diperbarui"
+// @Success      200  {object}  response.APIResponse "User diperbarui"
+// @Failure      404  {object}  response.APIResponse "User tidak ditemukan"
+// @Security     BearerAuth
+// @Router       /admin/users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id, ok := parseUUIDParam(c)
 	if !ok {
@@ -135,7 +180,17 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	response.Success(c, http.StatusOK, user)
 }
 
-// DeleteUser handles DELETE /api/v1/admin/users/:id (soft delete)
+// DeleteUser godoc
+// @Summary      Hapus user (soft delete)
+// @Description  Menghapus user secara soft delete (Admin only)
+// @Tags         User Management
+// @Produce      json
+// @Param        id path string true "User ID (UUID)"
+// @Success      200  {object}  response.APIResponse "User berhasil dihapus"
+// @Failure      400  {object}  response.APIResponse "Tidak dapat menghapus akun sendiri"
+// @Failure      404  {object}  response.APIResponse "User tidak ditemukan"
+// @Security     BearerAuth
+// @Router       /admin/users/{id} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	id, ok := parseUUIDParam(c)
 	if !ok {
@@ -158,7 +213,16 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	response.Success(c, http.StatusOK, gin.H{"message": "User berhasil dihapus"})
 }
 
-// ActivateUser handles PATCH /api/v1/admin/users/:id/activate
+// ActivateUser godoc
+// @Summary      Aktifkan user
+// @Description  Mengaktifkan akun user (Admin only)
+// @Tags         User Management
+// @Produce      json
+// @Param        id path string true "User ID (UUID)"
+// @Success      200  {object}  response.APIResponse "User berhasil diaktifkan"
+// @Failure      404  {object}  response.APIResponse "User tidak ditemukan"
+// @Security     BearerAuth
+// @Router       /admin/users/{id}/activate [patch]
 func (h *UserHandler) ActivateUser(c *gin.Context) {
 	id, ok := parseUUIDParam(c)
 	if !ok {
@@ -178,7 +242,17 @@ func (h *UserHandler) ActivateUser(c *gin.Context) {
 	response.Success(c, http.StatusOK, gin.H{"message": "User berhasil diaktifkan"})
 }
 
-// DeactivateUser handles PATCH /api/v1/admin/users/:id/deactivate
+// DeactivateUser godoc
+// @Summary      Nonaktifkan user
+// @Description  Menonaktifkan akun user dan invalidasi session (Admin only)
+// @Tags         User Management
+// @Produce      json
+// @Param        id path string true "User ID (UUID)"
+// @Success      200  {object}  response.APIResponse "User berhasil dinonaktifkan"
+// @Failure      400  {object}  response.APIResponse "Tidak dapat menonaktifkan akun sendiri"
+// @Failure      404  {object}  response.APIResponse "User tidak ditemukan"
+// @Security     BearerAuth
+// @Router       /admin/users/{id}/deactivate [patch]
 func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	id, ok := parseUUIDParam(c)
 	if !ok {
@@ -201,7 +275,16 @@ func (h *UserHandler) DeactivateUser(c *gin.Context) {
 	response.Success(c, http.StatusOK, gin.H{"message": "User berhasil dinonaktifkan"})
 }
 
-// ResetPassword handles POST /api/v1/admin/users/:id/reset-password
+// ResetPassword godoc
+// @Summary      Reset password user
+// @Description  Men-generate password baru dan mengirim via email (Admin only)
+// @Tags         User Management
+// @Produce      json
+// @Param        id path string true "User ID (UUID)"
+// @Success      200  {object}  response.APIResponse "Password berhasil direset"
+// @Failure      404  {object}  response.APIResponse "User tidak ditemukan"
+// @Security     BearerAuth
+// @Router       /admin/users/{id}/reset-password [post]
 func (h *UserHandler) ResetPassword(c *gin.Context) {
 	id, ok := parseUUIDParam(c)
 	if !ok {
@@ -221,7 +304,56 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 	response.Success(c, http.StatusOK, gin.H{"message": "Password berhasil direset dan dikirim ke email user"})
 }
 
-// ImportTemplate handles GET /api/v1/admin/users/import-template
+// ChangeMyPassword godoc
+// @Summary      Ganti password sendiri
+// @Description  Mengganti password user yang sedang login
+// @Tags         User Management
+// @Accept       json
+// @Produce      json
+// @Param        body body usecase.ChangePasswordRequest true "Password lama + baru"
+// @Success      200  {object}  response.APIResponse "Password berhasil diubah"
+// @Failure      400  {object}  response.APIResponse "Password saat ini salah / tidak memenuhi syarat"
+// @Security     BearerAuth
+// @Router       /users/me/password [put]
+func (h *UserHandler) ChangeMyPassword(c *gin.Context) {
+	var req usecase.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Request tidak valid: current_password dan new_password wajib diisi")
+		return
+	}
+
+	actor := actorFromContext(c)
+	if actor.UserID == uuid.Nil {
+		response.Error(c, http.StatusUnauthorized, "Sesi tidak valid", nil)
+		return
+	}
+
+	err := h.userUseCase.ChangeMyPassword(c.Request.Context(), actor.UserID, req, actor)
+	if err != nil {
+		switch {
+		case errors.Is(err, usecase.ErrUserNotFound):
+			response.NotFound(c, "User tidak ditemukan")
+		case errors.Is(err, usecase.ErrPasswordMismatch):
+			response.Error(c, http.StatusBadRequest, "Password saat ini salah", err)
+		case errors.Is(err, usecase.ErrPasswordTooShort),
+			errors.Is(err, usecase.ErrPasswordNotComplex):
+			response.BadRequest(c, err.Error())
+		default:
+			response.InternalError(c, "Gagal mengganti password")
+		}
+		return
+	}
+	response.Success(c, http.StatusOK, gin.H{"message": "Password berhasil diubah"})
+}
+
+// ImportTemplate godoc
+// @Summary      Download template import user
+// @Description  Mendownload template Excel untuk import user massal (Admin only)
+// @Tags         User Management
+// @Produce      octet-stream
+// @Success      200  {file}  binary "Template Excel"
+// @Security     BearerAuth
+// @Router       /admin/users/import-template [get]
 func (h *UserHandler) ImportTemplate(c *gin.Context) {
 	data, err := h.userUseCase.BuildImportTemplate()
 	if err != nil {
@@ -234,7 +366,17 @@ func (h *UserHandler) ImportTemplate(c *gin.Context) {
 	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", data)
 }
 
-// ImportUsers handles POST /api/v1/admin/users/import
+// ImportUsers godoc
+// @Summary      Import user massal
+// @Description  Import user dari file .csv atau .xlsx (Admin only)
+// @Tags         User Management
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        file formData file true "File CSV/Excel (max 5 MB)"
+// @Success      200  {object}  response.APIResponse{data=usecase.ImportResult} "Hasil import"
+// @Failure      400  {object}  response.APIResponse "File tidak valid"
+// @Security     BearerAuth
+// @Router       /admin/users/import [post]
 func (h *UserHandler) ImportUsers(c *gin.Context) {
 	fileHeader, err := c.FormFile("file")
 	if err != nil {

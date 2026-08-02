@@ -1,0 +1,72 @@
+{{define "base"}}<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{.Title}}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:24px 0;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <!-- Header -->
+        <tr>
+          <td style="background-color:#1d4ed8;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;">
+            <div style="font-size:22px;font-weight:bold;color:#ffffff;">SIMTAS FILKOM</div>
+            <div style="font-size:12px;color:#bfdbfe;margin-top:4px;">Fakultas Ilmu Komputer — Universitas Djuanda</div>
+          </td>
+        </tr>
+        <!-- Body -->
+        <tr>
+          <td style="background-color:#ffffff;padding:32px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+            {{template "content" .}}
+          </td>
+        </tr>
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#f9fafb;border:1px solid #e5e7eb;border-radius:0 0 12px 12px;padding:20px 32px;text-align:center;font-size:11px;color:#6b7280;line-height:1.7;">
+            <div><strong>Sistem Informasi Tugas Akhir (SIMTAS)</strong></div>
+            <div>Fakultas Ilmu Komputer — Universitas Djuanda Bogor</div>
+            <div style="margin-top:8px;">Email ini dikirim otomatis oleh sistem. Mohon tidak membalas email ini.<br>
+            Hubungi admin fakultas bila ada pertanyaan.</div>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+{{end}}
+
+{{define "statusBadge"}}
+{{if .Status}}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+  <tr><td align="center">
+    <span style="background-color:{{if .StatusGood}}#dcfce7{{else}}#fee2e2{{end}};color:{{if .StatusGood}}#166534{{else}}#991b1b{{end}};padding:8px 20px;border-radius:9999px;font-size:14px;font-weight:bold;">{{.Status}}</span>
+  </td></tr>
+</table>
+{{end}}
+{{end}}
+
+{{define "detailTable"}}
+{{if .Details}}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+  {{range .Details}}
+  <tr>
+    <td style="padding:8px 0;font-size:13px;color:#6b7280;width:40%;vertical-align:top;">{{.Label}}</td>
+    <td style="padding:8px 0;font-size:13px;color:#111827;font-weight:600;vertical-align:top;">{{.Value}}</td>
+  </tr>
+  {{end}}
+</table>
+{{end}}
+{{end}}
+
+{{define "ctaButton"}}
+{{if .CTA}}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+  <tr><td align="center">
+    <a href="{{.CTA.URL}}" style="background-color:#1d4ed8;color:#ffffff;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:bold;text-decoration:none;display:inline-block;">{{.CTA.Label}}</a>
+  </td></tr>
+</table>
+{{end}}
+{{end}}

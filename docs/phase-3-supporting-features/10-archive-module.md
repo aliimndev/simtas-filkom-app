@@ -16,7 +16,7 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
 ## Checklist
 
 ### Archive Repository & Use Case
-- [ ] Buat `backend/internal/domain/repository/archive_repository.go` — interface:
+- [x] Buat `backend/internal/domain/repository/archive_repository.go` — interface:
   ```go
   type ArchiveRepository interface {
     Create(ctx context.Context, archive *entity.ThesisArchive) error
@@ -26,7 +26,7 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
     Update(ctx context.Context, archive *entity.ThesisArchive) error
   }
   ```
-- [ ] `ArchiveFilter`:
+- [x] `ArchiveFilter`:
   ```go
   type ArchiveFilter struct {
     Query          string    // full-text search
@@ -38,41 +38,41 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
     PerPage        int
   }
   ```
-- [ ] Buat `backend/internal/usecase/archive_usecase.go`
+- [x] Buat `backend/internal/usecase/archive_usecase.go`
 
 ### Handler — Archive Endpoints
 
 **POST `/api/v1/theses/:thesis_id/archive`** _(Mahasiswa pemilik + Admin)_
-- [ ] Content-Type: `multipart/form-data`
-- [ ] Form fields:
+- [x] Content-Type: `multipart/form-data`
+- [x] Form fields:
   - `file` — file PDF skripsi final (required)
   - `abstract_id` — abstrak Bahasa Indonesia (required)
   - `abstract_en` — abstrak Bahasa Inggris (optional)
   - `keywords` — kata kunci dipisah koma: `"machine learning,deep learning,computer vision"` (required)
   - `graduation_year` — tahun lulus (required)
-- [ ] Validasi:
+- [x] Validasi:
   - Thesis harus berstatus `graduated`
   - Thesis belum punya arsip (unique per thesis)
   - File: PDF, max 25 MB (lebih besar dari dokumen biasa)
   - `abstract_id` minimal 50 kata
   - `graduation_year` harus tahun yang valid (tidak lebih dari tahun sekarang)
   - `keywords` minimal 3 kata kunci
-- [ ] Upload file ke storage — path: `archives/{graduation_year}/{thesis_id}/{filename}`
+- [x] Upload file ke storage — path: `archives/{graduation_year}/{thesis_id}/{filename}`
   - Gunakan stub storage untuk dev (implementasi penuh di Job 21)
-- [ ] Simpan ke `thesis_archives` — trigger PostgreSQL akan auto-update `search_vector`
-- [ ] Audit log: `ARCHIVE_CREATED`
-- [ ] Email notification ke mahasiswa: "Arsip skripsi Anda telah tersedia" (stub)
-- [ ] Response: `201 Created`
+- [x] Simpan ke `thesis_archives` — trigger PostgreSQL akan auto-update `search_vector`
+- [x] Audit log: `ARCHIVE_CREATED`
+- [x] Email notification ke mahasiswa: "Arsip skripsi Anda telah tersedia" (stub)
+- [x] Response: `201 Created`
 
 **GET `/api/v1/archives`** _(Semua authenticated user)_
-- [ ] Query params: `q` (full-text search), `year`, `field_of_study`, `study_program`, `supervisor_id`, `page` (default 1), `per_page` (default 20)
-- [ ] Jika `q` tidak kosong: gunakan PostgreSQL full-text search
+- [x] Query params: `q` (full-text search), `year`, `field_of_study`, `study_program`, `supervisor_id`, `page` (default 1), `per_page` (default 20)
+- [x] Jika `q` tidak kosong: gunakan PostgreSQL full-text search
   ```sql
   WHERE search_vector @@ plainto_tsquery('simple', $1)
   ORDER BY ts_rank(search_vector, plainto_tsquery('simple', $1)) DESC
   ```
-- [ ] Jika `q` kosong: return semua arsip dengan filter lain, order by `archived_at DESC`
-- [ ] Response:
+- [x] Jika `q` kosong: return semua arsip dengan filter lain, order by `archived_at DESC`
+- [x] Response:
   ```json
   {
     "success": true,
@@ -95,7 +95,7 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
   ```
 
 **GET `/api/v1/archives/:id`** _(Semua authenticated user)_
-- [ ] Return detail lengkap arsip termasuk abstrak:
+- [x] Return detail lengkap arsip termasuk abstrak:
   ```json
   {
     "id": "uuid",
@@ -111,22 +111,22 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
     "archived_at": "..."
   }
   ```
-- [ ] **Tidak** menyertakan `file_url` langsung — download lewat endpoint terpisah
+- [x] **Tidak** menyertakan `file_url` langsung — download lewat endpoint terpisah
 
 **GET `/api/v1/archives/:id/download`** _(Role-based access)_
-- [ ] Kontrol akses:
+- [x] Kontrol akses:
   - Mahasiswa: hanya bisa download arsip skripsinya sendiri
   - Dosen Pembimbing / Dosen Penguji / Kaprodi / Admin: bisa download semua arsip
-- [ ] Generate presigned URL dari storage (expired 30 menit)
-- [ ] Audit log: `ARCHIVE_DOWNLOADED` (catat user yang download + arsip yang didownload)
-- [ ] Response: `{ "success": true, "data": { "download_url": "...", "expires_in": 1800 } }`
+- [x] Generate presigned URL dari storage (expired 30 menit)
+- [x] Audit log: `ARCHIVE_DOWNLOADED` (catat user yang download + arsip yang didownload)
+- [x] Response: `{ "success": true, "data": { "download_url": "...", "expires_in": 1800 } }`
 
 **GET `/api/v1/theses/:thesis_id/archive`** _(Akses sama dengan detail arsip)_
-- [ ] Shortcut untuk get arsip berdasarkan thesis ID
-- [ ] Return sama dengan `GET /api/v1/archives/:id`
+- [x] Shortcut untuk get arsip berdasarkan thesis ID
+- [x] Return sama dengan `GET /api/v1/archives/:id`
 
 ### Full-Text Search — Query Builder
-- [ ] Buat `backend/internal/repository/archive_repository_impl.go` dengan query:
+- [x] Buat `backend/internal/repository/archive_repository_impl.go` dengan query:
   ```go
   func (r *archiveRepo) Search(ctx context.Context, filter ArchiveFilter) ([]*entity.ThesisArchive, int64, error) {
     query := r.db.WithContext(ctx).
@@ -154,7 +154,7 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
 ### Statistics Endpoint (digunakan Dashboard)
 
 **GET `/api/v1/archives/stats`** _(Admin + Kaprodi)_
-- [ ] Return:
+- [x] Return:
   ```json
   {
     "total_archives": 120,
@@ -168,13 +168,13 @@ Implementasi modul arsip digital: upload skripsi final ke storage setelah yudisi
 
 ## Done Criteria
 
-- [ ] `POST .../archive` pada thesis belum `graduated` → `422 Unprocessable Entity`
-- [ ] `POST .../archive` pada thesis `graduated` → arsip tersimpan, `search_vector` ter-update
-- [ ] `GET /api/v1/archives?q=machine+learning` → return arsip yang relevan, diurutkan by relevance
-- [ ] `GET /api/v1/archives?year=2027&study_program=Teknik+Informatika` → filter berfungsi
-- [ ] `GET /archives/:id/download` oleh mahasiswa pemilik → presigned URL berhasil
-- [ ] `GET /archives/:id/download` oleh mahasiswa lain → `403 Forbidden`
-- [ ] `GET /archives/:id/download` oleh dosen → berhasil (akses ke semua arsip)
-- [ ] Upload arsip kedua untuk thesis yang sama → `409 Conflict`
-- [ ] `GET /archives/stats` → statistik akurat
-- [ ] Audit log `ARCHIVE_DOWNLOADED` tercatat setiap kali download
+- [x] `POST .../archive` pada thesis belum `graduated` → `422 Unprocessable Entity`
+- [x] `POST .../archive` pada thesis `graduated` → arsip tersimpan, `search_vector` ter-update
+- [x] `GET /api/v1/archives?q=machine+learning` → return arsip yang relevan, diurutkan by relevance
+- [x] `GET /api/v1/archives?year=2027&study_program=Teknik+Informatika` → filter berfungsi
+- [x] `GET /archives/:id/download` oleh mahasiswa pemilik → presigned URL berhasil
+- [x] `GET /archives/:id/download` oleh mahasiswa lain → `403 Forbidden`
+- [x] `GET /archives/:id/download` oleh dosen → berhasil (akses ke semua arsip)
+- [x] Upload arsip kedua untuk thesis yang sama → `409 Conflict`
+- [x] `GET /archives/stats` → statistik akurat
+- [x] Audit log `ARCHIVE_DOWNLOADED` tercatat setiap kali download

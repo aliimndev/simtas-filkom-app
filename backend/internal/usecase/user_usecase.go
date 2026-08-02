@@ -326,6 +326,60 @@ func (uc *UserUseCase) ResetPassword(ctx context.Context, id uuid.UUID, actor Ac
 	return nil
 }
 
+// ChangePasswordRequest is the payload for PUT /users/me/password
+// (user changing their own password).
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password" binding:"required"`
+	NewPassword     string `json:"new_password" binding:"required"`
+}
+
+// ChangeMyPassword lets a user change their own password after verifying the
+// current one. On success it clears must_change_password (Job 04/15).
+//
+// Note: we deliberately do NOT bump token_version here — the user is changing
+// their own password with an active session, and invalidating tokens would log
+// them straight back out (breaking the post-login change flow). Admin-initiated
+// resets (ResetPassword) still invalidate sessions because that user is not
+// logged in at that point.
+func (uc *UserUseCase) ChangeMyPassword(ctx context.Context, userID uuid.UUID, req ChangePasswordRequest, actor Actor) error {
+	user, err := uc.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrUserNotFound
+		}
+		return err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.CurrentPassword)); err != nil {
+		return ErrPasswordMismatch
+	}
+	if len(req.NewPassword) < PasswordMinLen {
+		return ErrPasswordTooShort
+	}
+	if !isPasswordComplex(req.NewPassword) {
+		return ErrPasswordNotComplex
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), 12)
+	if err != nil {
+		return err
+	}
+	if err := uc.userRepo.ChangePassword(ctx, userID, string(hash)); err != nil {
+		return err
+	}
+
+	// Audit: self-initiated password change (Job 13)
+	uc.auditSvc.Log(ctx, audit.AuditParams{
+		UserID:     &userID,
+		Action:     audit.ActionUserPasswordReset,
+		EntityType: "user",
+		EntityID:   &userID,
+		IPAddress:  actor.IPAddress,
+		UserAgent:  actor.UserAgent,
+	})
+	return nil
+}
+
 // userSnapshot builds a safe map of editable fields for audit diffing.
 func userSnapshot(u *entity.User) map[string]interface{} {
 	snap := map[string]interface{}{

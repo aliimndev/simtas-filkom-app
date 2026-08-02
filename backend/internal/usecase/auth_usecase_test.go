@@ -2,12 +2,17 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
+	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/jwt"
 )
 
 func TestIsPasswordComplex(t *testing.T) {
@@ -71,8 +76,143 @@ func (f *fakeAuthRepo) GetUserTokenVersion(_ context.Context, _ string) (int, er
 	return 0, nil
 }
 
+// chanAuditRepo records the actions written by AuditService.Log (which runs in
+// a goroutine) so tests can assert the auth audit trail deterministically.
+type chanAuditRepo struct {
+	actions chan string
+}
+
+func (c *chanAuditRepo) Create(_ context.Context, l *entity.AuditLog) error {
+	c.actions <- l.Action
+	return nil
+}
+func (c *chanAuditRepo) FindAll(_ context.Context, _ domainRepo.AuditFilter) ([]*entity.AuditLog, int64, error) {
+	return nil, 0, nil
+}
+func (c *chanAuditRepo) FindByEntity(_ context.Context, _ string, _ uuid.UUID) ([]*entity.AuditLog, error) {
+	return nil, nil
+}
+
+// authUserRepo returns a real user for login/audit tests.
+type authUserRepo struct {
+	user *entity.User
+}
+
+func (f *authUserRepo) FindUserByEmail(_ context.Context, email string) (*entity.User, error) {
+	if f.user != nil && f.user.Email == email {
+		return f.user, nil
+	}
+	return nil, errors.New("not found")
+}
+func (f *authUserRepo) FindUserByID(_ context.Context, id uuid.UUID) (*entity.User, error) {
+	if f.user != nil && f.user.ID == id {
+		return f.user, nil
+	}
+	return nil, errors.New("not found")
+}
+func (f *authUserRepo) UpdateLoginAttempt(_ context.Context, _ uuid.UUID, _ int, _ *time.Time) error {
+	return nil
+}
+func (f *authUserRepo) UpdateLastLogin(_ context.Context, _ uuid.UUID) error { return nil }
+func (f *authUserRepo) BlacklistToken(_ context.Context, _ string, _ time.Time) error {
+	return nil
+}
+func (f *authUserRepo) IsTokenBlacklisted(_ context.Context, _ string) (bool, error) {
+	return false, nil
+}
+func (f *authUserRepo) CreatePasswordResetToken(_ context.Context, _ *entity.PasswordResetToken) error {
+	return nil
+}
+func (f *authUserRepo) FindPasswordResetTokenByToken(_ context.Context, _ string) (*entity.PasswordResetToken, error) {
+	return nil, nil
+}
+func (f *authUserRepo) MarkPasswordResetTokenUsed(_ context.Context, _ uuid.UUID) error {
+	return nil
+}
+func (f *authUserRepo) UpdatePassword(_ context.Context, _ uuid.UUID, _ string) error {
+	return nil
+}
+func (f *authUserRepo) ClearMustChangePassword(_ context.Context, _ uuid.UUID) error {
+	return nil
+}
+func (f *authUserRepo) GetUserTokenVersion(_ context.Context, _ string) (int, error) {
+	return 0, nil
+}
+
+func newTestUser(password string) *entity.User {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+	return &entity.User{
+		ID:           uuid.New(),
+		Email:        "budi@example.com",
+		PasswordHash: string(hash),
+		FullName:     "Budi Santoso",
+		IsActive:     true,
+		Role:         entity.Role{Name: "mahasiswa"},
+	}
+}
+
+func waitForAudit(t *testing.T, ch chan string, want string) {
+	t.Helper()
+	select {
+	case got := <-ch:
+		if got != want {
+			t.Errorf("audit action = %q, want %q", got, want)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatalf("timed out waiting for audit action %q", want)
+	}
+}
+
+func TestLoginSuccessAudits(t *testing.T) {
+	user := newTestUser("Password123")
+	repo := &authUserRepo{user: user}
+	jwtMgr := jwt.NewJWTManager("test-secret", time.Hour, 24*time.Hour)
+	auditRepo := &chanAuditRepo{actions: make(chan string, 4)}
+	uc := NewAuthUseCase(repo, jwtMgr, audit.NewAuditService(auditRepo))
+
+	resp, err := uc.Login(context.Background(), LoginRequest{Email: user.Email, Password: "Password123"}, Actor{})
+	if err != nil {
+		t.Fatalf("Login: %v", err)
+	}
+	if resp.AccessToken == "" {
+		t.Error("expected an access token")
+	}
+	waitForAudit(t, auditRepo.actions, audit.ActionUserLogin)
+}
+
+func TestLoginFailedAudit(t *testing.T) {
+	user := newTestUser("Password123")
+	repo := &authUserRepo{user: user}
+	jwtMgr := jwt.NewJWTManager("test-secret", time.Hour, 24*time.Hour)
+	auditRepo := &chanAuditRepo{actions: make(chan string, 4)}
+	uc := NewAuthUseCase(repo, jwtMgr, audit.NewAuditService(auditRepo))
+
+	_, err := uc.Login(context.Background(), LoginRequest{Email: user.Email, Password: "WrongPass1"}, Actor{})
+	if !errors.Is(err, ErrInvalidCredentials) && !errors.Is(err, ErrAccountLocked) {
+		t.Fatalf("Login error = %v", err)
+	}
+	waitForAudit(t, auditRepo.actions, audit.ActionUserLoginFailed)
+}
+
+func TestLogoutAudit(t *testing.T) {
+	user := newTestUser("Password123")
+	repo := &authUserRepo{user: user}
+	jwtMgr := jwt.NewJWTManager("test-secret", time.Hour, 24*time.Hour)
+	auditRepo := &chanAuditRepo{actions: make(chan string, 4)}
+	uc := NewAuthUseCase(repo, jwtMgr, audit.NewAuditService(auditRepo))
+
+	token, _, err := jwtMgr.GenerateAccessToken(user.ID, user.Role.Name, user.Email, 0)
+	if err != nil {
+		t.Fatalf("GenerateAccessToken: %v", err)
+	}
+	if err := uc.Logout(context.Background(), token, Actor{}); err != nil {
+		t.Fatalf("Logout: %v", err)
+	}
+	waitForAudit(t, auditRepo.actions, audit.ActionUserLogout)
+}
+
 func TestResetPasswordValidation(t *testing.T) {
-	uc := NewAuthUseCase(&fakeAuthRepo{}, nil)
+	uc := NewAuthUseCase(&fakeAuthRepo{}, nil, nil)
 
 	tests := []struct {
 		name string

@@ -3,13 +3,14 @@ package audit
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/logger"
 )
 
 // AuditParams carries everything needed to write one audit log entry.
@@ -24,23 +25,33 @@ type AuditParams struct {
 	UserAgent  *string
 }
 
+// auditQueueSize bounds the number of audit entries waiting to be written.
+// When the queue is full the entry is dropped (and logged) instead of blocking
+// the request or spawning an unbounded number of goroutines.
+const auditQueueSize = 256
+
 // AuditService writes audit log entries. Job 13 expands this into the full
 // audit module; this minimal version keeps the trail complete from Job 04.
+// Writes go through a single bounded worker so a burst of actions can never
+// leak goroutines or pile up unbounded in-memory work.
 type AuditService struct {
-	repo domainRepo.AuditRepository
+	repo  domainRepo.AuditRepository
+	queue chan AuditParams
 }
 
 func NewAuditService(repo domainRepo.AuditRepository) *AuditService {
-	return &AuditService{repo: repo}
+	s := &AuditService{
+		repo:  repo,
+		queue: make(chan AuditParams, auditQueueSize),
+	}
+	go s.worker()
+	return s
 }
 
-// Log writes an audit entry asynchronously so it never delays the response.
-func (s *AuditService) Log(ctx context.Context, params AuditParams) {
-	if s == nil || s.repo == nil {
-		return
-	}
-
-	go func() {
+// worker drains the queue and persists each entry. It runs for the lifetime of
+// the service (same pattern as the rate-limiter cleanup goroutine).
+func (s *AuditService) worker() {
+	for params := range s.queue {
 		entry := &entity.AuditLog{
 			UserID:     params.UserID,
 			Action:     params.Action,
@@ -52,9 +63,28 @@ func (s *AuditService) Log(ctx context.Context, params AuditParams) {
 			UserAgent:  params.UserAgent,
 		}
 		if err := s.repo.Create(context.Background(), entry); err != nil {
-			log.Printf("audit: failed to write log action=%s: %v", params.Action, err)
+			logger.Get().Error("failed to write audit log",
+				slog.String("action", params.Action),
+				slog.String("error", err.Error()),
+			)
 		}
-	}()
+	}
+}
+
+// Log queues an audit entry to be written asynchronously so it never delays
+// the response. If the queue is full the entry is dropped and logged.
+func (s *AuditService) Log(ctx context.Context, params AuditParams) {
+	if s == nil || s.repo == nil {
+		return
+	}
+
+	select {
+	case s.queue <- params:
+	default:
+		logger.Get().Warn("audit queue full, dropping entry",
+			slog.String("action", params.Action),
+		)
+	}
 }
 
 func nullableString(s string) *string {

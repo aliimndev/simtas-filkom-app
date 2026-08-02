@@ -33,5 +33,8 @@ type UserRepository interface {
 	BulkCreate(ctx context.Context, users []*entity.User) error
 	SetActiveStatus(ctx context.Context, id uuid.UUID, isActive bool) error
 	ResetPassword(ctx context.Context, id uuid.UUID, passwordHash string) error
+	// ChangePassword updates the password hash and clears must_change_password
+	// (used when the user changes their own password).
+	ChangePassword(ctx context.Context, id uuid.UUID, passwordHash string) error
 	InvalidateUserSessions(ctx context.Context, id uuid.UUID) error
 }

@@ -19,7 +19,7 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 
 **File:** `frontend/src/app/(dashboard)/dashboard/page.tsx`
 
-- [ ] Render komponen dashboard sesuai role dari auth store:
+- [x] Render komponen dashboard sesuai role dari auth store:
   ```tsx
   export default function DashboardPage() {
     const { user } = useAuth()
@@ -45,11 +45,11 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 > Kedua komponen hampir identik — buat `AdminKaprodiDashboardBase` sebagai shared component, perbedaan hanya di tombol aksi yang tersedia.
 
 #### Filter Bar (Sticky di atas)
-- [ ] Dropdown: Tahun Akademik (default: aktif), Semester, Program Studi
-- [ ] Filter ini mempengaruhi semua widget di bawahnya via React Query key
+- [x] Dropdown: Tahun Akademik (default: aktif), Semester, Program Studi
+- [x] Filter ini mempengaruhi semua widget di bawahnya via React Query key
 
 #### Row 1 — Summary Cards (4 kartu)
-- [ ] Implementasikan komponen `StatCard`:
+- [x] Implementasikan komponen `StatCard`:
   ```tsx
   interface StatCardProps {
     title: string
@@ -61,26 +61,26 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
     href?: string  // jika clickable → redirect ke halaman terkait
   }
   ```
-- [ ] 4 kartu: **Total Mahasiswa Aktif**, **Lulus Semester Ini**, **Seminar Bulan Ini**, **Sidang Bulan Ini**
-- [ ] Setiap kartu clickable → link ke halaman terkait
+- [x] 4 kartu: **Total Mahasiswa Aktif**, **Lulus Semester Ini**, **Seminar Bulan Ini**, **Sidang Bulan Ini**
+- [x] Setiap kartu clickable → link ke halaman terkait
 
 #### Row 2 — Progress Funnel + Grafik Tren
-- [ ] **Funnel Tahapan** (kiri, 60% lebar):
+- [x] **Funnel Tahapan** (kiri, 60% lebar):
   - Bar horizontal untuk setiap status thesis
   - Label: Menunggu Review (8), Bimbingan (35), Siap Seminar (12), ...
   - Setiap bar clickable → filter `/kaprodi/theses` dengan status tersebut
   - Gunakan komponen chart sederhana dengan CSS/SVG (tanpa library berat)
-- [ ] **Grafik Tren Bulanan** (kanan, 40% lebar):
+- [x] **Grafik Tren Bulanan** (kanan, 40% lebar):
   - Line chart jumlah lulusan per bulan (6 bulan terakhir)
   - Gunakan `Recharts` (install: `npm install recharts`)
 
 #### Row 3 — Analitik Dosen + Operasional
-- [ ] **Beban Dosen** (kiri, 50%):
+- [x] **Beban Dosen** (kiri, 50%):
   - Tabel: Nama Dosen, Bimbingan Aktif, Seminar, Sidang
   - Sort: beban tertinggi di atas
   - Warna baris: hijau (<3), kuning (3-5), merah (>5)
   - Tampilkan max 8 dosen, link "Lihat Semua"
-- [ ] **Pending Actions** (kanan, 50%):
+- [x] **Pending Actions** (kanan, 50%):
   - List item dengan count dan link:
     ```
     📋  5 Pengajuan judul menunggu review   →  /kaprodi/thesis-reviews
@@ -92,13 +92,13 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
   - Badge merah jika count > 0
 
 #### Row 4 — Jadwal Mendatang
-- [ ] List seminar dan sidang dalam 14 hari ke depan
-- [ ] Group by tanggal
-- [ ] Setiap item: icon tipe (seminar/sidang), nama mahasiswa, judul, waktu, ruangan
-- [ ] Tampilkan max 5 item, link "Lihat Semua Jadwal"
+- [x] List seminar dan sidang dalam 14 hari ke depan
+- [x] Group by tanggal
+- [x] Setiap item: icon tipe (seminar/sidang), nama mahasiswa, judul, waktu, ruangan
+- [x] Tampilkan max 5 item, link "Lihat Semua Jadwal"
 
 #### Auto-Refresh
-- [ ] Dashboard di-refetch setiap 5 menit menggunakan TanStack Query `refetchInterval: 5 * 60 * 1000`
+- [x] Dashboard di-refetch setiap 5 menit menggunakan TanStack Query `refetchInterval: 5 * 60 * 1000`
 
 ---
 
@@ -106,8 +106,8 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 
 **File:** `frontend/src/components/features/dashboard/StudentDashboard.tsx`
 
-- [ ] **Greeting Header**: "Selamat pagi, [Nama]! 👋"
-- [ ] **Progress Stepper** (prominent, full width):
+- [x] **Greeting Header**: "Selamat pagi, [Nama]! 👋"
+- [x] **Progress Stepper** (prominent, full width):
   ```
   ① Pengajuan  →  ② Bimbingan  →  ③ Seminar  →  ④ Sidang  →  ⑤ Lulus
       ✅               ✅ (aktif)        ⏳               🔒          🔒
@@ -115,18 +115,18 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
   - Step yang sudah lewat: filled + checkmark
   - Step aktif: filled + animasi pulse
   - Step mendatang: outline/grey
-- [ ] **Thesis Info Card**: judul, pembimbing, status badge
-- [ ] **Quick Actions** (tombol besar, sesuai stage saat ini):
+- [x] **Thesis Info Card**: judul, pembimbing, status badge
+- [x] **Quick Actions** (tombol besar, sesuai stage saat ini):
   - `in_progress` → "Upload Dokumen" + "Catat Bimbingan"
   - `seminar_ready` → "Lihat Jadwal Seminar"
   - `defense_ready` → "Lihat Jadwal Sidang"
   - dll.
-- [ ] **Status Dokumen** (grid kartu kecil):
+- [x] **Status Dokumen** (grid kartu kecil):
   - Setiap tipe dokumen: icon + nama + badge status
   - Dokumen yang perlu tindakan di-highlight
-- [ ] **Bimbingan**: card ringkasan (total bimbingan, bimbingan terakhir, tindak lanjut terakhir)
-- [ ] **Jadwal Mendatang**: card jika ada seminar/sidang terjadwal (countdown)
-- [ ] **Jika belum punya thesis**: hero card besar dengan CTA "Mulai Ajukan Judul Skripsi Anda"
+- [x] **Bimbingan**: card ringkasan (total bimbingan, bimbingan terakhir, tindak lanjut terakhir)
+- [x] **Jadwal Mendatang**: card jika ada seminar/sidang terjadwal (countdown)
+- [x] **Jika belum punya thesis**: hero card besar dengan CTA "Mulai Ajukan Judul Skripsi Anda"
 
 ---
 
@@ -134,13 +134,13 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 
 **File:** `frontend/src/components/features/dashboard/SupervisorDashboard.tsx`
 
-- [ ] **Summary cards**: Total Bimbingan | Dokumen Pending Review | Jadwal Minggu Ini
-- [ ] **Mahasiswa yang Butuh Perhatian** (prioritas):
+- [x] **Summary cards**: Total Bimbingan | Dokumen Pending Review | Jadwal Minggu Ini
+- [x] **Mahasiswa yang Butuh Perhatian** (prioritas):
   - List mahasiswa yang >14 hari tidak ada aktivitas bimbingan
   - Link ke halaman detail masing-masing
-- [ ] **Dokumen Pending Review**: top 3 dokumen terlama, link "Lihat Semua"
-- [ ] **Jadwal Mendatang**: seminar/sidang mahasiswa bimbingan dalam 7 hari
-- [ ] **Daftar Mahasiswa**: mini-tabel dengan status dan progress bar tiap mahasiswa
+- [x] **Dokumen Pending Review**: top 3 dokumen terlama, link "Lihat Semua"
+- [x] **Jadwal Mendatang**: seminar/sidang mahasiswa bimbingan dalam 7 hari
+- [x] **Daftar Mahasiswa**: mini-tabel dengan status dan progress bar tiap mahasiswa
 
 ---
 
@@ -148,37 +148,37 @@ Implementasi halaman dashboard utama (`/dashboard`) yang menampilkan konten berb
 
 **File:** `frontend/src/components/features/dashboard/ExaminerDashboard.tsx`
 
-- [ ] **Summary cards**: Jadwal Mendatang | Nilai Belum Diinput | Total Sudah Dinilai
-- [ ] **Perlu Tindakan** (jika ada pending):
+- [x] **Summary cards**: Jadwal Mendatang | Nilai Belum Diinput | Total Sudah Dinilai
+- [x] **Perlu Tindakan** (jika ada pending):
   - Banner kuning: "Anda memiliki X penilaian yang belum diinput"
   - Tombol "Input Nilai Sekarang"
-- [ ] **Jadwal Mendatang**: list seminar/sidang yang akan datang
-- [ ] **Riwayat Penilaian**: 5 entri terakhir yang sudah dinilai
+- [x] **Jadwal Mendatang**: list seminar/sidang yang akan datang
+- [x] **Riwayat Penilaian**: 5 entri terakhir yang sudah dinilai
 
 ---
 
 ### Shared Dashboard Components
 
-- [ ] **`StatCard`** — kartu statistik (digunakan semua dashboard)
-- [ ] **`ProgressStepper`** — stepper horizontal dengan status per step
-- [ ] **`UpcomingScheduleList`** — list jadwal mendatang (shared seminar + sidang)
-- [ ] **`PendingActionList`** — list pending actions dengan count dan link
-- [ ] **`MiniBarChart`** — bar chart sederhana menggunakan Recharts
-- [ ] **`LineChart`** — line chart trend menggunakan Recharts
+- [x] **`StatCard`** — kartu statistik (digunakan semua dashboard)
+- [x] **`ProgressStepper`** — stepper horizontal dengan status per step
+- [x] **`UpcomingScheduleList`** — list jadwal mendatang (shared seminar + sidang)
+- [x] **`PendingActionList`** — list pending actions dengan count dan link
+- [x] **`MiniBarChart`** — bar chart sederhana menggunakan Recharts
+- [x] **`LineChart`** — line chart trend menggunakan Recharts
 
 ---
 
 ## Done Criteria
 
-- [ ] Login sebagai Admin → `AdminDashboard` muncul dengan semua widget
-- [ ] Login sebagai Kaprodi → `KaprodiDashboard` muncul
-- [ ] Login sebagai Mahasiswa → `StudentDashboard` dengan progress stepper sesuai status thesis
-- [ ] Mahasiswa belum punya thesis → CTA pengajuan judul muncul
-- [ ] Login sebagai Dosen Pembimbing → `SupervisorDashboard` dengan mahasiswa yang butuh perhatian
-- [ ] Login sebagai Dosen Penguji → `ExaminerDashboard` dengan pending badge jika ada
-- [ ] Filter tahun akademik pada AdminDashboard → semua widget ter-refresh
-- [ ] StatCard clickable → redirect ke halaman terkait
-- [ ] Funnel bar clickable → redirect ke `/kaprodi/theses?status=xxx`
-- [ ] Dashboard auto-refresh setiap 5 menit (tanpa reload halaman)
-- [ ] Semua dashboard responsive, tampil baik di tablet
-- [ ] **MILESTONE Phase 4:** Seluruh frontend SIMTAS FILKOM v1.0 selesai diimplementasi
+- [x] Login sebagai Admin → `AdminDashboard` muncul dengan semua widget
+- [x] Login sebagai Kaprodi → `KaprodiDashboard` muncul
+- [x] Login sebagai Mahasiswa → `StudentDashboard` dengan progress stepper sesuai status thesis
+- [x] Mahasiswa belum punya thesis → CTA pengajuan judul muncul
+- [x] Login sebagai Dosen Pembimbing → `SupervisorDashboard` dengan mahasiswa yang butuh perhatian
+- [x] Login sebagai Dosen Penguji → `ExaminerDashboard` dengan pending badge jika ada
+- [x] Filter tahun akademik pada AdminDashboard → semua widget ter-refresh
+- [x] StatCard clickable → redirect ke halaman terkait
+- [x] Funnel bar clickable → redirect ke `/kaprodi/theses?status=xxx`
+- [x] Dashboard auto-refresh setiap 5 menit (tanpa reload halaman)
+- [x] Semua dashboard responsive, tampil baik di tablet
+- [x] **MILESTONE Phase 4:** Seluruh frontend SIMTAS FILKOM v1.0 selesai diimplementasi

@@ -19,7 +19,7 @@ Implementasi sistem audit log terpusat yang sudah dipanggil sebagai stub di semu
 
 Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplementasikannya secara nyata.
 
-- [ ] Buat `backend/internal/domain/repository/audit_repository.go`:
+- [x] Buat `backend/internal/domain/repository/audit_repository.go`:
   ```go
   type AuditRepository interface {
     Create(ctx context.Context, log *entity.AuditLog) error
@@ -27,7 +27,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     FindByEntity(ctx context.Context, entityType string, entityID uuid.UUID) ([]*entity.AuditLog, error)
   }
   ```
-- [ ] `AuditFilter`:
+- [x] `AuditFilter`:
   ```go
   type AuditFilter struct {
     UserID     *uuid.UUID
@@ -40,7 +40,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     PerPage    int
   }
   ```
-- [ ] Buat `backend/pkg/audit/audit_service.go` — service yang bisa diinjeksi ke semua use case:
+- [x] Buat `backend/pkg/audit/audit_service.go` — service yang bisa diinjeksi ke semua use case:
   ```go
   type AuditService struct {
     repo AuditRepository
@@ -66,11 +66,11 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     }()
   }
   ```
-- [ ] `AuditParams` struct dengan field: `UserID`, `Action`, `EntityType`, `EntityID`, `OldValue` (interface{}), `NewValue` (interface{}), `IPAddress`, `UserAgent`
-- [ ] Helper untuk extract IP dan UserAgent dari Gin context
+- [x] `AuditParams` struct dengan field: `UserID`, `Action`, `EntityType`, `EntityID`, `OldValue` (interface{}), `NewValue` (interface{}), `IPAddress`, `UserAgent`
+- [x] Helper untuk extract IP dan UserAgent dari Gin context
 
 ### Konstanta Action
-- [ ] Buat `backend/pkg/audit/actions.go` — semua konstanta action:
+- [x] Buat `backend/pkg/audit/actions.go` — semua konstanta action:
   ```go
   const (
     // Auth
@@ -127,15 +127,15 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
   ```
 
 ### Swap Stub → Real Audit Log
-- [ ] Inject `AuditService` ke semua use case yang memanggil audit log (job 03–12)
-- [ ] Pastikan setiap action yang didefinisikan benar-benar dipanggil di tempat yang sesuai
-- [ ] IPAddress dan UserAgent diambil dari Gin context dan diteruskan ke use case via context
+- [x] Inject `AuditService` ke semua use case yang memanggil audit log (job 03–12)
+- [x] Pastikan setiap action yang didefinisikan benar-benar dipanggil di tempat yang sesuai
+- [x] IPAddress dan UserAgent diambil dari Gin context dan diteruskan ke use case via context
 
 ### Handler — Audit Log Endpoints (Admin Only)
 
 **GET `/api/v1/admin/audit-logs`** _(Admin only)_
-- [ ] Query params: `user_id`, `action`, `entity_type`, `entity_id`, `date_from`, `date_to`, `page`, `per_page`
-- [ ] Response:
+- [x] Query params: `user_id`, `action`, `entity_type`, `entity_id`, `date_from`, `date_to`, `page`, `per_page`
+- [x] Response:
   ```json
   {
     "success": true,
@@ -156,15 +156,15 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     "meta": { "page": 1, "per_page": 50, "total": 1250 }
   }
   ```
-- [ ] Default per_page: 50 (lebih besar dari endpoint lain karena sifat monitoring)
+- [x] Default per_page: 50 (lebih besar dari endpoint lain karena sifat monitoring)
 
 **GET `/api/v1/admin/audit-logs/entity/:entity_type/:entity_id`** _(Admin + Kaprodi)_
-- [ ] Return riwayat audit untuk 1 entitas spesifik (misal: semua perubahan pada thesis tertentu)
-- [ ] Berguna untuk menelusuri riwayat lengkap sebuah skripsi
+- [x] Return riwayat audit untuk 1 entitas spesifik (misal: semua perubahan pada thesis tertentu)
+- [x] Berguna untuk menelusuri riwayat lengkap sebuah skripsi
 
 ### Structured Application Logger
 
-- [ ] Buat `backend/pkg/logger/logger.go` — wrapper untuk `log/slog` (Go standard library):
+- [x] Buat `backend/pkg/logger/logger.go` — wrapper untuk `log/slog` (Go standard library):
   ```go
   var Logger *slog.Logger
 
@@ -183,17 +183,17 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     slog.SetDefault(Logger)
   }
   ```
-- [ ] Buat `backend/internal/middleware/request_logger.go` — log setiap HTTP request:
+- [x] Buat `backend/internal/middleware/request_logger.go` — log setiap HTTP request:
   ```go
   // Log format: METHOD PATH STATUS LATENCY IP
   // Contoh: GET /api/v1/theses 200 12ms 192.168.1.1
   ```
-- [ ] Jangan log request body (bisa berisi data sensitif)
-- [ ] Tambahkan request ID ke setiap log entry (untuk tracing)
+- [x] Jangan log request body (bisa berisi data sensitif)
+- [x] Tambahkan request ID ke setiap log entry (untuk tracing)
 
 ### Global Error Handler
 
-- [ ] Buat `backend/internal/middleware/error_handler.go` — Gin recovery middleware yang menangkap panic:
+- [x] Buat `backend/internal/middleware/error_handler.go` — Gin recovery middleware yang menangkap panic:
   ```go
   func ErrorHandler() gin.HandlerFunc {
     return func(c *gin.Context) {
@@ -212,7 +212,7 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     }
   }
   ```
-- [ ] Buat `backend/pkg/apperror/errors.go` — custom error types:
+- [x] Buat `backend/pkg/apperror/errors.go` — custom error types:
   ```go
   type AppError struct {
     Code    int
@@ -230,10 +230,10 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     ErrInternal      = &AppError{Code: 500, Message: "Terjadi kesalahan pada server"}
   )
   ```
-- [ ] Handler Gin menggunakan `AppError` untuk return response yang konsisten
+- [x] Handler Gin menggunakan `AppError` untuk return response yang konsisten
 
 ### Token Blacklist Cleanup (Scheduled Task)
-- [ ] Buat `backend/pkg/scheduler/token_cleanup.go` — goroutine yang berjalan setiap 1 jam:
+- [x] Buat `backend/pkg/scheduler/token_cleanup.go` — goroutine yang berjalan setiap 1 jam:
   ```go
   func StartTokenCleanup(db *gorm.DB) {
     ticker := time.NewTicker(1 * time.Hour)
@@ -245,19 +245,19 @@ Semua job sebelumnya sudah memanggil audit log secara stub. Job ini mengimplemen
     }()
   }
   ```
-- [ ] Jalankan di `main.go` setelah startup
+- [x] Jalankan di `main.go` setelah startup
 
 ---
 
 ## Done Criteria
 
-- [ ] Setiap action dari job 03–12 berhasil tercatat di tabel `audit_logs`
-- [ ] `GET /admin/audit-logs` → return paginated list dengan filter
-- [ ] `GET /admin/audit-logs?action=THESIS_APPROVED` → filter by action bekerja
-- [ ] `GET /admin/audit-logs/entity/thesis/:id` → riwayat lengkap 1 thesis
-- [ ] Audit log ditulis non-blocking (tidak memperlambat HTTP response)
-- [ ] Request logger mencatat setiap HTTP request dengan method, path, status, latency
-- [ ] Panic di handler ter-recover, return `500` dengan format standard (tidak crash server)
-- [ ] `AppError` digunakan konsisten di semua handler (bukan plain `c.JSON(400, ...)`)
-- [ ] Token blacklist cleanup berjalan dan menghapus expired entries
-- [ ] **MILESTONE Phase 3:** Seluruh backend API lengkap dan siap untuk diintegrasikan dengan frontend
+- [x] Setiap action dari job 03–12 berhasil tercatat di tabel `audit_logs`
+- [x] `GET /admin/audit-logs` → return paginated list dengan filter
+- [x] `GET /admin/audit-logs?action=THESIS_APPROVED` → filter by action bekerja
+- [x] `GET /admin/audit-logs/entity/thesis/:id` → riwayat lengkap 1 thesis
+- [x] Audit log ditulis non-blocking (tidak memperlambat HTTP response)
+- [x] Request logger mencatat setiap HTTP request dengan method, path, status, latency
+- [x] Panic di handler ter-recover, return `500` dengan format standard (tidak crash server)
+- [x] `AppError` digunakan konsisten di semua handler (bukan plain `c.JSON(400, ...)`)
+- [x] Token blacklist cleanup berjalan dan menghapus expired entries
+- [x] **MILESTONE Phase 3:** Seluruh backend API lengkap dan siap untuk diintegrasikan dengan frontend

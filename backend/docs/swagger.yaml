@@ -1,0 +1,3338 @@
+basePath: /api/v1
+definitions:
+  handler.documentReviewRequest:
+    properties:
+      decision:
+        type: string
+      notes:
+        type: string
+    required:
+    - decision
+    type: object
+  handler.revisionNotesRequest:
+    properties:
+      revision_notes:
+        type: string
+    type: object
+  handler.testEmailRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  response.APIResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/response.Meta'
+      success:
+        type: boolean
+    type: object
+  response.Meta:
+    properties:
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  usecase.AcademicSummaryView:
+    properties:
+      avg_completion_months:
+        type: number
+      total_active:
+        type: integer
+      total_graduated:
+        type: integer
+    type: object
+  usecase.AcademicYearRequest:
+    properties:
+      end_date:
+        description: YYYY-MM-DD
+        type: string
+      name:
+        type: string
+      semester:
+        type: string
+      start_date:
+        description: YYYY-MM-DD
+        type: string
+    required:
+    - end_date
+    - name
+    - semester
+    - start_date
+    type: object
+  usecase.ActivityStatsView:
+    properties:
+      consultations_this_week:
+        type: integer
+      documents_uploaded_this_week:
+        type: integer
+      logins_today:
+        type: integer
+    type: object
+  usecase.ArchiveDetail:
+    properties:
+      abstract_en:
+        type: string
+      abstract_id:
+        type: string
+      archived_at:
+        type: string
+      field_of_study:
+        type: string
+      file_name:
+        type: string
+      graduation_year:
+        type: integer
+      id:
+        type: string
+      keywords:
+        items:
+          type: string
+        type: array
+      student:
+        $ref: '#/definitions/usecase.ThesisStudentBrief'
+      study_program:
+        type: string
+      supervisors:
+        items:
+          $ref: '#/definitions/usecase.UserBrief'
+        type: array
+      thesis_id:
+        type: string
+      title:
+        type: string
+    type: object
+  usecase.ArchiveDownloadResult:
+    properties:
+      download_url:
+        type: string
+      expires_in:
+        type: integer
+    type: object
+  usecase.AssignSupervisorRequest:
+    properties:
+      supervisor_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - supervisor_ids
+    type: object
+  usecase.CancelThesisRequest:
+    properties:
+      reason:
+        type: string
+    type: object
+  usecase.ChangePasswordRequest:
+    properties:
+      current_password:
+        type: string
+      new_password:
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  usecase.ComponentScoreInput:
+    properties:
+      component_name:
+        type: string
+      score:
+        type: number
+    required:
+    - component_name
+    - score
+    type: object
+  usecase.ComponentScoreView:
+    properties:
+      name:
+        type: string
+      score:
+        type: number
+      weight:
+        type: number
+      weighted:
+        type: number
+    type: object
+  usecase.ConsultationDetail:
+    properties:
+      approved_at:
+        type: string
+      approved_by:
+        type: string
+      approver:
+        $ref: '#/definitions/usecase.UserBrief'
+      attachment_url:
+        type: string
+      consultation_date:
+        description: YYYY-MM-DD
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      creator:
+        $ref: '#/definitions/usecase.UserBrief'
+      follow_up:
+        type: string
+      id:
+        type: string
+      notes:
+        type: string
+      status:
+        type: string
+      thesis_id:
+        type: string
+      topics_discussed:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  usecase.ConsultationSummary:
+    properties:
+      approved_count:
+        type: integer
+      average_interval_days:
+        type: integer
+      consultations_this_month:
+        type: integer
+      last_consultation_date:
+        type: string
+      pending_count:
+        type: integer
+      total_consultations:
+        type: integer
+    type: object
+  usecase.CreateConsultationRequest:
+    properties:
+      attachment_url:
+        type: string
+      consultation_date:
+        description: YYYY-MM-DD
+        type: string
+      follow_up:
+        type: string
+      notes:
+        type: string
+      topics_discussed:
+        type: string
+    required:
+    - consultation_date
+    - topics_discussed
+    type: object
+  usecase.CreateThesisRequest:
+    properties:
+      abstract:
+        type: string
+      field_of_study:
+        type: string
+      thesis_type:
+        type: string
+      title:
+        type: string
+    required:
+    - abstract
+    - thesis_type
+    - title
+    type: object
+  usecase.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      nim_nidn:
+        type: string
+      role:
+        type: string
+      study_program:
+        type: string
+    required:
+    - email
+    - full_name
+    - role
+    type: object
+  usecase.DashboardSummaryResponse:
+    properties:
+      academic_summary:
+        $ref: '#/definitions/usecase.AcademicSummaryView'
+      by_status:
+        items:
+          $ref: '#/definitions/usecase.StatusCountView'
+        type: array
+      graduation_trend:
+        items:
+          $ref: '#/definitions/usecase.MonthlyCountView'
+        type: array
+    type: object
+  usecase.DefenseDetail:
+    properties:
+      created_at:
+        type: string
+      examiners:
+        items:
+          $ref: '#/definitions/usecase.UserBrief'
+        type: array
+      final_score:
+        type: number
+      id:
+        type: string
+      revision_notes:
+        type: string
+      room:
+        type: string
+      scheduled_at:
+        type: string
+      scores:
+        items:
+          $ref: '#/definitions/usecase.DefenseScoreDetail'
+        type: array
+      status:
+        type: string
+      thesis:
+        $ref: '#/definitions/usecase.SeminarThesisInfo'
+    type: object
+  usecase.DefenseResult:
+    properties:
+      defense_id:
+        type: string
+      examiner_scores:
+        items:
+          $ref: '#/definitions/usecase.ExaminerScoreBreakdown'
+        type: array
+      final_score:
+        type: number
+      grade_category:
+        type: string
+      grading_components:
+        items:
+          $ref: '#/definitions/usecase.GradingComponentView'
+        type: array
+      is_complete:
+        type: boolean
+      status:
+        type: string
+    type: object
+  usecase.DefenseScoreDetail:
+    properties:
+      component_name:
+        type: string
+      component_weight:
+        type: number
+      examiner:
+        $ref: '#/definitions/usecase.UserBrief'
+      score:
+        type: number
+    type: object
+  usecase.DocStatusView:
+    properties:
+      status:
+        type: string
+      type:
+        type: string
+      version:
+        type: integer
+    type: object
+  usecase.DocumentDetail:
+    properties:
+      chapter_number:
+        type: integer
+      created_at:
+        type: string
+      document_type:
+        type: string
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      id:
+        type: string
+      reviewed_at:
+        type: string
+      reviewer:
+        $ref: '#/definitions/usecase.UserBrief'
+      reviewer_notes:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    type: object
+  usecase.DownloadResult:
+    properties:
+      download_url:
+        type: string
+      expires_in:
+        type: integer
+    type: object
+  usecase.ExaminerAssignmentView:
+    properties:
+      has_scored:
+        type: boolean
+      id:
+        type: string
+      room:
+        type: string
+      scheduled_at:
+        type: string
+      student_name:
+        type: string
+      thesis_title:
+        type: string
+      type:
+        type: string
+    type: object
+  usecase.ExaminerDashboardResponse:
+    properties:
+      pending_scores:
+        items:
+          $ref: '#/definitions/usecase.ExaminerAssignmentView'
+        type: array
+      scoring_history:
+        items:
+          $ref: '#/definitions/usecase.ExaminerAssignmentView'
+        type: array
+      upcoming_assignments:
+        items:
+          $ref: '#/definitions/usecase.ExaminerAssignmentView'
+        type: array
+    type: object
+  usecase.ExaminerScoreBreakdown:
+    properties:
+      components:
+        items:
+          $ref: '#/definitions/usecase.ComponentScoreView'
+        type: array
+      examiner:
+        $ref: '#/definitions/usecase.UserBrief'
+      examiner_score:
+        type: number
+    type: object
+  usecase.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  usecase.GradingComponentView:
+    properties:
+      name:
+        type: string
+      weight:
+        type: number
+    type: object
+  usecase.GraduationRequest:
+    properties:
+      notes:
+        type: string
+    type: object
+  usecase.ImportError:
+    properties:
+      email:
+        type: string
+      reason:
+        type: string
+      row:
+        type: integer
+    type: object
+  usecase.ImportResult:
+    properties:
+      error_count:
+        type: integer
+      errors:
+        items:
+          $ref: '#/definitions/usecase.ImportError'
+        type: array
+      success_count:
+        type: integer
+      total_rows:
+        type: integer
+    type: object
+  usecase.LecturerAnalyticsResponse:
+    properties:
+      lecturers:
+        items:
+          $ref: '#/definitions/usecase.LecturerWorkloadView'
+        type: array
+      workload_distribution:
+        $ref: '#/definitions/usecase.WorkloadDistribution'
+    type: object
+  usecase.LecturerLoadBrief:
+    properties:
+      full_name:
+        type: string
+      supervision_count:
+        type: integer
+    type: object
+  usecase.LecturerWorkloadView:
+    properties:
+      defense_count:
+        type: integer
+      full_name:
+        type: string
+      lecturer_id:
+        type: string
+      nidn:
+        type: string
+      seminar_count:
+        type: integer
+      supervision_count:
+        type: integer
+    type: object
+  usecase.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  usecase.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      user:
+        $ref: '#/definitions/usecase.UserDTO'
+    type: object
+  usecase.MonthlyCountView:
+    properties:
+      count:
+        type: integer
+      month:
+        type: string
+    type: object
+  usecase.OperationalResponse:
+    properties:
+      activity_stats:
+        $ref: '#/definitions/usecase.ActivityStatsView'
+      pending_actions:
+        $ref: '#/definitions/usecase.PendingActionsView'
+      upcoming_schedules:
+        $ref: '#/definitions/usecase.UpcomingSchedulesView'
+    type: object
+  usecase.PendingActionsView:
+    properties:
+      pending_defenses:
+        type: integer
+      pending_document_reviews:
+        type: integer
+      pending_seminars:
+        type: integer
+      pending_title_reviews:
+        type: integer
+    type: object
+  usecase.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  usecase.RefreshTokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+    type: object
+  usecase.ResetPasswordRequest:
+    properties:
+      confirm_password:
+        type: string
+      new_password:
+        type: string
+      token:
+        type: string
+    required:
+    - confirm_password
+    - new_password
+    - token
+    type: object
+  usecase.ReviewThesisRequest:
+    properties:
+      decision:
+        description: approved | rejected
+        type: string
+      notes:
+        type: string
+    required:
+    - decision
+    type: object
+  usecase.ScheduleDefenseRequest:
+    properties:
+      examiner_ids:
+        items:
+          type: string
+        type: array
+      room:
+        type: string
+      scheduled_at:
+        type: string
+    required:
+    - examiner_ids
+    - room
+    - scheduled_at
+    type: object
+  usecase.ScheduleInfoView:
+    properties:
+      id:
+        type: string
+      room:
+        type: string
+      scheduled_at:
+        type: string
+      status:
+        type: string
+    type: object
+  usecase.ScheduleItemView:
+    properties:
+      id:
+        type: string
+      room:
+        type: string
+      scheduled_at:
+        type: string
+      student_name:
+        type: string
+      thesis_title:
+        type: string
+    type: object
+  usecase.ScheduleSeminarRequest:
+    properties:
+      examiner_ids:
+        items:
+          type: string
+        type: array
+      room:
+        type: string
+      scheduled_at:
+        type: string
+    required:
+    - examiner_ids
+    - room
+    - scheduled_at
+    type: object
+  usecase.SeminarDetail:
+    properties:
+      created_at:
+        type: string
+      examiners:
+        items:
+          $ref: '#/definitions/usecase.UserBrief'
+        type: array
+      final_score:
+        type: number
+      id:
+        type: string
+      notes:
+        type: string
+      room:
+        type: string
+      scheduled_at:
+        type: string
+      scores:
+        items:
+          $ref: '#/definitions/usecase.SeminarScoreDetail'
+        type: array
+      status:
+        type: string
+      thesis:
+        $ref: '#/definitions/usecase.SeminarThesisInfo'
+    type: object
+  usecase.SeminarResult:
+    properties:
+      examiner_scores:
+        items:
+          $ref: '#/definitions/usecase.ExaminerScoreBreakdown'
+        type: array
+      final_score:
+        type: number
+      grading_components:
+        items:
+          $ref: '#/definitions/usecase.GradingComponentView'
+        type: array
+      is_complete:
+        type: boolean
+      seminar_id:
+        type: string
+      status:
+        type: string
+    type: object
+  usecase.SeminarScoreDetail:
+    properties:
+      component_name:
+        type: string
+      component_weight:
+        type: number
+      examiner:
+        $ref: '#/definitions/usecase.UserBrief'
+      score:
+        type: number
+    type: object
+  usecase.SeminarThesisInfo:
+    properties:
+      id:
+        type: string
+      student:
+        $ref: '#/definitions/usecase.ThesisStudentBrief'
+      title:
+        type: string
+    type: object
+  usecase.StatusCountView:
+    properties:
+      count:
+        type: integer
+      label:
+        type: string
+      status:
+        type: string
+    type: object
+  usecase.StudentProgressResponse:
+    properties:
+      consultation_count:
+        type: integer
+      current_stage:
+        type: string
+      documents:
+        items:
+          $ref: '#/definitions/usecase.DocStatusView'
+        type: array
+      last_consultation:
+        type: string
+      pending_actions:
+        items:
+          type: string
+        type: array
+      progress_percentage:
+        type: integer
+      status:
+        type: string
+      supervisors:
+        items:
+          $ref: '#/definitions/usecase.UserSummaryView'
+        type: array
+      thesis_id:
+        type: string
+      title:
+        type: string
+      upcoming_defense:
+        $ref: '#/definitions/usecase.ScheduleInfoView'
+      upcoming_seminar:
+        $ref: '#/definitions/usecase.ScheduleInfoView'
+    type: object
+  usecase.SubmitDefenseScoreRequest:
+    properties:
+      scores:
+        items:
+          $ref: '#/definitions/usecase.ComponentScoreInput'
+        type: array
+    required:
+    - scores
+    type: object
+  usecase.SubmitScoreRequest:
+    properties:
+      scores:
+        items:
+          $ref: '#/definitions/usecase.ComponentScoreInput'
+        type: array
+    required:
+    - scores
+    type: object
+  usecase.SupervisedStudentView:
+    properties:
+      consultation_count:
+        type: integer
+      current_stage:
+        type: string
+      days_since_last_consultation:
+        type: integer
+      last_consultation:
+        type: string
+      pending_document_reviews:
+        type: integer
+      status:
+        type: string
+      student:
+        $ref: '#/definitions/usecase.UserSummaryView'
+      thesis_id:
+        type: string
+      title:
+        type: string
+    type: object
+  usecase.SupervisorDashboardResponse:
+    properties:
+      pending_document_reviews:
+        type: integer
+      students:
+        items:
+          $ref: '#/definitions/usecase.SupervisedStudentView'
+        type: array
+      total_students:
+        type: integer
+      upcoming_schedules:
+        $ref: '#/definitions/usecase.UpcomingSchedulesView'
+    type: object
+  usecase.ThesisAcademicYear:
+    properties:
+      name:
+        type: string
+      semester:
+        type: string
+    type: object
+  usecase.ThesisDetail:
+    properties:
+      abstract:
+        type: string
+      academic_year:
+        $ref: '#/definitions/usecase.ThesisAcademicYear'
+      approved_at:
+        type: string
+      field_of_study:
+        type: string
+      id:
+        type: string
+      kaprodi_notes:
+        type: string
+      status:
+        type: string
+      student:
+        $ref: '#/definitions/usecase.ThesisStudent'
+      submitted_at:
+        type: string
+      supervisors:
+        items:
+          $ref: '#/definitions/usecase.ThesisSupervisor'
+        type: array
+      thesis_type:
+        type: string
+      title:
+        type: string
+    type: object
+  usecase.ThesisStudent:
+    properties:
+      full_name:
+        type: string
+      id:
+        type: string
+      nim:
+        type: string
+    type: object
+  usecase.ThesisStudentBrief:
+    properties:
+      full_name:
+        type: string
+      nim:
+        type: string
+    type: object
+  usecase.ThesisSupervisor:
+    properties:
+      full_name:
+        type: string
+      id:
+        type: string
+    type: object
+  usecase.UpcomingSchedulesView:
+    properties:
+      defenses:
+        items:
+          $ref: '#/definitions/usecase.ScheduleItemView'
+        type: array
+      seminars:
+        items:
+          $ref: '#/definitions/usecase.ScheduleItemView'
+        type: array
+    type: object
+  usecase.UpdateConsultationRequest:
+    properties:
+      attachment_url:
+        type: string
+      consultation_date:
+        type: string
+      follow_up:
+        type: string
+      notes:
+        type: string
+      topics_discussed:
+        type: string
+    type: object
+  usecase.UpdateUserRequest:
+    properties:
+      full_name:
+        type: string
+      nim_nidn:
+        type: string
+      profile_photo_url:
+        type: string
+      study_program:
+        type: string
+    type: object
+  usecase.UserBrief:
+    properties:
+      full_name:
+        type: string
+      id:
+        type: string
+    type: object
+  usecase.UserDTO:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      must_change_password:
+        type: boolean
+      role:
+        type: string
+    type: object
+  usecase.UserSummaryView:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      nim:
+        type: string
+    type: object
+  usecase.WorkloadDistribution:
+    properties:
+      avg_supervision:
+        type: number
+      highest_load:
+        $ref: '#/definitions/usecase.LecturerLoadBrief'
+      lowest_load:
+        $ref: '#/definitions/usecase.LecturerLoadBrief'
+      max_supervision:
+        type: integer
+      min_supervision:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: admin@filkom.unida.ac.id
+    name: Admin SIMTAS FILKOM
+  description: API untuk Sistem Manajemen Tugas Akhir dan Skripsi Fakultas Ilmu Komputer
+    Universitas Djuanda.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://filkom.unida.ac.id
+  title: SIMTAS FILKOM API
+  version: "1.0"
+paths:
+  /academic-years:
+    get:
+      description: Mengambil semua tahun akademik (semua user terautentikasi)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar tahun akademik
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar tahun akademik
+      tags:
+      - Academic Years
+    post:
+      consumes:
+      - application/json
+      description: Membuat tahun akademik baru (Admin only)
+      parameters:
+      - description: Data tahun akademik
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.AcademicYearRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Tahun akademik dibuat
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Data tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat tahun akademik
+      tags:
+      - Academic Years
+  /academic-years/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui data tahun akademik (Admin only)
+      parameters:
+      - description: Tahun akademik ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data yang diperbarui
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.AcademicYearRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tahun akademik diperbarui
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "409":
+          description: Tidak dapat diubah (aktif dengan skripsi berjalan)
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update tahun akademik
+      tags:
+      - Academic Years
+  /academic-years/{id}/activate:
+    patch:
+      description: Mengaktifkan tahun akademik (menonaktifkan yang lain) (Admin only)
+      parameters:
+      - description: Tahun akademik ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tahun akademik berhasil diaktifkan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Aktifkan tahun akademik
+      tags:
+      - Academic Years
+  /admin/audit-logs:
+    get:
+      description: Mengambil daftar audit log dengan filter dan paginasi (Admin only)
+      parameters:
+      - description: Halaman (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Per halaman (default 50, max 200)
+        in: query
+        name: per_page
+        type: integer
+      - description: 'Filter aksi (contoh: user.create)'
+        in: query
+        name: action
+        type: string
+      - description: Filter tipe entitas
+        in: query
+        name: entity_type
+        type: string
+      - description: Filter user ID (UUID)
+        in: query
+        name: user_id
+        type: string
+      - description: Filter entity ID (UUID)
+        in: query
+        name: entity_id
+        type: string
+      - description: Filter tanggal mulai (RFC3339)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter tanggal akhir (RFC3339)
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar audit log
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Belum autentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Akses ditolak
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar audit log
+      tags:
+      - Audit Log
+  /admin/audit-logs/entity/{entity_type}/{entity_id}:
+    get:
+      description: Mengambil riwayat lengkap audit log untuk satu entitas (Admin +
+        Kaprodi)
+      parameters:
+      - description: Tipe entitas
+        in: path
+        name: entity_type
+        required: true
+        type: string
+      - description: Entity ID (UUID)
+        in: path
+        name: entity_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Riwayat entitas
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: entity_id tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Akses ditolak
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Riwayat audit satu entitas
+      tags:
+      - Audit Log
+  /admin/users:
+    get:
+      description: Mengambil daftar user dengan filter dan pagination (Admin only)
+      parameters:
+      - description: Filter role
+        in: query
+        name: role
+        type: string
+      - description: Filter status aktif
+        in: query
+        name: is_active
+        type: boolean
+      - description: Filter program studi
+        in: query
+        name: study_program
+        type: string
+      - description: Cari nama/email/NIM
+        in: query
+        name: search
+        type: string
+      - description: Halaman (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Per halaman (default 20, max 100)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar user
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Parameter tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar user
+      tags:
+      - User Management
+    post:
+      consumes:
+      - application/json
+      description: Membuat user baru (password otomatis dikirim via email) (Admin
+        only)
+      parameters:
+      - description: Data user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User dibuat
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Request tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "409":
+          description: Email sudah terdaftar
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat user
+      tags:
+      - User Management
+  /admin/users/{id}:
+    delete:
+      description: Menghapus user secara soft delete (Admin only)
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User berhasil dihapus
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Tidak dapat menghapus akun sendiri
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: User tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus user (soft delete)
+      tags:
+      - User Management
+    get:
+      description: Mengambil detail user berdasarkan ID (Admin only)
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail user
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: User tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail user
+      tags:
+      - User Management
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui data user (email dan role tidak dapat diubah) (Admin
+        only)
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data yang diperbarui
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User diperbarui
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: User tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - User Management
+  /admin/users/{id}/activate:
+    patch:
+      description: Mengaktifkan akun user (Admin only)
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User berhasil diaktifkan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: User tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Aktifkan user
+      tags:
+      - User Management
+  /admin/users/{id}/deactivate:
+    patch:
+      description: Menonaktifkan akun user dan invalidasi session (Admin only)
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User berhasil dinonaktifkan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Tidak dapat menonaktifkan akun sendiri
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: User tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Nonaktifkan user
+      tags:
+      - User Management
+  /admin/users/{id}/reset-password:
+    post:
+      description: Men-generate password baru dan mengirim via email (Admin only)
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password berhasil direset
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: User tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Reset password user
+      tags:
+      - User Management
+  /admin/users/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Import user dari file .csv atau .xlsx (Admin only)
+      parameters:
+      - description: File CSV/Excel (max 5 MB)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hasil import
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ImportResult'
+              type: object
+        "400":
+          description: File tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Import user massal
+      tags:
+      - User Management
+  /admin/users/import-template:
+    get:
+      description: Mendownload template Excel untuk import user massal (Admin only)
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Template Excel
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Download template import user
+      tags:
+      - User Management
+  /archives:
+    get:
+      description: Mencari arsip skripsi (full-text search + filter) — semua user
+        terautentikasi
+      parameters:
+      - description: Full-text search
+        in: query
+        name: q
+        type: string
+      - description: Filter tahun lulus
+        in: query
+        name: year
+        type: integer
+      - description: Filter bidang keahlian
+        in: query
+        name: field_of_study
+        type: string
+      - description: Filter program studi
+        in: query
+        name: study_program
+        type: string
+      - description: Filter dosen pembimbing
+        in: query
+        name: supervisor_id
+        type: string
+      - description: Halaman (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Per halaman (default 20)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar arsip
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Cari arsip
+      tags:
+      - Archives
+  /archives/{id}:
+    get:
+      description: Mengambil detail lengkap arsip (semua user terautentikasi)
+      parameters:
+      - description: Archive ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail arsip
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ArchiveDetail'
+              type: object
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail arsip
+      tags:
+      - Archives
+  /archives/{id}/download:
+    get:
+      description: Menghasilkan presigned URL download arsip (expired 30 menit, role-based
+        access)
+      parameters:
+      - description: Archive ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Presigned URL
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ArchiveDownloadResult'
+              type: object
+        "403":
+          description: Mahasiswa non-pemilik ditolak
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Download arsip
+      tags:
+      - Archives
+  /archives/stats:
+    get:
+      description: Mengambil statistik arsip agregat (Admin + Kaprodi only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Statistik arsip
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Statistik arsip
+      tags:
+      - Archives
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Mengirim tautan reset password ke email. Selalu return 200 untuk
+        mencegah email enumeration
+      parameters:
+      - description: Email user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Jika email terdaftar, tautan reset telah dikirim
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      summary: Lupa password
+      tags:
+      - Authentication
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Autentikasi dengan email dan password, return JWT access + refresh
+        token
+      parameters:
+      - description: Kredensial login
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login sukses
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.LoginResponse'
+              type: object
+        "401":
+          description: Email atau password salah
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Akun terkunci
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "429":
+          description: Terlalu banyak percobaan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      summary: Login pengguna
+      tags:
+      - Authentication
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Menonaktifkan (blacklist) access token saat ini
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Berhasil logout
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Token tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout pengguna
+      tags:
+      - Authentication
+  /auth/me:
+    get:
+      description: Mengambil data user yang sedang terautentikasi
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data user
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.UserDTO'
+              type: object
+        "401":
+          description: Tidak terautentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: User tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Info user saat ini
+      tags:
+      - Authentication
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Menukar refresh token dengan access token baru
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access token baru
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.RefreshTokenResponse'
+              type: object
+        "401":
+          description: Refresh token tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      summary: Refresh access token
+      tags:
+      - Authentication
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Mengganti password menggunakan token dari email reset
+      parameters:
+      - description: Token + password baru
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password berhasil diubah
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Token tidak valid atau password tidak memenuhi syarat
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      summary: Reset password
+      tags:
+      - Authentication
+  /dashboard/examiner:
+    get:
+      description: Jadwal pengujian dan pending scores (Dosen Penguji only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Jadwal pengujian
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ExaminerDashboardResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Dashboard dosen penguji
+      tags:
+      - Dashboard
+  /dashboard/lecturer-analytics:
+    get:
+      description: Beban bimbingan dan pengujian per dosen (Admin + Kaprodi only)
+      parameters:
+      - description: Filter tahun akademik
+        in: query
+        name: academic_year_id
+        type: string
+      - description: Filter semester (ganjil/genap)
+        in: query
+        name: semester
+        type: string
+      - description: Filter program studi
+        in: query
+        name: study_program
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Analitik dosen
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.LecturerAnalyticsResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Analitik dosen
+      tags:
+      - Dashboard
+  /dashboard/operational:
+    get:
+      description: Pending actions, jadwal mendatang, dan aktivitas (Admin + Kaprodi
+        only)
+      parameters:
+      - description: Jumlah hari jadwal mendatang (default 7)
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data operasional
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.OperationalResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Data operasional
+      tags:
+      - Dashboard
+  /dashboard/student:
+    get:
+      description: Progress skripsi mahasiswa yang sedang login (Mahasiswa only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Progress mahasiswa
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.StudentProgressResponse'
+              type: object
+        "404":
+          description: Thesis tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Dashboard mahasiswa
+      tags:
+      - Dashboard
+  /dashboard/summary:
+    get:
+      description: Ringkasan akademik (Admin + Kaprodi only)
+      parameters:
+      - description: Filter tahun akademik
+        in: query
+        name: academic_year_id
+        type: string
+      - description: Filter semester (ganjil/genap)
+        in: query
+        name: semester
+        type: string
+      - description: Filter program studi
+        in: query
+        name: study_program
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ringkasan dashboard
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DashboardSummaryResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Ringkasan dashboard
+      tags:
+      - Dashboard
+  /dashboard/supervisor:
+    get:
+      description: Ringkasan mahasiswa bimbingan (Dosen Pembimbing only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ringkasan bimbingan
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.SupervisorDashboardResponse'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Dashboard dosen pembimbing
+      tags:
+      - Dashboard
+  /defenses:
+    get:
+      description: Mengambil daftar sidang (scope per role)
+      parameters:
+      - description: Filter status
+        in: query
+        name: status
+        type: string
+      - description: Filter penguji
+        in: query
+        name: examiner_id
+        type: string
+      - description: Filter tanggal mulai (RFC3339)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter tanggal akhir (RFC3339)
+        in: query
+        name: date_to
+        type: string
+      - description: Halaman (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Per halaman (default 20)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar sidang
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar sidang
+      tags:
+      - Thesis Defense
+  /defenses/{id}:
+    get:
+      description: Mengambil detail sidang lengkap
+      parameters:
+      - description: Defense ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail sidang
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DefenseDetail'
+              type: object
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail sidang
+      tags:
+      - Thesis Defense
+  /defenses/{id}/result:
+    get:
+      description: Mengambil hasil sidang lengkap (nilai akhir + grade + breakdown
+        per penguji)
+      parameters:
+      - description: Defense ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hasil sidang
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DefenseResult'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Hasil sidang
+      tags:
+      - Thesis Defense
+  /defenses/{id}/revision:
+    put:
+      consumes:
+      - application/json
+      description: Mencatat catatan revisi pasca sidang (Admin + Kaprodi only)
+      parameters:
+      - description: Defense ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Catatan revisi
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.revisionNotesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Catatan tersimpan
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DefenseDetail'
+              type: object
+        "422":
+          description: Sidang belum selesai dinilai
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Catat revisi sidang
+      tags:
+      - Thesis Defense
+  /defenses/{id}/schedule:
+    put:
+      consumes:
+      - application/json
+      description: Menjadwalkan/menjadwal-ulang sidang dan menunjuk penguji (Admin
+        + Kaprodi only)
+      parameters:
+      - description: Defense ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Jadwal + penguji
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.ScheduleDefenseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sidang terjadwal
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DefenseDetail'
+              type: object
+        "400":
+          description: Jadwal tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "409":
+          description: Konflik ruangan/penguji
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Jadwalkan sidang
+      tags:
+      - Thesis Defense
+  /defenses/{id}/scores:
+    post:
+      consumes:
+      - application/json
+      description: Menginput nilai sidang per komponen (Dosen Penguji ditugaskan only)
+      parameters:
+      - description: Defense ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nilai per komponen
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.SubmitDefenseScoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Nilai tersimpan / hasil final
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DefenseResult'
+              type: object
+        "403":
+          description: Bukan penguji ditugaskan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "409":
+          description: Sudah pernah input nilai
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Input nilai sidang
+      tags:
+      - Thesis Defense
+  /documents/{id}/review:
+    patch:
+      consumes:
+      - application/json
+      description: Menyetujui atau meminta revisi dokumen (Dosen Pembimbing thesis
+        terkait only)
+      parameters:
+      - description: Document ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Keputusan review
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.documentReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hasil review
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DocumentDetail'
+              type: object
+        "403":
+          description: Bukan pembimbing thesis ini
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "422":
+          description: Dokumen tidak pending
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Review dokumen
+      tags:
+      - Documents
+  /health:
+    get:
+      description: Mengecek status layanan dan koneksi database. Menghasilkan 503
+        saat database tidak dapat dijangkau.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Layanan sehat
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "503":
+          description: Database tidak dapat dijangkau
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      summary: Health check
+      tags:
+      - Health
+  /internal/test-email:
+    post:
+      consumes:
+      - application/json
+      description: Mengirim email diagnostik untuk verifikasi konfigurasi email (development
+        only)
+      parameters:
+      - description: Alamat email tujuan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.testEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email test diproses
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Email tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "500":
+          description: Gagal mengirim email test
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      summary: Kirim email test
+      tags:
+      - Internal
+  /lecturers:
+    get:
+      description: Mengambil daftar dosen pembimbing aktif dengan beban bimbingan
+        (Kaprodi + Admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar dosen pembimbing
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar dosen pembimbing
+      tags:
+      - Thesis Submission
+  /schedules/upcoming:
+    get:
+      description: Mengambil seminar dan sidang terjadwal dalam N hari ke depan (Admin
+        + Kaprodi only)
+      parameters:
+      - description: Jumlah hari ke depan (default 14)
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Jadwal seminar + sidang
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Jadwal mendatang
+      tags:
+      - Thesis Defense
+  /seminars:
+    get:
+      description: Mengambil daftar seminar (scope per role)
+      parameters:
+      - description: Filter status
+        in: query
+        name: status
+        type: string
+      - description: Filter penguji
+        in: query
+        name: examiner_id
+        type: string
+      - description: Filter tanggal mulai (RFC3339)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter tanggal akhir (RFC3339)
+        in: query
+        name: date_to
+        type: string
+      - description: Halaman (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Per halaman (default 20)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar seminar
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar seminar
+      tags:
+      - Seminar Proposal
+  /seminars/{id}:
+    get:
+      description: Mengambil detail seminar lengkap
+      parameters:
+      - description: Seminar ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail seminar
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.SeminarDetail'
+              type: object
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail seminar
+      tags:
+      - Seminar Proposal
+  /seminars/{id}/result:
+    get:
+      description: Mengambil hasil seminar lengkap (nilai akhir + breakdown per penguji)
+      parameters:
+      - description: Seminar ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hasil seminar
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.SeminarResult'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Hasil seminar
+      tags:
+      - Seminar Proposal
+  /seminars/{id}/revision:
+    put:
+      consumes:
+      - application/json
+      description: Mencatat catatan revisi pasca seminar (Admin + Kaprodi only)
+      parameters:
+      - description: Seminar ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Catatan revisi
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.revisionNotesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Catatan tersimpan
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.SeminarDetail'
+              type: object
+        "422":
+          description: Seminar belum passed
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Catat revisi seminar
+      tags:
+      - Seminar Proposal
+  /seminars/{id}/schedule:
+    put:
+      consumes:
+      - application/json
+      description: Menjadwalkan/menjadwal-ulang seminar dan menunjuk penguji (Admin
+        + Kaprodi only)
+      parameters:
+      - description: Seminar ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Jadwal + penguji
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.ScheduleSeminarRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Seminar terjadwal
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.SeminarDetail'
+              type: object
+        "400":
+          description: Jadwal tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "409":
+          description: Konflik ruangan/penguji
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Jadwalkan seminar
+      tags:
+      - Seminar Proposal
+  /seminars/{id}/scores:
+    post:
+      consumes:
+      - application/json
+      description: Menginput nilai seminar per komponen (Dosen Penguji ditugaskan
+        only)
+      parameters:
+      - description: Seminar ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nilai per komponen
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.SubmitScoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Nilai tersimpan / hasil final
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.SeminarResult'
+              type: object
+        "403":
+          description: Bukan penguji ditugaskan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "409":
+          description: Sudah pernah input nilai
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Input nilai seminar
+      tags:
+      - Seminar Proposal
+  /theses:
+    get:
+      description: 'Mengambil daftar thesis (scope per role: admin/kaprodi semua,
+        dosen pembimbing miliknya, mahasiswa miliknya)'
+      parameters:
+      - description: Filter status
+        in: query
+        name: status
+        type: string
+      - description: Filter tahun akademik
+        in: query
+        name: academic_year_id
+        type: string
+      - description: Filter program studi
+        in: query
+        name: study_program
+        type: string
+      - description: Filter bidang keahlian
+        in: query
+        name: field_of_study
+        type: string
+      - description: Filter dosen pembimbing
+        in: query
+        name: supervisor_id
+        type: string
+      - description: Cari judul/nama/NIM
+        in: query
+        name: search
+        type: string
+      - description: Halaman (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Per halaman (default 20)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar thesis
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar thesis
+      tags:
+      - Thesis Submission
+    post:
+      consumes:
+      - application/json
+      description: Mengajukan judul skripsi baru (Mahasiswa only)
+      parameters:
+      - description: Data pengajuan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.CreateThesisRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Pengajuan dibuat
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ThesisDetail'
+              type: object
+        "400":
+          description: Data tidak valid / sudah punya thesis aktif
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Ajukan judul skripsi
+      tags:
+      - Thesis Submission
+  /theses/{thesis_id}:
+    get:
+      description: Mengambil detail thesis lengkap (scope per role)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail thesis
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ThesisDetail'
+              type: object
+        "403":
+          description: Akses ditolak
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Thesis tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail thesis
+      tags:
+      - Thesis Submission
+  /theses/{thesis_id}/archive:
+    get:
+      description: Shortcut untuk mengambil arsip berdasarkan thesis ID
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail arsip
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ArchiveDetail'
+              type: object
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail arsip per thesis
+      tags:
+      - Archives
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengarsipkan skripsi final setelah yudisium (Mahasiswa pemilik
+        + Admin)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: File PDF skripsi final (max 25 MB)
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Abstrak Bahasa Indonesia (min 50 kata)
+        in: formData
+        name: abstract_id
+        required: true
+        type: string
+      - description: Abstrak Bahasa Inggris
+        in: formData
+        name: abstract_en
+        type: string
+      - description: Kata kunci dipisah koma (min 3)
+        in: formData
+        name: keywords
+        required: true
+        type: string
+      - description: Tahun lulus
+        in: formData
+        name: graduation_year
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Arsip dibuat
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ArchiveDetail'
+              type: object
+        "409":
+          description: Arsip sudah ada
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "422":
+          description: Thesis belum graduated
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Arsipkan skripsi
+      tags:
+      - Archives
+  /theses/{thesis_id}/assign-supervisor:
+    put:
+      consumes:
+      - application/json
+      description: Menetapkan 1-2 dosen pembimbing untuk thesis (Kaprodi only)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Daftar supervisor
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.AssignSupervisorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thesis dengan supervisor
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ThesisDetail'
+              type: object
+        "400":
+          description: Supervisor tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Tunjuk dosen pembimbing
+      tags:
+      - Thesis Submission
+  /theses/{thesis_id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Membatalkan thesis (Admin + Kaprodi only)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Alasan pembatalan (opsional)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/usecase.CancelThesisRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thesis berhasil dibatalkan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Thesis sudah dibatalkan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Batalkan thesis
+      tags:
+      - Thesis Submission
+  /theses/{thesis_id}/consultations:
+    get:
+      description: Mengambil daftar log konsultasi dengan summary (pemilik/pembimbing/admin/kaprodi)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Filter status (pending/approved)
+        in: query
+        name: status
+        type: string
+      - description: Filter tanggal mulai (YYYY-MM-DD)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter tanggal akhir (YYYY-MM-DD)
+        in: query
+        name: date_to
+        type: string
+      - description: Halaman (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Per halaman (default 20)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar + summary log konsultasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar log bimbingan
+      tags:
+      - Supervision
+    post:
+      consumes:
+      - application/json
+      description: Mencatat log konsultasi bimbingan (Mahasiswa pemilik + Dosen Pembimbing)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Data log konsultasi
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.CreateConsultationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Log dibuat
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ConsultationDetail'
+              type: object
+        "400":
+          description: Data tidak valid / tanggal masa depan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Bukan pemilik/pembimbing
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Catat log bimbingan
+      tags:
+      - Supervision
+  /theses/{thesis_id}/consultations/{id}:
+    delete:
+      description: Menghapus log konsultasi (pembuat log, selama status pending)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Consultation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Log berhasil dihapus
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "422":
+          description: Log sudah di-approve
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus log bimbingan
+      tags:
+      - Supervision
+    get:
+      description: Mengambil detail satu log konsultasi
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Consultation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail log
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ConsultationDetail'
+              type: object
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail log bimbingan
+      tags:
+      - Supervision
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui log konsultasi (pembuat log, selama status pending)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Consultation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data yang diperbarui
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.UpdateConsultationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Log diperbarui
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ConsultationDetail'
+              type: object
+        "422":
+          description: Log sudah di-approve
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update log bimbingan
+      tags:
+      - Supervision
+  /theses/{thesis_id}/consultations/{id}/approve:
+    patch:
+      description: Menyetujui log konsultasi (Dosen Pembimbing thesis ini only)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Consultation ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Log disetujui
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ConsultationDetail'
+              type: object
+        "403":
+          description: Bukan pembimbing thesis ini
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "422":
+          description: Log sudah di-approve
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Setujui log bimbingan
+      tags:
+      - Supervision
+  /theses/{thesis_id}/consultations/summary:
+    get:
+      description: Mengambil ringkasan statistik log konsultasi tanpa pagination
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ringkasan
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ConsultationSummary'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Ringkasan bimbingan
+      tags:
+      - Supervision
+  /theses/{thesis_id}/defenses:
+    post:
+      description: 'Mengajukan sidang skripsi (gate: seminar lulus + dokumen sidang
+        approved) (Mahasiswa pemilik only)'
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Pengajuan dibuat
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DefenseDetail'
+              type: object
+        "409":
+          description: Sudah ada sidang aktif
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "422":
+          description: Gate belum terpenuhi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Ajukan sidang skripsi
+      tags:
+      - Thesis Defense
+  /theses/{thesis_id}/documents:
+    get:
+      description: Mengambil daftar dokumen aktif per tipe (pemilik/pembimbing/penguji/admin/kaprodi)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Filter tipe dokumen
+        in: query
+        name: document_type
+        type: string
+      - description: Filter status
+        in: query
+        name: status
+        type: string
+      - description: Halaman (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Per halaman (default 20)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar dokumen
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar dokumen
+      tags:
+      - Documents
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengunggah dokumen PDF (Mahasiswa pemilik only)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: File PDF (max 10 MB)
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Tipe dokumen (proposal, draft_chapter, seminar_doc, defense_doc,
+          final_thesis, revision_sheet, endorsement_letter)
+        in: formData
+        name: document_type
+        required: true
+        type: string
+      - description: Nomor bab 1-5 (wajib untuk draft_chapter)
+        in: formData
+        name: chapter_number
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Dokumen diunggah
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DocumentDetail'
+              type: object
+        "400":
+          description: File tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Bukan pemilik thesis
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload dokumen
+      tags:
+      - Documents
+  /theses/{thesis_id}/documents/{id}:
+    get:
+      description: Mengambil detail satu dokumen
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Document ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail dokumen
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DocumentDetail'
+              type: object
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Detail dokumen
+      tags:
+      - Documents
+  /theses/{thesis_id}/documents/{id}/download:
+    get:
+      description: Menghasilkan presigned URL untuk download dokumen (expired 15 menit)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Document ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Presigned URL
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.DownloadResult'
+              type: object
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Download dokumen
+      tags:
+      - Documents
+  /theses/{thesis_id}/documents/history:
+    get:
+      description: Mengambil semua versi dokumen untuk satu tipe (riwayat upload)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Tipe dokumen
+        in: query
+        name: document_type
+        required: true
+        type: string
+      - description: Nomor bab (untuk draft_chapter)
+        in: query
+        name: chapter_number
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Riwayat versi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Riwayat versi dokumen
+      tags:
+      - Documents
+  /theses/{thesis_id}/graduation:
+    put:
+      consumes:
+      - application/json
+      description: Menetapkan thesis berstatus graduated (Kaprodi only)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Catatan yudisium (opsional)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/usecase.GraduationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Thesis berhasil dinyatakan lulus
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "422":
+          description: Prasyarat yudisium belum terpenuhi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Tetapkan yudisium
+      tags:
+      - Thesis Defense
+  /theses/{thesis_id}/review:
+    put:
+      consumes:
+      - application/json
+      description: Menyetujui atau menolak pengajuan judul (Kaprodi only)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Keputusan review
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.ReviewThesisRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Hasil review
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.ThesisDetail'
+              type: object
+        "400":
+          description: Decision tidak valid
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "422":
+          description: Status bukan submitted
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Review pengajuan judul
+      tags:
+      - Thesis Submission
+  /theses/{thesis_id}/seminars:
+    post:
+      description: 'Mengajukan seminar proposal (gate: dokumen seminar approved) (Mahasiswa
+        pemilik only)'
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Pengajuan dibuat
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.SeminarDetail'
+              type: object
+        "409":
+          description: Sudah ada seminar aktif
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "422":
+          description: Gate belum terpenuhi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Ajukan seminar proposal
+      tags:
+      - Seminar Proposal
+  /users/me/password:
+    put:
+      consumes:
+      - application/json
+      description: Mengganti password user yang sedang login
+      parameters:
+      - description: Password lama + baru
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password berhasil diubah
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "400":
+          description: Password saat ini salah / tidak memenuhi syarat
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Ganti password sendiri
+      tags:
+      - User Management
+securityDefinitions:
+  BearerAuth:
+    description: 'Masukkan token dengan format: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

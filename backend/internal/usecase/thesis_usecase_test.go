@@ -23,6 +23,7 @@ type fakeThesisRepo struct {
 	students      map[uuid.UUID]*entity.User
 	years         map[uuid.UUID]*entity.AcademicYear
 	supervisors   map[uuid.UUID][]uuid.UUID
+	supUsers      map[uuid.UUID][]*entity.User // full supervisor users (optional, for emails)
 	assignCalls   int
 	statusUpdates []string
 	examiners     map[uuid.UUID]bool // thesisID -> is examiner
@@ -35,6 +36,7 @@ func newFakeThesisRepo() *fakeThesisRepo {
 		students:    map[uuid.UUID]*entity.User{},
 		years:       map[uuid.UUID]*entity.AcademicYear{},
 		supervisors: map[uuid.UUID][]uuid.UUID{},
+		supUsers:    map[uuid.UUID][]*entity.User{},
 		examiners:   map[uuid.UUID]bool{},
 	}
 }
@@ -60,8 +62,14 @@ func (f *fakeThesisRepo) FindByID(_ context.Context, id uuid.UUID) (*entity.Thes
 	if y, ok := f.years[t.AcademicYearID]; ok {
 		clone.AcademicYear = *y
 	}
-	for _, sid := range f.supervisors[t.ID] {
-		clone.Supervisors = append(clone.Supervisors, entity.User{ID: sid})
+	if users, ok := f.supUsers[t.ID]; ok {
+		for _, u := range users {
+			clone.Supervisors = append(clone.Supervisors, *u)
+		}
+	} else {
+		for _, sid := range f.supervisors[t.ID] {
+			clone.Supervisors = append(clone.Supervisors, entity.User{ID: sid})
+		}
 	}
 	return &clone, nil
 }
