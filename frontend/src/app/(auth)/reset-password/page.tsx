@@ -6,11 +6,11 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { ArrowLeft } from 'lucide-react'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PasswordInput } from '@/components/ui/password-input'
 import { useResetPasswordMutation } from '@/lib/hooks/use-auth'
 import { getErrorMessage } from '@/lib/utils/error'
 import { cn } from '@/lib/utils/cn'
@@ -71,76 +71,76 @@ function ResetPasswordInner() {
   if (!token) return null
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-background to-secondary-50 px-4 py-10">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md">
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle>Reset Password</CardTitle>
-            <CardDescription>Buat password baru untuk akun Anda.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} noValidate className="space-y-4">
-              {error && <Alert variant="danger">{error}</Alert>}
+        <div className="st-card rounded-2xl p-8">
+          <div className="mb-6 text-center">
+            <span className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
+              Reset Password
+            </span>
+            <h1 className="landing-display mt-3 text-3xl">Password baru</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Buat password baru untuk akun Anda.</p>
+          </div>
 
-              <div>
-                <Label htmlFor="password">Password Baru</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Minimal 8 karakter"
-                  invalid={!!errors.password}
-                  {...register('password')}
-                />
-                {password.length > 0 && (
-                  <div className="mt-2">
-                    <div className="flex gap-1">
-                      {[0, 1, 2, 3].map((i) => (
-                        <div
-                          key={i}
-                          className={cn(
-                            'h-1.5 flex-1 rounded-full transition-colors',
-                            i < strength.score
-                              ? strength.score >= 3
-                                ? 'bg-success'
-                                : strength.score === 2
-                                  ? 'bg-warning'
-                                  : 'bg-danger'
-                              : 'bg-muted',
-                          )}
-                        />
-                      ))}
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Kekuatan: <span className="font-medium">{strength.label}</span>
-                    </p>
+          <form onSubmit={onSubmit} noValidate className="space-y-4">
+            {error && <Alert variant="danger">{error}</Alert>}
+
+            <div>
+              <Label htmlFor="password">Password Baru</Label>
+              <PasswordInput
+                id="password"
+                placeholder="Minimal 8 karakter"
+                invalid={!!errors.password}
+                {...register('password')}
+              />
+              {password.length > 0 && (
+                <div className="mt-2">
+                  <div className="flex gap-1">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          'h-1.5 flex-1 rounded-full transition-colors',
+                          i < strength.score
+                            ? strength.score >= 3
+                              ? 'bg-success'
+                              : strength.score === 2
+                                ? 'bg-warning'
+                                : 'bg-danger'
+                            : 'bg-muted',
+                        )}
+                      />
+                    ))}
                   </div>
-                )}
-                {errors.password && <p className="mt-1 text-xs text-danger">{errors.password.message}</p>}
-              </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Kekuatan: <span className="font-medium">{strength.label}</span>
+                  </p>
+                </div>
+              )}
+              {errors.password && <p className="mt-1 text-xs text-danger-700">{errors.password.message}</p>}
+            </div>
 
-              <div>
-                <Label htmlFor="confirm">Konfirmasi Password</Label>
-                <Input
-                  id="confirm"
-                  type="password"
-                  placeholder="Ulangi password baru"
-                  invalid={!!errors.confirm}
-                  {...register('confirm')}
-                />
-                {errors.confirm && <p className="mt-1 text-xs text-danger">{errors.confirm.message}</p>}
-              </div>
+            <div>
+              <Label htmlFor="confirm">Konfirmasi Password</Label>
+              <PasswordInput
+                id="confirm"
+                placeholder="Ulangi password baru"
+                invalid={!!errors.confirm}
+                {...register('confirm')}
+              />
+              {errors.confirm && <p className="mt-1 text-xs text-danger-700">{errors.confirm.message}</p>}
+            </div>
 
-              <Button type="submit" fullWidth loading={reset.isPending}>
-                Simpan Password Baru
-              </Button>
-              <p className="text-center text-sm">
-                <Link href="/login" className="font-medium text-primary hover:underline">
-                  Kembali ke Login
-                </Link>
-              </p>
-            </form>
-          </CardContent>
-        </Card>
+            <Button type="submit" fullWidth loading={reset.isPending}>
+              Simpan Password Baru
+            </Button>
+            <p className="text-center text-sm">
+              <Link href="/login" className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline">
+                <ArrowLeft className="h-3.5 w-3.5" /> Kembali ke Login
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   )

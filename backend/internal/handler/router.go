@@ -62,16 +62,37 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	// when EMAIL_DEV_MODE=true or when no API key is configured.
 	emailService := email.NewResendEmailService(cfg.ResendAPIKey, cfg.EmailFrom, cfg.EmailFromName, cfg.FrontendURL, db, cfg.EmailDevMode || cfg.ResendAPIKey == "")
 
-	// Storage (Job 21): real Supabase when STORAGE_PROVIDER=supabase and a
-	// project URL + service-role key are configured; otherwise the local stub.
+	// Storage (Job 21 + production): real Supabase when STORAGE_PROVIDER=supabase
+	// and a project URL + service-role key are configured; real S3-compatible
+	// when STORAGE_PROVIDER=s3 (MinIO, R2, B2, etc.); otherwise the local stub.
 	var storageService service.StorageService = storage.NewStubStorageService("", "")
-	if cfg.StorageProvider == "supabase" {
+	switch cfg.StorageProvider {
+	case "supabase":
 		if cfg.SupabaseURL != "" && cfg.SupabaseServiceRoleKey != "" {
 			storageService = storage.NewSupabaseStorageService(cfg.SupabaseURL, cfg.SupabaseServiceRoleKey, cfg.SupabaseDocumentsBucket, cfg.SupabaseArchivesBucket)
 		} else {
 			// Loudly fall back: silently using the local stub in production would
 			// mask a missing-credentials misconfiguration.
 			slog.Warn("STORAGE_PROVIDER=supabase but SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are empty; falling back to local storage")
+		}
+	case "s3":
+		if cfg.S3Endpoint != "" && cfg.S3AccessKey != "" && cfg.S3SecretKey != "" {
+			svc, err := storage.NewS3StorageService(
+				cfg.S3Endpoint,
+				cfg.S3Region,
+				cfg.S3AccessKey,
+				cfg.S3SecretKey,
+				cfg.S3DocumentsBucket,
+				cfg.S3ArchivesBucket,
+				true, // MinIO/R2 typically need path-style
+			)
+			if err != nil {
+				slog.Warn("failed to init S3 storage, falling back to local", "error", err)
+			} else {
+				storageService = svc
+			}
+		} else {
+			slog.Warn("STORAGE_PROVIDER=s3 but S3_ENDPOINT / S3_ACCESS_KEY / S3_SECRET_KEY are empty; falling back to local storage")
 		}
 	}
 

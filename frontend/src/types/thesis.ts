@@ -52,6 +52,7 @@ export interface CreateThesisRequest {
   title: string
   abstract: string
   field_of_study: string
+  thesis_type: 'skripsi' | 'tugas_akhir'
   academic_year_id: string
 }
 

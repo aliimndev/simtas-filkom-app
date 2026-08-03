@@ -57,7 +57,11 @@ export default function SupervisionPage() {
     enabled: Boolean(myThesis?.id),
   })
 
-  const list = consultations.data?.data ?? []
+  const list = Array.isArray(consultations.data?.data)
+    ? consultations.data.data
+    : Array.isArray(consultations.data)
+      ? consultations.data
+      : []
 
   const {
     register,

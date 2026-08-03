@@ -21,12 +21,18 @@ package main
 //	@name Authorization
 //	@description Masukkan token dengan format: Bearer {token}
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
+	"syscall"
+	"time"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -118,10 +124,36 @@ func main() {
 	stopCleanup := scheduler.StartTokenCleanup(db)
 	defer stopCleanup()
 
-	// ── Start server ──────────────────────────────────────────────────────
+	// ── Start server (production-ready with timeouts + graceful shutdown) ─
 	addr := fmt.Sprintf(":%s", cfg.AppPort)
-	log.Printf("server starting on %s (env=%s)", addr, cfg.AppEnv)
-	if err := engine.Run(addr); err != nil {
-		log.Fatalf("server error: %v", err)
+	srv := &http.Server{
+		Handler:           engine,
+		Addr:              addr,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    1 << 20, // 1 MiB
 	}
+
+	go func() {
+		log.Printf("server starting on %s (env=%s)", addr, cfg.AppEnv)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("server forced to shutdown: %v", err)
+	}
+
+	log.Println("server stopped")
 }

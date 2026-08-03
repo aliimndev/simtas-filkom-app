@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 001 — Alternatif Penyimpanan selain Supabase untuk SIMTAS</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">Lesson 001 · Object Storage</p>
+<h1>Alternatif Penyimpanan selain Supabase untuk SIMTAS</h1>
+<p class="meta">Terkait misi: memilih penyimpanan produksi yang tepat untuk kampus.</p>
+
+<h2>Kenapa ini penting bagi project kamu</h2>
+<p>SIMTAS menyimpan dokumen skripsi (PDF) dan arsip. Rencana di
+<a href="https://github.com/aliimndev/simtas-filkom-app/blob/develop/docs/phase-5-integration/21-storage-integration.md">Job 21</a>
+adalah Supabase Storage. Ada kabar baik yang membuat pilihanmu <b>tidak
+mengunci (tidak vendor-lock)</b>:</p>
+
+<div class="callout ok">
+<b>Codebase SIMTAS sudah mengabstraksi storage di balik interface
+<code>StorageService</code></b> di <code>backend/internal/domain/service/storage_service.go</code>.
+Implementasinya dipilih lewat variabel <code>STORAGE_PROVIDER</code> di
+<code>router.go</code> (saat ini: <code>local</code> untuk stub, atau
+<code>supabase</code>). Artinya: untuk memakai penyimpanan lain, kamu cukup
+<b>menulis satu implementasi baru dari interface itu</b> — bukan menulis ulang
+logika upload/download.
+</div>
+
+<h2>Konsep kunci: standar S3 API</h2>
+<p>Hampir semua penyedia object storage berbicara dengan <b>S3 API</b> —
+kumpulan operasi HTTP standar (put objek, get, delete, presigned URL). Karena
+Supabase Storage sendiri memakai standar ini, dan semua alternatif di bawah ini
+juga S3-compatible, maka <b>swap antar penyedia menjadi murah</b>.</p>
+<p>Pertanyaan sebenarnya bukan "mana yang paling mudah diganti", melainkan
+<b>mana yang paling cocok untuk produksi kampus</b> — urusan kendali data, biaya,
+kapasitas, dan operasional.</p>
+
+<h2>Alternatif utama</h2>
+<table>
+<thead><tr><th>Opsi</th><th>Jenis</th><th>Kendali data</th><th>Kira-kira biaya</th></tr></thead>
+<tbody>
+<tr><td><b>MinIO</b></td><td>Self-hosted</td><td><b>Penuh di server kampus</b></td><td>Gratis (AGPL) + hardware</td></tr>
+<tr><td><b>Cloudflare R2</b></td><td>Managed</td><td>Cloud Cloudflare</td><td>$0.015/GB-bln, egress gratis, free 10GB</td></tr>
+<tr><td><b>Backblaze B2</b></td><td>Managed</td><td>Cloud Backblaze</td><td>≈$6.95/TB-bln, free 10GB</td></tr>
+<tr><td><b>AWS S3</b></td><td>Managed</td><td>Cloud AWS</td><td>≈$0.023/GB-bln, egress berbayar</td></tr>
+<tr><td><b>Local disk / NFS</b></td><td>Self-hosted</td><td>Penuh</td><td>Gratis (stub yang ada sekarang)</td></tr>
+</tbody>
+</table>
+<p>Sumber harga resmi: <a href="https://developers.cloudflare.com/r2/pricing/">Cloudflare R2</a>,
+<a href="https://www.backblaze.com/cloud-storage/pricing">Backblaze B2</a>,
+<a href="https://aws.amazon.com/s3/pricing/">AWS S3</a>,
+<a href="https://min.io/product/overview">MinIO</a>.</p>
+
+<h2>Rekomendasi untuk misi kampus</h2>
+<ol>
+<li><b>MinIO (self-hosted)</b> — paling cocok bila kampus ingin data skripsi
+    (termasuk privasi mahasiswa) sepenuhnya di bawah kendalinya. S3-compatible,
+    gratis (Community/AGPL), dan SDK Go-nya (<code>minio-go</code>) enak dipakai
+    di backend SIMTAS yang sudah Go.</li>
+<li><b>Cloudflare R2 atau Backblaze B2</b> — bila ingin <i>managed</i> tapi biaya
+    unduh (egress) tidak bikin jebol. R2 bahkan egress-nya gratis.</li>
+<li><b>AWS S3</b> — aman &amp; standar, tapi perhatikan biaya transfer keluar.
+    Umumnya berlebihan untuk skala sebuah fakultas.</li>
+<li><b>Supabase Storage</b> (rencana sekarang) — tetap oke, terutama jika kamu
+    memang memakai Supabase untuk hal lain (auth/DB). Tapi ia mengikat ke
+    ekosistem Supabase.</li>
+</ol>
+
+<div class="callout warn"><b>Catatan penting:</b> anggap "kendali data" sebagai
+prioritas. Untuk dokumen skripsi (karya ilmiah berisi data pribadi), banyak
+kampus lebih suka data tinggal di server sendiri — itulah justifikasi utama
+MinIO self-hosted.</div>
+
+<h2>Latihan singkat (retrieval practice)</h2>
+<div class="quiz" data-q="PilihOpsiSelfHosted">
+  <h3>1. Opsi mana yang berjalan di server sendiri (self-hosted)?</h3>
+  <label class="opt"><input type="radio" name="q1" value="MinIO">MinIO</label>
+  <label class="opt"><input type="radio" name="q1" value="R2">R2</label>
+  <label class="opt"><input type="radio" name="q1" value="B2">B2</label>
+  <label class="opt"><input type="radio" name="q1" value="S3">S3</label>
+  <button onclick="checkQ(0)">Periksa</button>
+  <div class="feedback"></div>
+</div>
+

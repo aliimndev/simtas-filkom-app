@@ -30,10 +30,10 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }],
   },
   {
-    title: 'Skripsi',
+    title: 'Tugas Akhir Skripsi',
     items: [
-      { href: '/thesis', label: 'Skripsi Saya', icon: FileText, roles: ['mahasiswa'] },
-      { href: '/theses', label: 'Daftar Skripsi', icon: BookOpen, roles: ['admin_fakultas', 'kaprodi'] },
+      { href: '/thesis', label: 'Tugas Akhir Skripsi Saya', icon: FileText, roles: ['mahasiswa'] },
+      { href: '/theses', label: 'Daftar Tugas Akhir Skripsi', icon: BookOpen, roles: ['admin_fakultas', 'kaprodi'] },
       { href: '/supervision', label: 'Bimbingan', icon: MessagesSquare, roles: ['mahasiswa', 'dosen_pembimbing'] },
       { href: '/documents', label: 'Dokumen', icon: FolderOpen, roles: ['mahasiswa', 'dosen_pembimbing'] },
     ],
@@ -68,4 +68,4 @@ export function navItemsForRoles(roles: string[]): NavSection[] {
 }
 
 export const APP_NAME = 'SIMTAS FILKOM'
-export const APP_DESC = 'Sistem Manajemen Tugas Akhir & Skripsi'
+export const APP_DESC = 'Sistem Manajemen Tugas Akhir Skripsi'

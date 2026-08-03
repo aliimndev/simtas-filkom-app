@@ -4,13 +4,13 @@ import { cn } from '@/lib/utils/cn'
 type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'muted' | 'secondary' | 'outline'
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: 'bg-primary text-primary-foreground',
-  primary: 'bg-primary-100 text-primary-800 border border-primary-200',
-  success: 'bg-success-100 text-success border border-success/30',
-  warning: 'bg-warning-100 text-warning border border-warning/30',
-  danger: 'bg-danger-100 text-danger-700 border border-danger/30',
+  default: 'bg-primary/15 text-primary border border-primary/25',
+  primary: 'bg-primary/15 text-primary border border-primary/25',
+  success: 'bg-success/15 text-success border border-success/25',
+  warning: 'bg-warning/15 text-warning border border-warning/25',
+  danger: 'bg-danger/15 text-danger-700 border border-danger/25',
   muted: 'bg-muted text-muted-foreground border border-border',
-  secondary: 'bg-secondary-100 text-secondary-foreground border border-secondary/30',
+  secondary: 'bg-secondary/15 text-secondary border border-secondary/25',
   outline: 'border border-border text-foreground',
 }
 

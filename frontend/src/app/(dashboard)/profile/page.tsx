@@ -8,8 +8,8 @@ import { z } from 'zod'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PasswordInput } from '@/components/ui/password-input'
 import { userApi } from '@/lib/api/user-api'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { roleLabel } from '@/constants/roles'
@@ -109,18 +109,18 @@ function ProfileInner() {
             {success && <Alert variant="success">Password berhasil diubah.</Alert>}
             <div>
               <Label htmlFor="current_password" required>Password Saat Ini</Label>
-              <Input id="current_password" type="password" autoComplete="current-password" invalid={!!errors.current_password} {...register('current_password')} />
+              <PasswordInput id="current_password" autoComplete="current-password" invalid={!!errors.current_password} {...register('current_password')} />
               {errors.current_password && <p className="mt-1 text-xs text-danger">{errors.current_password.message}</p>}
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="new_password" required>Password Baru</Label>
-                <Input id="new_password" type="password" autoComplete="new-password" invalid={!!errors.new_password} {...register('new_password')} />
+                <PasswordInput id="new_password" autoComplete="new-password" invalid={!!errors.new_password} {...register('new_password')} />
                 {errors.new_password && <p className="mt-1 text-xs text-danger">{errors.new_password.message}</p>}
               </div>
               <div>
                 <Label htmlFor="confirm" required>Konfirmasi</Label>
-                <Input id="confirm" type="password" autoComplete="new-password" invalid={!!errors.confirm} {...register('confirm')} />
+                <PasswordInput id="confirm" autoComplete="new-password" invalid={!!errors.confirm} {...register('confirm')} />
                 {errors.confirm && <p className="mt-1 text-xs text-danger">{errors.confirm.message}</p>}
               </div>
             </div>

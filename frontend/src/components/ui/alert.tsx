@@ -6,19 +6,19 @@ type AlertVariant = 'info' | 'success' | 'warning' | 'danger'
 
 const variantConfig: Record<AlertVariant, { container: string; icon: React.ReactNode }> = {
   info: {
-    container: 'border-primary-200 bg-primary-50 text-primary-800',
+    container: 'border-primary/25 bg-primary/10 text-primary',
     icon: <Info className="h-4 w-4 shrink-0" />,
   },
   success: {
-    container: 'border-success/30 bg-success-50 text-success',
+    container: 'border-success/25 bg-success/10 text-success',
     icon: <CheckCircle2 className="h-4 w-4 shrink-0" />,
   },
   warning: {
-    container: 'border-warning/30 bg-warning-50 text-warning',
+    container: 'border-warning/25 bg-warning/10 text-warning',
     icon: <AlertCircle className="h-4 w-4 shrink-0" />,
   },
   danger: {
-    container: 'border-danger/30 bg-danger-50 text-danger-700',
+    container: 'border-danger/25 bg-danger/10 text-danger-700',
     icon: <XCircle className="h-4 w-4 shrink-0" />,
   },
 }

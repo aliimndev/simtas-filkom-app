@@ -1,58 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  /* ── Global dark identity (applies to dashboard + auth + public) ──── */
+  --background: #0a0a0b;
+  --foreground: #f5f5f4;
 
-  /* Brand — FILKOM Unida (biru institusi) */
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
-  --primary-50: #eff6ff;
-  --primary-100: #dbeafe;
-  --primary-200: #bfdbfe;
-  --primary-300: #93c5fd;
-  --primary-400: #60a5fa;
-  --primary-500: #3b82f6;
-  --primary-600: #2563eb;
-  --primary-700: #1d4ed8;
-  --primary-800: #1e40af;
-  --primary-900: #1e3a8a;
+  /* Brand — FILKOM Unida (biru institusi) — tetap, dipakai sebagai aksen */
+  --primary: #4e85bf;
+  --primary-foreground: #0a0a0b;
+  --primary-50: #121214;
+  --primary-100: #17171a;
+  --primary-200: #1e1e22;
+  --primary-300: #2a2a30;
+  --primary-400: #6a9cc4;
+  --primary-500: #4e85bf;
+  --primary-600: #4e85bf;
+  --primary-700: #3f6f9f;
+  --primary-800: #2f5478;
+  --primary-900: #1e3a5f;
 
-  /* Sekunder — emas/kuning aksen */
+  /* Sekunder — emas/kuning aksen (dark-tuned tints) */
   --secondary: #f59e0b;
-  --secondary-foreground: #451a03;
-  --secondary-50: #fffbeb;
-  --secondary-100: #fef3c7;
-  --secondary-200: #fde68a;
+  --secondary-foreground: #0a0a0b;
+  --secondary-50: #171410;
+  --secondary-100: #1f1a12;
+  --secondary-200: #2a2218;
 
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #eff6ff;
-  --accent-foreground: #1e3a8a;
-  --border: #e2e8f0;
-  --ring: #2563eb;
+  --muted: #121214;
+  --muted-foreground: #8b8b93;
+  --accent: #17171a;
+  --accent-foreground: #89aacc;
+  --border: #1e1e22;
+  --ring: #4e85bf;
   --radius: 0.5rem;
 
-  /* Semantic */
-  --success: #16a34a;
-  --success-foreground: #ffffff;
-  --success-50: #f0fdf4;
-  --success-100: #dcfce7;
-  --warning: #d97706;
-  --warning-foreground: #ffffff;
-  --warning-50: #fffbeb;
-  --warning-100: #fef3c7;
-  --danger: #dc2626;
-  --danger-foreground: #ffffff;
-  --danger-50: #fef2f2;
-  --danger-100: #fee2e2;
-  --danger-600: #dc2626;
-  --danger-700: #b91c1c;
+  /* Semantic — dark-tuned tints */
+  --success: #3fb950;
+  --success-foreground: #0a0a0b;
+  --success-50: #0f1a13;
+  --success-100: #142219;
+  --warning: #d29922;
+  --warning-foreground: #0a0a0b;
+  --warning-50: #1a160e;
+  --warning-100: #221c12;
+  --danger: #f85149;
+  --danger-foreground: #0a0a0b;
+  --danger-50: #1a1010;
+  --danger-100: #221414;
+  --danger-600: #f85149;
+  --danger-700: #ff6b63;
 
-  --sidebar: #0f1e38;
-  --sidebar-foreground: #e2e8f0;
-  --sidebar-accent: #1e3a8a;
-  --sidebar-border: #1e293b;
+  /* Sidebar — editorial identity (aligned with global dark palette) */
+  --sidebar: #0a0a0b;
+  --sidebar-foreground: #8b8b93;
+  --sidebar-accent: #4e85bf;
+  --sidebar-border: #1e1e22;
+
+  /* ── SIMTAS public — dark editorial identity ─────────────────────── */
+  /* Grounded in FILKOM blue + computer-science; distinct from the three
+     default AI-slop looks (cream+terracotta / near-black acid-green /
+     broadsheet hairline). */
+  --st-bg: #0a0a0b;
+  --st-surface: #121214;
+  --st-surface-hi: #17171a;
+  --st-text: #f5f5f4;
+  --st-muted: #8b8b93;
+  --st-stroke: #1e1e22;
+  --st-accent-from: #89aacc;
+  --st-accent-to: #4e85bf;
+  --font-display: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -99,24 +117,28 @@
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-border: var(--sidebar-border);
+
+  /* SIMTAS public — dark identity */
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --color-st-bg: var(--st-bg);
+  --color-st-surface: var(--st-surface);
+  --color-st-surface-hi: var(--st-surface-hi);
+  --color-st-text: var(--st-text);
+  --color-st-muted: var(--st-muted);
+  --color-st-stroke: var(--st-stroke);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b1120;
-    --foreground: #e2e8f0;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --border: #1e293b;
-    --accent: #172554;
-    --accent-foreground: #bfdbfe;
+    /* global identity is already dark by default; no overrides needed */
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -132,47 +154,134 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #2a2a30;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #3a3a42;
 }
 
-/* ── Landing / public pages (Linear-inspired, light + FILKOM blue) ────── */
+/* ── SIMTAS public — dark editorial identity (scoped to .simtas-dark) ── */
+/* The dashboard keeps its light theme; only public pages opt into dark.   */
+.simtas-dark {
+  background: var(--st-bg);
+  color: var(--st-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+.simtas-dark ::selection {
+  background: rgba(137, 170, 204, 0.28);
+  color: var(--st-text);
+}
+
+/* Accent gradient (FILKOM institutional blue) */
+.accent-gradient {
+  background: linear-gradient(90deg, var(--st-accent-from) 0%, var(--st-accent-to) 100%);
+}
+.accent-text {
+  background: linear-gradient(90deg, var(--st-accent-from) 0%, var(--st-accent-to) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Gradient hover ring: a gradient layer sits behind an opaque inner chip. */
+.accent-ring { position: relative; }
+.accent-ring::after {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(90deg, var(--st-accent-from), var(--st-accent-to));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.accent-ring:hover::after { opacity: 1; }
+
+/* Public-page layout primitives (restyled dark — used only by public pages) */
 .landing-container {
   width: 100%;
-  max-width: 72rem;
+  max-width: 80rem;
   margin-inline: auto;
   padding-inline: 1.5rem;
 }
-
 .landing-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--st-muted);
 }
-
 .landing-display {
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
-  color: var(--foreground);
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.0;
+  color: var(--st-text);
 }
-
 .landing-surface {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid var(--border);
+  background: var(--st-surface);
+  border: 1px solid var(--st-stroke);
 }
-
 .landing-grid-bg {
   background-image:
-    linear-gradient(to right, rgba(37, 99, 235, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(37, 99, 235, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(137, 170, 204, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(137, 170, 204, 0.05) 1px, transparent 1px);
   background-size: 44px 44px;
+}
+.st-card {
+  background: var(--st-surface);
+  border: 1px solid var(--st-stroke);
+}
+
+/* Keyframes */
+@keyframes st-scroll-down {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+@keyframes st-role-fade {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes st-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes st-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes st-reveal-up {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-st-role { animation: st-role-fade 0.5s ease-out both; }
+.animate-st-scroll { animation: st-scroll-down 1.5s ease-in-out infinite; }
+.animate-st-marquee { animation: st-marquee 30s linear infinite; }
+.animate-st-gradient {
+  background-size: 200% 200%;
+  animation: st-gradient-shift 6s ease infinite;
+}
+
+/* Scroll-reveal */
+.reveal { opacity: 0; }
+.reveal.is-visible { animation: st-reveal-up 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1 !important; animation: none !important; }
+  .animate-st-role,
+  .animate-st-scroll,
+  .animate-st-marquee,
+  .animate-st-gradient { animation: none !important; }
 }
