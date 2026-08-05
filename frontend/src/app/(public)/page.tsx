@@ -123,7 +123,7 @@ export default function HomePage() {
               </Link>
               <a
                 href="#alur"
-                className="accent-ring inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--st-surface)] px-7 text-sm font-medium text-[var(--st-text)] transition hover:bg-[var(--st-surface-hi)]"
+                className="accent-ring inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[var(--st-stroke)] bg-[var(--st-surface)] px-7 text-sm font-medium text-[var(--st-text)] transition hover:border-[var(--st-accent-from)]/40 hover:bg-[var(--st-surface-hi)]"
               >
                 Lihat Alur
               </a>
@@ -264,13 +264,15 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  aria-expanded={openFaq === i}
+                  aria-controls={`faq-panel-${i}`}
                   className="flex w-full items-center justify-between gap-4 py-5 text-left"
                 >
                   <span className="text-sm font-medium text-[var(--st-text)] md:text-base">{item.q}</span>
                   <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--st-muted)] transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 {openFaq === i && (
-                  <p className="pb-5 text-sm leading-relaxed text-[var(--st-muted)]">{item.a}</p>
+                  <p id={`faq-panel-${i}`} className="pb-5 text-sm leading-relaxed text-[var(--st-muted)]">{item.a}</p>
                 )}
               </div>
             ))}
@@ -301,7 +303,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/contact"
-                className="accent-ring inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--st-surface)] px-7 text-sm font-medium text-[var(--st-text)] transition hover:bg-[var(--st-surface-hi)]"
+                className="accent-ring inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[var(--st-stroke)] bg-[var(--st-surface)] px-7 text-sm font-medium text-[var(--st-text)] transition hover:border-[var(--st-accent-from)]/40 hover:bg-[var(--st-surface-hi)]"
               >
                 Hubungi Kami
               </Link>
@@ -311,9 +313,9 @@ export default function HomePage() {
 
         {/* marquee */}
         <div className="border-t border-[var(--st-stroke)] py-5">
-          <div className="flex w-max animate-st-marquee gap-8 whitespace-nowrap">
+          <div className="flex w-max animate-st-marquee whitespace-nowrap">
             {Array.from({ length: 2 }).map((_, dup) => (
-              <div key={dup} className="flex items-center gap-8" aria-hidden={dup === 1}>
+              <div key={dup} className="flex items-center gap-8 pr-8" aria-hidden={dup === 1}>
                 {['PENGAJUAN', 'BIMBINGAN', 'SEMINAR', 'SIDANG', 'ARSIP'].map((w) => (
                   <span key={w} className="font-display text-2xl italic text-[var(--st-muted)] md:text-3xl">
                     {w} <span className="text-[var(--st-accent-from)]">•</span>

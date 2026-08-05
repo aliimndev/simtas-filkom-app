@@ -40,13 +40,15 @@ export default function FaqPage() {
                 <button
                   type="button"
                   onClick={() => setOpen(open === i ? null : i)}
+                  aria-expanded={open === i}
+                  aria-controls={`faq-answer-${i}`}
                   className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
                 >
                   <span className="font-medium text-[var(--st-text)]">{item.q}</span>
                   <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--st-muted)] transition-transform ${open === i ? 'rotate-180' : ''}`} />
                 </button>
                 {open === i && (
-                  <div className="border-t border-[var(--st-stroke)] px-5 py-4 text-sm leading-relaxed text-[var(--st-muted)]">
+                  <div id={`faq-answer-${i}`} className="border-t border-[var(--st-stroke)] px-5 py-4 text-sm leading-relaxed text-[var(--st-muted)]">
                     {item.a}
                   </div>
                 )}

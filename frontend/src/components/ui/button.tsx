@@ -9,7 +9,7 @@ const variantClasses: Record<Variant, string> = {
   primary:
     'bg-primary text-primary-foreground hover:bg-primary-700 shadow-sm focus-visible:ring-primary',
   secondary:
-    'bg-secondary text-secondary-foreground hover:bg-secondary-200 shadow-sm focus-visible:ring-secondary',
+    'bg-secondary text-secondary-foreground hover:bg-secondary-700 shadow-sm focus-visible:ring-secondary',
   danger: 'bg-danger text-danger-foreground hover:bg-danger-700 shadow-sm focus-visible:ring-danger',
   success: 'bg-success text-success-foreground hover:bg-success/90 shadow-sm focus-visible:ring-success',
   ghost: 'bg-transparent hover:bg-muted text-foreground focus-visible:ring-ring',

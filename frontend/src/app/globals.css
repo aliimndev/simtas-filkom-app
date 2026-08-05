@@ -2,73 +2,74 @@
 @import "tailwindcss";
 
 :root {
-  /* ── Global dark identity (applies to dashboard + auth + public) ──── */
-  --background: #0a0a0b;
-  --foreground: #f5f5f4;
+  /* ── Global light identity (applies to dashboard + auth + public) ── */
+  --background: #f7f8fa;
+  --foreground: #1a1c20;
 
   /* Brand — FILKOM Unida (biru institusi) — tetap, dipakai sebagai aksen */
   --primary: #4e85bf;
-  --primary-foreground: #0a0a0b;
-  --primary-50: #121214;
-  --primary-100: #17171a;
-  --primary-200: #1e1e22;
-  --primary-300: #2a2a30;
+  --primary-foreground: #ffffff;
+  --primary-50: #eef4fb;
+  --primary-100: #dce9f7;
+  --primary-200: #c3d7ee;
+  --primary-300: #a0bfe0;
   --primary-400: #6a9cc4;
   --primary-500: #4e85bf;
-  --primary-600: #4e85bf;
-  --primary-700: #3f6f9f;
-  --primary-800: #2f5478;
-  --primary-900: #1e3a5f;
+  --primary-600: #3d6da3;
+  --primary-700: #35618d;
+  --primary-800: #2a4e73;
+  --primary-900: #203a59;
 
-  /* Sekunder — emas/kuning aksen (dark-tuned tints) */
-  --secondary: #f59e0b;
-  --secondary-foreground: #0a0a0b;
-  --secondary-50: #171410;
-  --secondary-100: #1f1a12;
-  --secondary-200: #2a2218;
+  /* Sekunder — emas/kuning aksen (light-tuned tints) */
+  --secondary: #d97706;
+  --secondary-foreground: #ffffff;
+  --secondary-50: #fdf6eb;
+  --secondary-100: #fbe9c9;
+  --secondary-200: #f6d598;
+  --secondary-700: #b45309;
 
-  --muted: #121214;
-  --muted-foreground: #8b8b93;
-  --accent: #17171a;
-  --accent-foreground: #89aacc;
-  --border: #1e1e22;
+  --muted: #eceff3;
+  --muted-foreground: #646e7a;
+  --accent: #e7eef7;
+  --accent-foreground: #203a63;
+  --border: #dde3ea;
   --ring: #4e85bf;
   --radius: 0.5rem;
 
-  /* Semantic — dark-tuned tints */
-  --success: #3fb950;
-  --success-foreground: #0a0a0b;
-  --success-50: #0f1a13;
-  --success-100: #142219;
-  --warning: #d29922;
-  --warning-foreground: #0a0a0b;
-  --warning-50: #1a160e;
-  --warning-100: #221c12;
-  --danger: #f85149;
-  --danger-foreground: #0a0a0b;
-  --danger-50: #1a1010;
-  --danger-100: #221414;
-  --danger-600: #f85149;
-  --danger-700: #ff6b63;
+  /* Semantic — light-tuned tints */
+  --success: #1f9d55;
+  --success-foreground: #ffffff;
+  --success-50: #ecfdf3;
+  --success-100: #d1fae5;
+  --warning: #c7770a;
+  --warning-foreground: #ffffff;
+  --warning-50: #fffaf0;
+  --warning-100: #fef3c7;
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+  --danger-50: #fef2f2;
+  --danger-100: #fee2e2;
+  --danger-600: #dc2626;
+  --danger-700: #b91c1c;
 
-  /* Sidebar — editorial identity (aligned with global dark palette) */
-  --sidebar: #0a0a0b;
-  --sidebar-foreground: #8b8b93;
+  /* Sidebar — editorial identity (aligned with global light palette) */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #5f6873;
   --sidebar-accent: #4e85bf;
-  --sidebar-border: #1e1e22;
+  --sidebar-border: #e4e8ed;
 
-  /* ── SIMTAS public — dark editorial identity ─────────────────────── */
+  /* ── SIMTAS public — light editorial identity ────────────────────── */
   /* Grounded in FILKOM blue + computer-science; distinct from the three
      default AI-slop looks (cream+terracotta / near-black acid-green /
      broadsheet hairline). */
-  --st-bg: #0a0a0b;
-  --st-surface: #121214;
-  --st-surface-hi: #17171a;
-  --st-text: #f5f5f4;
-  --st-muted: #8b8b93;
-  --st-stroke: #1e1e22;
-  --st-accent-from: #89aacc;
-  --st-accent-to: #4e85bf;
+  --st-bg: #f7f8fa;
+  --st-surface: #ffffff;
+  --st-surface-hi: #f0f3f7;
+  --st-text: #17191d;
+  --st-muted: #5f6a76;
+  --st-stroke: #e3e8ee;
+  --st-accent-from: #4a7fb0;
+  --st-accent-to: #2b5f9e;
   --font-display: 'Instrument Serif', ui-serif, Georgia, serif;
   --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
@@ -93,6 +94,7 @@
   --color-secondary-50: var(--secondary-50);
   --color-secondary-100: var(--secondary-100);
   --color-secondary-200: var(--secondary-200);
+  --color-secondary-700: var(--secondary-700);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -131,7 +133,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* global identity is already dark by default; no overrides needed */
+    /* Tetap pakai tema terang (light) sebagai default institusional;
+       tidak ada override — konsisten di dashboard, auth, dan public. */
   }
 }
 
@@ -154,15 +157,16 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2a30;
+  background: #cdd3da;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a3a42;
+  background: #b9c1ca;
 }
 
-/* ── SIMTAS public — dark editorial identity (scoped to .simtas-dark) ── */
-/* The dashboard keeps its light theme; only public pages opt into dark.   */
+/* ── SIMTAS public — light editorial identity (scoped to .simtas-dark) ── */
+/* The dashboard shares the same light theme; the wrapper only carries the
+   public-specific type + accent tokens. */
 .simtas-dark {
   background: var(--st-bg);
   color: var(--st-text);
@@ -170,8 +174,19 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 .simtas-dark ::selection {
-  background: rgba(137, 170, 204, 0.28);
+  background: rgba(167, 199, 231, 0.5);
   color: var(--st-text);
+}
+/* Keyboard focus ring for the public editorial surface. Every interactive
+   element gets a visible, accessible focus indicator on keyboard nav. */
+.simtas-dark :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--st-accent-to);
+  outline-offset: 2px;
+  border-radius: 0.35rem;
+}
+.accent-gradient:focus-visible {
+  outline: 2px solid var(--st-accent-to);
+  outline-offset: 2px;
 }
 
 /* Accent gradient (FILKOM institutional blue) */

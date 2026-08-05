@@ -35,8 +35,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4 md:pt-6">
         <div
           className={cn(
-            'flex w-full max-w-3xl items-center justify-between rounded-full border border-white/10 bg-[var(--st-surface)]/80 px-2 py-2 backdrop-blur-md transition-shadow duration-300',
-            scrolled && 'shadow-lg shadow-black/30',
+            'flex w-full max-w-3xl items-center justify-between rounded-full border border-[var(--st-stroke)] bg-[var(--st-surface)]/80 px-2 py-2 backdrop-blur-md transition-shadow duration-300',
+            scrolled && 'shadow-lg shadow-black/10',
           )}
         >
           {/* Logo */}
@@ -59,7 +59,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               <Link
                 key={l.href}
                 href={l.href}
-                className="rounded-full px-3.5 py-1.5 text-sm text-[var(--st-muted)] transition hover:bg-white/5 hover:text-[var(--st-text)]"
+                className="rounded-full px-3.5 py-1.5 text-sm text-[var(--st-muted)] transition hover:bg-[var(--st-surface-hi)] hover:text-[var(--st-text)]"
               >
                 {l.label}
               </Link>
@@ -70,7 +70,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             {accessToken ? (
               <Link
                 href="/dashboard"
-                className="accent-ring hidden items-center gap-1.5 rounded-full bg-[var(--st-surface-hi)] px-4 py-1.5 text-sm text-[var(--st-text)] transition hover:text-[var(--st-text)] md:inline-flex"
+                className="accent-ring hidden items-center gap-1.5 rounded-full border border-[var(--st-stroke)] bg-[var(--st-surface-hi)] px-4 py-1.5 text-sm text-[var(--st-text)] transition hover:text-[var(--st-text)] md:inline-flex"
               >
                 Dashboard <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -86,7 +86,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               type="button"
               aria-label={open ? 'Tutup menu' : 'Buka menu'}
               onClick={() => setOpen((v) => !v)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--st-muted)] hover:bg-white/5 hover:text-[var(--st-text)] md:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--st-muted)] hover:bg-[var(--st-surface-hi)] hover:text-[var(--st-text)] md:hidden"
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -95,13 +95,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       </header>
 
       {open && (
-        <nav className="fixed inset-x-0 top-20 z-40 mx-auto w-[calc(100%-2rem)] max-w-3xl rounded-2xl border border-white/10 bg-[var(--st-surface)] p-2 md:hidden">
+        <nav className="fixed inset-x-0 top-20 z-40 mx-auto w-[calc(100%-2rem)] max-w-3xl rounded-2xl border border-[var(--st-stroke)] bg-[var(--st-surface)] p-2 md:hidden">
           {NAV_LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className="block rounded-xl px-4 py-3 text-sm text-[var(--st-muted)] hover:bg-white/5 hover:text-[var(--st-text)]"
+              className="block rounded-xl px-4 py-3 text-sm text-[var(--st-muted)] hover:bg-[var(--st-surface-hi)] hover:text-[var(--st-text)]"
             >
               {l.label}
             </Link>

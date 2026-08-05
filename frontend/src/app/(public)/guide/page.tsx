@@ -84,7 +84,7 @@ export default function GuidePage() {
             Kunjungi FAQ untuk pertanyaan umum atau hubungi kami untuk bantuan langsung.
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/faq" className="accent-ring inline-flex items-center gap-2 rounded-full bg-[var(--st-surface)] px-5 py-2.5 text-sm font-medium text-[var(--st-text)] transition hover:bg-[var(--st-surface-hi)]">
+            <Link href="/faq" className="accent-ring inline-flex items-center gap-2 rounded-full border border-[var(--st-stroke)] bg-[var(--st-surface)] px-5 py-2.5 text-sm font-medium text-[var(--st-text)] transition hover:border-[var(--st-accent-from)]/40 hover:bg-[var(--st-surface-hi)]">
               Buka FAQ
             </Link>
             <Link href="/contact" className="accent-ring inline-flex items-center gap-2 rounded-full bg-[var(--st-text)] px-5 py-2.5 text-sm font-medium text-[var(--st-bg)] transition hover:opacity-90">

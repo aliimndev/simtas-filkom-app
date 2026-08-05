@@ -5,10 +5,12 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/usecase"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/response"
@@ -16,6 +18,52 @@ import (
 
 type UserHandler struct {
 	userUseCase *usecase.UserUseCase
+}
+
+// UserResponse is the admin-facing representation of a user. It flattens the
+// role relation into a plain string (role name) so the payload is consistent
+// with the rest of the API (e.g. /auth/me and login return role as a string).
+type UserResponse struct {
+	ID                 uuid.UUID  `json:"id"`
+	Email              string     `json:"email"`
+	FullName           string     `json:"full_name"`
+	Role               string     `json:"role"`
+	NimNidn            *string    `json:"nim_nidn,omitempty"`
+	StudyProgram       *string    `json:"study_program,omitempty"`
+	ProfilePhotoURL    *string    `json:"profile_photo_url,omitempty"`
+	IsActive           bool       `json:"is_active"`
+	MustChangePassword bool       `json:"must_change_password"`
+	LastLoginAt        *time.Time `json:"last_login_at,omitempty"`
+	CreatedAt          time.Time  `json:"created_at"`
+	UpdatedAt          time.Time  `json:"updated_at"`
+}
+
+func toUserResponse(u *entity.User) UserResponse {
+	return UserResponse{
+		ID:                 u.ID,
+		Email:              u.Email,
+		FullName:           u.FullName,
+		Role:               u.Role.Name,
+		NimNidn:            u.NimNidn,
+		StudyProgram:       u.StudyProgram,
+		ProfilePhotoURL:    u.ProfilePhotoURL,
+		IsActive:           u.IsActive,
+		MustChangePassword: u.MustChangePassword,
+		LastLoginAt:        u.LastLoginAt,
+		CreatedAt:          u.CreatedAt,
+		UpdatedAt:          u.UpdatedAt,
+	}
+}
+
+func toUserResponses(users []*entity.User) []UserResponse {
+	out := make([]UserResponse, 0, len(users))
+	for _, u := range users {
+		if u == nil {
+			continue
+		}
+		out = append(out, toUserResponse(u))
+	}
+	return out
 }
 
 func NewUserHandler(userUseCase *usecase.UserUseCase) *UserHandler {
@@ -74,7 +122,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		response.InternalError(c, "Gagal mengambil daftar user")
 		return
 	}
-	response.Paginated(c, users, page, perPage, total)
+	response.Paginated(c, toUserResponses(users), page, perPage, total)
 }
 
 // GetUser godoc
@@ -102,7 +150,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		response.InternalError(c, "Gagal mengambil data user")
 		return
 	}
-	response.Success(c, http.StatusOK, user)
+	response.Success(c, http.StatusOK, toUserResponse(user))
 }
 
 // CreateUser godoc
@@ -140,7 +188,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		}
 		return
 	}
-	response.Created(c, user)
+	response.Created(c, toUserResponse(user))
 }
 
 // UpdateUser godoc
@@ -177,7 +225,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		response.InternalError(c, "Gagal memperbarui user")
 		return
 	}
-	response.Success(c, http.StatusOK, user)
+	response.Success(c, http.StatusOK, toUserResponse(user))
 }
 
 // DeleteUser godoc
