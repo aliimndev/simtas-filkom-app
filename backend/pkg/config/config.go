@@ -10,16 +10,20 @@ type Config struct {
 	AppPort string
 	AppEnv  string
 
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
+	DBHost           string
+	DBPort           string
+	DBUser           string
+	DBPassword       string
+	DBName           string
+	DBMaxOpenConns   int
+	DBMaxIdleConns   int
+	DBConnMaxLifetime time.Duration
 
 	JWTSecret        string
 	JWTExpiry        time.Duration
 	JWTRefreshExpiry time.Duration
 
+	// Storage: either supabase or s3 (MinIO, R2, etc.)
 	SupabaseURL string
 	// SupabaseKey (anon) is reserved for future Supabase client init; the
 	// storage service (Job 21) authenticates with SupabaseServiceRoleKey.
@@ -28,6 +32,14 @@ type Config struct {
 	SupabaseDocumentsBucket string
 	SupabaseArchivesBucket  string
 	StorageProvider         string
+
+	// S3-compatible storage (MinIO, R2, etc.)
+	S3Endpoint        string
+	S3Region          string
+	S3AccessKey       string
+	S3SecretKey       string
+	S3DocumentsBucket string
+	S3ArchivesBucket  string
 
 	ResendAPIKey  string
 	EmailFrom     string
@@ -43,11 +55,14 @@ func Load() *Config {
 		AppPort: getEnv("APP_PORT", "8080"),
 		AppEnv:  getEnv("APP_ENV", "development"),
 
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", "postgres"),
-		DBName:     getEnv("DB_NAME", "simtas_filkom"),
+		DBHost:           getEnv("DB_HOST", "localhost"),
+		DBPort:           getEnv("DB_PORT", "5432"),
+		DBUser:           getEnv("DB_USER", "postgres"),
+		DBPassword:       getEnv("DB_PASSWORD", "postgres"),
+		DBName:           getEnv("DB_NAME", "simtas_filkom"),
+		DBMaxOpenConns:   getInt("DB_MAX_OPEN_CONNS", 100),
+		DBMaxIdleConns:   getInt("DB_MAX_IDLE_CONNS", 10),
+		DBConnMaxLifetime: getDuration("DB_CONN_MAX_LIFETIME", 1*time.Hour),
 
 		JWTSecret:        getEnv("JWT_SECRET", "your-super-secret-key"),
 		JWTExpiry:        getDuration("JWT_EXPIRY", 24*time.Hour),
@@ -61,6 +76,14 @@ func Load() *Config {
 		SupabaseDocumentsBucket: getEnv("SUPABASE_DOCUMENTS_BUCKET", getEnv("SUPABASE_BUCKET", "simtas-documents")),
 		SupabaseArchivesBucket:  getEnv("SUPABASE_ARCHIVES_BUCKET", "simtas-archives"),
 		StorageProvider:         getEnv("STORAGE_PROVIDER", "local"),
+
+		// S3-compatible storage (MinIO, R2, etc.)
+		S3Endpoint:        getEnv("S3_ENDPOINT", ""),
+		S3Region:          getEnv("S3_REGION", "us-east-1"),
+		S3AccessKey:       getEnv("S3_ACCESS_KEY", ""),
+		S3SecretKey:       getEnv("S3_SECRET_KEY", ""),
+		S3DocumentsBucket: getEnv("S3_DOCUMENTS_BUCKET", "simtas-documents"),
+		S3ArchivesBucket:  getEnv("S3_ARCHIVES_BUCKET", "simtas-archives"),
 
 		ResendAPIKey:  getEnv("RESEND_API_KEY", ""),
 		EmailFrom:     getEnv("EMAIL_FROM", "noreply@filkom.unida.ac.id"),

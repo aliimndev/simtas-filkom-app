@@ -5,9 +5,9 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { ArrowLeft } from 'lucide-react'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useForgotPasswordMutation } from '@/lib/hooks/use-auth'
@@ -40,51 +40,53 @@ export default function ForgotPasswordPage() {
   })
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-background to-secondary-50 px-4 py-10">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md">
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle>Lupa Password</CardTitle>
-            <CardDescription>
+        <div className="st-card rounded-2xl p-8">
+          <div className="mb-6 text-center">
+            <span className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
+              Lupa Password
+            </span>
+            <h1 className="landing-display mt-3 text-3xl">Atur ulang password</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
               Masukkan email terdaftar Anda, kami akan mengirimkan tautan untuk mereset password.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {done ? (
-              <div className="space-y-4 text-center">
-                <Alert variant="success">
-                  Jika email terdaftar, tautan reset password telah dikirim. Periksa kotak masuk Anda.
-                </Alert>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/login">Kembali ke Login</Link>
-                </Button>
+            </p>
+          </div>
+
+          {done ? (
+            <div className="space-y-4 text-center">
+              <Alert variant="success">
+                Jika email terdaftar, tautan reset password telah dikirim. Periksa kotak masuk Anda.
+              </Alert>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/login">Kembali ke Login</Link>
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={onSubmit} noValidate className="space-y-4">
+              {error && <Alert variant="danger">{error}</Alert>}
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="nama@unida.ac.id"
+                  invalid={!!errors.email}
+                  {...register('email')}
+                />
+                {errors.email && <p className="mt-1 text-xs text-danger-700">{errors.email.message}</p>}
               </div>
-            ) : (
-              <form onSubmit={onSubmit} noValidate className="space-y-4">
-                {error && <Alert variant="danger">{error}</Alert>}
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="nama@unida.ac.id"
-                    invalid={!!errors.email}
-                    {...register('email')}
-                  />
-                  {errors.email && <p className="mt-1 text-xs text-danger">{errors.email.message}</p>}
-                </div>
-                <Button type="submit" fullWidth loading={forgot.isPending}>
-                  Kirim Tautan Reset
-                </Button>
-                <p className="text-center text-sm">
-                  <Link href="/login" className="font-medium text-primary hover:underline">
-                    Kembali ke Login
-                  </Link>
-                </p>
-              </form>
-            )}
-          </CardContent>
-        </Card>
+              <Button type="submit" fullWidth loading={forgot.isPending}>
+                Kirim Tautan Reset
+              </Button>
+              <p className="text-center text-sm">
+                <Link href="/login" className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline">
+                  <ArrowLeft className="h-3.5 w-3.5" /> Kembali ke Login
+                </Link>
+              </p>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -4,7 +4,7 @@ import { Providers } from '@/providers'
 
 export const metadata: Metadata = {
   title: 'SIMTAS FILKOM',
-  description: 'Sistem Manajemen Tugas Akhir dan Skripsi FILKOM Unida',
+  description: 'Sistem Manajemen Tugas Akhir Skripsi FILKOM Unida',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

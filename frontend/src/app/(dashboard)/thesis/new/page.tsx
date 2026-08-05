@@ -18,10 +18,25 @@ import { thesisApi } from '@/lib/api/thesis-api'
 import { academicYearApi } from '@/lib/api/user-api'
 import { getErrorMessage } from '@/lib/utils/error'
 
+const MAX_TITLE_CHARS = 500
+
+// Hitung kata untuk frontend yang sinkron dengan aturan backend
+// (backend: len(strings.Fields(...)) < 100 / < 10) — lihat thesis_usecase.go:140-148.
+const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length
+
 const thesisSchema = z.object({
-  title: z.string().min(10, 'Judul minimal 10 karakter').max(255, 'Judul maksimal 255 karakter'),
-  abstract: z.string().min(30, 'Abstrak minimal 30 karakter'),
-  field_of_study: z.string().min(3, 'Bidang keahlian wajib diisi'),
+  title: z
+    .string()
+    .min(10, 'Judul minimal 10 karakter')
+    .max(MAX_TITLE_CHARS, `Judul maksimal ${MAX_TITLE_CHARS} karakter`)
+    .refine((val) => wordCount(val) >= 10, { message: 'Judul minimal 10 kata' }),
+  abstract: z
+    .string()
+    .refine((val) => wordCount(val) >= 100, { message: 'Abstrak minimal 100 kata' }),
+  field_of_study: z.string().min(1, 'Bidang keahlian wajib diisi'),
+  thesis_type: z.enum(['skripsi', 'tugas_akhir'], {
+    required_error: 'Tipe skripsi wajib dipilih',
+  }),
   academic_year_id: z.string().min(1, 'Pilih tahun akademik'),
 })
 
@@ -129,6 +144,22 @@ export default function NewThesisPage() {
                 </Select>
                 {errors.academic_year_id && <p className="mt-1 text-xs text-danger">{errors.academic_year_id.message}</p>}
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="thesis_type" required>Tipe Skripsi</Label>
+              <Select
+                id="thesis_type"
+                invalid={!!errors.thesis_type}
+                {...register('thesis_type')}
+              >
+                <option value="">Pilih tipe skripsi…</option>
+                <option value="skripsi">Skripsi</option>
+                <option value="tugas_akhir">Tugas Akhir</option>
+              </Select>
+              {errors.thesis_type && (
+                <p className="mt-1 text-xs text-danger">{errors.thesis_type.message}</p>
+              )}
             </div>
 
             <div className="flex gap-3 pt-2">
