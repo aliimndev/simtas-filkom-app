@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowLeft } from 'lucide-react'
@@ -47,11 +47,11 @@ function ResetPasswordInner() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<ResetForm>({ resolver: zodResolver(resetSchema) })
 
-  const password = watch('password') ?? ''
+  const password = useWatch({ control, name: 'password' }) ?? ''
   const strength = useMemo(() => passwordStrength(password), [password])
 
   useEffect(() => {

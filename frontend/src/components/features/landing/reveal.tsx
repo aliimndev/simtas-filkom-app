@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { cn } from '@/lib/utils/cn'
 
 /**
@@ -22,7 +22,7 @@ export function Reveal({
   const ref = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
     if (typeof IntersectionObserver === 'undefined') {

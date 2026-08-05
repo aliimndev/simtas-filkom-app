@@ -95,7 +95,7 @@ function cssOutlineScan() {
         }
       }
     }
-  } catch (e) {}
+  } catch {}
   return found
 }
 
@@ -118,7 +118,7 @@ async function snap(context, url, name) {
   const msgs = []
   page.on('console', e => { const t = e.type(); if (t === 'error' || t === 'warning') msgs.push({ type: t, text: (e.text() || '').slice(0, 200) }) })
   page.on('pageerror', e => msgs.push({ type: 'pageerror', text: (e.message || '').slice(0, 200) }))
-  await page.addInitScript(() => { try { sessionStorage.setItem('st_booted', '1') } catch (e) {} })
+  await page.addInitScript(() => { try { sessionStorage.setItem('st_booted', '1') } catch {} })
   const resp = await page.goto(BASE + url, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1500)
   await page.screenshot({ path: SS(name), fullPage: true })
@@ -133,13 +133,13 @@ async function snap(context, url, name) {
 ;(async () => {
   const browser = await chromium.launch({ headless: true, executablePath: '/usr/lib/chromium/chromium', args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--force-color-profile=srgb', '--font-render-hinting=none'] })
   const ctx = await browser.newContext({ viewport: DESKTOP, deviceScaleFactor: 1 })
-  await ctx.addInitScript(() => { try { sessionStorage.setItem('st_booted', '1') } catch (e) {} })
+  await ctx.addInitScript(() => { try { sessionStorage.setItem('st_booted', '1') } catch {} })
   const results = {}
   for (const p of PAGES) {
     results[p] = { desktop: await snap(ctx, p, `desktop-${p === '/' ? 'home' : p.slice(1)}`) }
   }
   const mobileCtx = await browser.newContext({ viewport: MOBILE, deviceScaleFactor: 1 })
-  await mobileCtx.addInitScript(() => { try { sessionStorage.setItem('st_booted', '1') } catch (e) {} })
+  await mobileCtx.addInitScript(() => { try { sessionStorage.setItem('st_booted', '1') } catch {} })
   results['/'].mobile = await snap(mobileCtx, '/', 'mobile-home')
   for (const p of ['/faq', '/about', '/contact']) {
     results[p].mobile = await snap(mobileCtx, p, `mobile-${p.slice(1)}`)
@@ -147,7 +147,7 @@ async function snap(context, url, name) {
 
   // root vars (constant across app) + confirm via samples
   const root = await ctx.newPage()
-  await root.addInitScript(() => { try { sessionStorage.setItem('st_booted', '1') } catch (e) {} })
+  await root.addInitScript(() => { try { sessionStorage.setItem('st_booted', '1') } catch {} })
   await root.goto(BASE + '/', { waitUntil: 'networkidle' })
   await root.waitForTimeout(1200)
   const vars = await root.evaluate(() => JSON.parse(JSON.stringify({
@@ -192,7 +192,6 @@ async function snap(context, url, name) {
     desktop: { '/': SS('desktop-home'), '/faq': SS('desktop-faq'), '/about': SS('desktop-about'), '/contact': SS('desktop-contact') },
     mobile: { '/': SS('mobile-home'), '/faq': SS('mobile-faq'), '/about': SS('mobile-about'), '/contact': SS('mobile-contact') }
   }
-  const outlineRulePresent = results['/'].desktop.cssOutline.length === 0
   const anyOutlineNone = PAGES.some(p => results[p].desktop.cssOutline.length > 0) || ['/faq', '/about', '/contact'].some(p => results[p].mobile.cssOutline.length > 0)
 
   const tapFindings = {

@@ -23,14 +23,17 @@ const DURATION = 1700
 
 export function BootLoader() {
   const [count, setCount] = useState(0)
-  const [hidden, setHidden] = useState(true)
+  const [hidden, setHidden] = useState(() => {
+    if (typeof window === 'undefined') return true
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    return reduce || sessionStorage.getItem('st_booted')
+  })
 
   useEffect(() => {
     if (typeof window === 'undefined') return
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce || sessionStorage.getItem('st_booted')) {
-      setHidden(true)
       return
     }
 
