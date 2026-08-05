@@ -83,6 +83,12 @@ func SetupTestRouter(t *testing.T, db *gorm.DB) *gin.Engine {
 	engine := gin.New()
 	r := handler.NewRouter(engine, db, cfg)
 	r.Setup()
+	// Shut down the audit-service worker goroutine before truncateAll runs.
+	// Cleanups execute in LIFO order: SetupTestDB registers truncateAll and
+	// database.Close BEFORE this function runs, so r.Shutdown() — registered
+	// here — executes first, guaranteeing no orphaned worker goroutine INSERTs
+	// into audit_logs while or after TRUNCATE locks the tables.
+	t.Cleanup(func() { r.Shutdown() })
 	return engine
 }
 

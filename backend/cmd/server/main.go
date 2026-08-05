@@ -155,5 +155,8 @@ func main() {
 		log.Printf("server forced to shutdown: %v", err)
 	}
 
+	// Drain queued audit-log entries before closing the DB connection.
+	r.Shutdown()
+
 	log.Println("server stopped")
 }

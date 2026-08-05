@@ -34,6 +34,7 @@ type Router struct {
 	archiveHandler      *ArchiveHandler
 	dashboardHandler    *DashboardHandler
 	auditHandler        *AuditHandler
+	auditSvc            *audit.AuditService
 	internalHandler     *InternalHandler
 	authMid             *middleware.AuthMiddleware
 }
@@ -138,8 +139,18 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 		archiveHandler:      archiveHandler,
 		dashboardHandler:    dashboardHandler,
 		auditHandler:        auditHandler,
+		auditSvc:            auditService,
 		internalHandler:     internalHandler,
 		authMid:             authMiddleware,
+		}
+}
+
+// Shutdown gracefully drains the audit-service worker goroutine so that all
+// queued audit entries are persisted before the caller (e.g. the test harness)
+// truncates tables or closes the database connection.
+func (r *Router) Shutdown() {
+	if r.auditSvc != nil {
+		r.auditSvc.Shutdown()
 	}
 }
 

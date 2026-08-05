@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"sync"
 
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
@@ -35,8 +36,10 @@ const auditQueueSize = 256
 // Writes go through a single bounded worker so a burst of actions can never
 // leak goroutines or pile up unbounded in-memory work.
 type AuditService struct {
-	repo  domainRepo.AuditRepository
-	queue chan AuditParams
+	repo           domainRepo.AuditRepository
+	queue          chan AuditParams
+	wg             sync.WaitGroup
+	shutdownOnce   sync.Once
 }
 
 func NewAuditService(repo domainRepo.AuditRepository) *AuditService {
@@ -44,6 +47,7 @@ func NewAuditService(repo domainRepo.AuditRepository) *AuditService {
 		repo:  repo,
 		queue: make(chan AuditParams, auditQueueSize),
 	}
+	s.wg.Add(1)
 	go s.worker()
 	return s
 }
@@ -51,6 +55,7 @@ func NewAuditService(repo domainRepo.AuditRepository) *AuditService {
 // worker drains the queue and persists each entry. It runs for the lifetime of
 // the service (same pattern as the rate-limiter cleanup goroutine).
 func (s *AuditService) worker() {
+	defer s.wg.Done()
 	for params := range s.queue {
 		entry := &entity.AuditLog{
 			UserID:     params.UserID,
@@ -69,6 +74,15 @@ func (s *AuditService) worker() {
 			)
 		}
 	}
+}
+
+// Shutdown closes the queue channel and blocks until the worker goroutine
+// has drained every pending audit entry. It is safe to call multiple times.
+func (s *AuditService) Shutdown() {
+	s.shutdownOnce.Do(func() {
+		close(s.queue)
+	})
+	s.wg.Wait()
 }
 
 // Log queues an audit entry to be written asynchronously so it never delays
