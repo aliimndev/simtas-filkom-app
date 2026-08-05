@@ -20,13 +20,12 @@ export function Reveal({
   as?: React.ElementType
 }) {
   const ref = useRef<HTMLElement>(null)
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(() => typeof IntersectionObserver === 'undefined')
 
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
     if (typeof IntersectionObserver === 'undefined') {
-      setVisible(true)
       return
     }
     const io = new IntersectionObserver(

@@ -37,8 +37,8 @@ export function BootLoader() {
       return
     }
 
-    setHidden(false)
     let raf = 0
+    const hideRaf = requestAnimationFrame(() => setHidden(false))
     const start = performance.now()
     const tick = (now: number) => {
       const p = Math.min(1, (now - start) / DURATION)
@@ -53,7 +53,10 @@ export function BootLoader() {
       }
     }
     raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
+    return () => {
+      cancelAnimationFrame(raf)
+      cancelAnimationFrame(hideRaf)
+    }
   }, [])
 
   if (hidden) return null
