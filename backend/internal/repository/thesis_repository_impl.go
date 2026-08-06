@@ -162,6 +162,31 @@ func (r *thesisRepository) AssignSupervisor(ctx context.Context, thesisID, super
 	return r.db.WithContext(ctx).Create(ts).Error
 }
 
+// AssignSupervisors assigns multiple supervisors and flips the thesis to
+// in_progress atomically. It is the transactional counterpart to the
+// single-supervisor AssignSupervisor used elsewhere.
+func (r *thesisRepository) AssignSupervisors(ctx context.Context, thesisID uuid.UUID, supervisorIDs []uuid.UUID, assignedBy uuid.UUID) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, sid := range supervisorIDs {
+			ts := &entity.ThesisSupervisor{
+				ThesisID:     thesisID,
+				SupervisorID: sid,
+				AssignedBy:   assignedBy,
+				AssignedAt:   time.Now(),
+			}
+			if err := tx.Create(ts).Error; err != nil {
+				return err
+			}
+		}
+		if err := tx.Model(&entity.Thesis{}).
+			Where("id = ?", thesisID).
+			Update("status", "in_progress").Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
 func (r *thesisRepository) GetSupervisors(ctx context.Context, thesisID uuid.UUID) ([]*entity.User, error) {
 	var supervisors []*entity.User
 	err := r.db.WithContext(ctx).

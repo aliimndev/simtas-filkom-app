@@ -489,11 +489,11 @@ go test ./internal/handler/... -tags integration -count=1 -v
 - [x] **Security: CSP + HSTS Headers** — ✅ Done: CSP, HSTS, Permissions-Policy di `security.go`
 - [ ] **Security: Refresh Token in httpOnly Cookie** — Pindahkan dari localStorage
 - [x] **Security: Global Rate Limiting** — ✅ Done: 100 req/min per IP di router
-- [ ] **Backend: Transaction for Multi-Step Operations** — Wrap AssignSupervisor, Score submission dalam transaction
+- [x] **Backend: Transaction for Multi-Step Operations** — ✅ Done: `AssignSupervisors` (loop + status flip) dalam `db.Transaction` di `thesis_repository_impl.go`; finalize defense atomik via `SELECT ... FOR UPDATE`
 - [x] **Backend: Input Sanitization** — ✅ Done: `middleware/sanitize.go` strip HTML dari JSON
 - [x] **Backend: Account Lockout Duration** — ✅ Done: 30 menit di `auth_usecase.go` (sudah ada)
 - [x] **Backend: Panic on Missing JWT_SECRET** — ✅ Done: `config.Validate()` di production
-- [ ] **Backend: Max Request Body Size** — Set MaxMultipartMemory
+- [x] **Backend: Max Request Body Size** — ✅ Done: `middleware/body_limit.go` + `engine.MaxMultipartMemory` (default 10 MB via `MAX_REQUEST_BODY_BYTES`)
 - [x] **Frontend: Error Boundary** — ✅ Done: `error-boundary.tsx` + dashboard layout
 - [ ] **Frontend: Loading States** — Skeleton component di semua halaman
 - [ ] **Testing: Full Lifecycle Integration Test** — Submit → Graduate
@@ -605,6 +605,7 @@ go test ./internal/handler/... -tags integration -count=1 -v
 // Cancel bisa dilakukan pada thesis 'graduated' — ini aneh
 // FIX: Tambahkan check: if thesis.Status == "graduated" return error
 ```
+- **Status: ✅ Done** — `ErrThesisCannotCancel` ditambahkan; `Cancel()` menolak thesis berstatus `graduated`.
 
 **Bug 3: Stale Data on Concurrent Supervisor Assignment**
 ```go
@@ -852,9 +853,14 @@ Untuk pertanyaan mengenai review ini, hubungi:
 - ✅ Frontend Error Boundary (`error-boundary.tsx`)
 - ✅ Pagination Limits (max 100)
 - ✅ Config Validation at Startup
+- ✅ Transaction for Multi-Step Ops (`AssignSupervisors` + atomic `FinalizeDefense`)
+- ✅ Concurrent Score Race Guard (row-locked `SELECT ... FOR UPDATE` finalize + idempotency)
+- ✅ Max Request Body Size (`middleware/body_limit.go` + `MaxMultipartMemory`)
+- ✅ Centralized Error Catalog (`handler/errors.go`) + standardized `APIResponse`
+- ✅ Cancel-on-Graduated Guard (`ErrThesisCannotCancel`)
 
 ---
 
-**Document Version:** 1.1  
+**Document Version:** 1.2  
 **Last Updated:** 6 Agustus 2026  
-**Status:** Active — Phase 1 Complete
+**Status:** Active — Phase 1 & Phase 2 (Critical) Complete

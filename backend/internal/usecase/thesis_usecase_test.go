@@ -151,6 +151,15 @@ func (f *fakeThesisRepo) AssignSupervisor(_ context.Context, thesisID, superviso
 	return nil
 }
 
+func (f *fakeThesisRepo) AssignSupervisors(_ context.Context, thesisID uuid.UUID, supervisorIDs []uuid.UUID, _ uuid.UUID) error {
+	f.assignCalls++
+	f.supervisors[thesisID] = append(f.supervisors[thesisID], supervisorIDs...)
+	if t, ok := f.theses[thesisID]; ok {
+		t.Status = "in_progress"
+	}
+	return nil
+}
+
 func (f *fakeThesisRepo) GetSupervisors(_ context.Context, thesisID uuid.UUID) ([]*entity.User, error) {
 	var users []*entity.User
 	for _, sid := range f.supervisors[thesisID] {
@@ -476,8 +485,8 @@ func TestAssignSupervisor(t *testing.T) {
 	if detail.Status != "in_progress" {
 		t.Errorf("status = %q, want in_progress", detail.Status)
 	}
-	if thesisRepo.assignCalls != 2 {
-		t.Errorf("expected 2 supervisor assignments, got %d", thesisRepo.assignCalls)
+	if got := len(thesisRepo.supervisors[thesisID]); got != 2 {
+		t.Errorf("expected 2 supervisors assigned, got %d", got)
 	}
 }
 
@@ -617,6 +626,22 @@ func TestCancelAlreadyCancelled(t *testing.T) {
 	err := uc.Cancel(context.Background(), thesisID, CancelThesisRequest{}, Actor{UserID: uuid.New()})
 	if !errors.Is(err, ErrThesisAlreadyCancelled) {
 		t.Errorf("expected ErrThesisAlreadyCancelled, got %v", err)
+	}
+}
+
+func TestCancelGraduatedThesis(t *testing.T) {
+	uc, thesisRepo, userRepo, _ := newTestThesisUseCase()
+	thesisID, _ := seedSubmittedThesis(t, uc, thesisRepo, userRepo)
+
+	// Simulate a graduated thesis (data-integrity guard from the production review).
+	thesisRepo.theses[thesisID].Status = "graduated"
+
+	err := uc.Cancel(context.Background(), thesisID, CancelThesisRequest{}, Actor{UserID: uuid.New()})
+	if !errors.Is(err, ErrThesisCannotCancel) {
+		t.Errorf("expected ErrThesisCannotCancel, got %v", err)
+	}
+	if thesisRepo.theses[thesisID].Status != "graduated" {
+		t.Errorf("graduated thesis must remain unchanged, got %q", thesisRepo.theses[thesisID].Status)
 	}
 }
 

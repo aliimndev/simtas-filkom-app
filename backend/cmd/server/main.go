@@ -112,6 +112,10 @@ func main() {
 
 	engine := gin.Default()
 
+	// Cap multipart form memory to the configured request body limit. File
+	// uploads are additionally bounded by the document layer's own 10 MB check.
+	engine.MaxMultipartMemory = int64(cfg.MaxRequestBodyBytes)
+
 	// Register all routes (auth + middleware)
 	r := handler.NewRouter(engine, db, cfg)
 	r.Setup()

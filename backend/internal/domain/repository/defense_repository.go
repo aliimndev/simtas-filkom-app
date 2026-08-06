@@ -39,6 +39,13 @@ type DefenseRepository interface {
 	GetExaminers(ctx context.Context, defenseID uuid.UUID) ([]*entity.User, error)
 	AddScore(ctx context.Context, score *entity.DefenseScore) error
 	GetAllScores(ctx context.Context, defenseID uuid.UUID) ([]*entity.DefenseScore, error)
+	// FinalizeDefense atomically finalizes a defense once every examiner has
+	// submitted a score. It locks the defense row (SELECT ... FOR UPDATE) inside
+	// a transaction so two concurrent score submissions cannot both finalize, and
+	// no-ops (status="") when the defense is not yet complete or was already
+	// finalized (status != "scheduled"). It returns the computed final score and
+	// status, plus the thesis ID for downstream notifications.
+	FinalizeDefense(ctx context.Context, defenseID uuid.UUID) (finalScore float64, status string, thesisID uuid.UUID, err error)
 	HasExaminerScored(ctx context.Context, defenseID, examinerID uuid.UUID) (bool, error)
 	// CountDistinctScoredExaminers returns the number of examiners who submitted scores.
 	CountDistinctScoredExaminers(ctx context.Context, defenseID uuid.UUID) (int, error)

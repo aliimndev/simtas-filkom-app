@@ -10,13 +10,13 @@ type Config struct {
 	AppPort string
 	AppEnv  string
 
-	DBHost           string
-	DBPort           string
-	DBUser           string
-	DBPassword       string
-	DBName           string
-	DBMaxOpenConns   int
-	DBMaxIdleConns   int
+	DBHost            string
+	DBPort            string
+	DBUser            string
+	DBPassword        string
+	DBName            string
+	DBMaxOpenConns    int
+	DBMaxIdleConns    int
 	DBConnMaxLifetime time.Duration
 
 	JWTSecret        string
@@ -46,6 +46,12 @@ type Config struct {
 	EmailFromName string
 	EmailDevMode  bool
 	FrontendURL   string
+
+	// MaxRequestBodyBytes caps the size of incoming request bodies (JSON and
+	// multipart). File uploads are additionally bounded by the document layer's
+	// own 10 MB limit. Defaults to 10 MB; enforced via a Gin middleware + the
+	// engine's MaxMultipartMemory so a single malicious payload cannot exhaust memory.
+	MaxRequestBodyBytes int
 
 	CORSAllowedOrigins string
 }
@@ -83,13 +89,13 @@ func Load() *Config {
 		AppPort: getEnv("APP_PORT", "8080"),
 		AppEnv:  getEnv("APP_ENV", "development"),
 
-		DBHost:           getEnv("DB_HOST", "localhost"),
-		DBPort:           getEnv("DB_PORT", "5432"),
-		DBUser:           getEnv("DB_USER", "postgres"),
-		DBPassword:       getEnv("DB_PASSWORD", "postgres"),
-		DBName:           getEnv("DB_NAME", "simtas_filkom"),
-		DBMaxOpenConns:   getInt("DB_MAX_OPEN_CONNS", 100),
-		DBMaxIdleConns:   getInt("DB_MAX_IDLE_CONNS", 10),
+		DBHost:            getEnv("DB_HOST", "localhost"),
+		DBPort:            getEnv("DB_PORT", "5432"),
+		DBUser:            getEnv("DB_USER", "postgres"),
+		DBPassword:        getEnv("DB_PASSWORD", "postgres"),
+		DBName:            getEnv("DB_NAME", "simtas_filkom"),
+		DBMaxOpenConns:    getInt("DB_MAX_OPEN_CONNS", 100),
+		DBMaxIdleConns:    getInt("DB_MAX_IDLE_CONNS", 10),
 		DBConnMaxLifetime: getDuration("DB_CONN_MAX_LIFETIME", 1*time.Hour),
 
 		JWTSecret:        getEnv("JWT_SECRET", "your-super-secret-key"),
@@ -118,6 +124,8 @@ func Load() *Config {
 		EmailFromName: getEnv("EMAIL_FROM_NAME", "SIMTAS FILKOM"),
 		EmailDevMode:  getBool("EMAIL_DEV_MODE", false),
 		FrontendURL:   getEnv("FRONTEND_URL", "http://localhost:3000"),
+
+		MaxRequestBodyBytes: getInt("MAX_REQUEST_BODY_BYTES", 10<<20), // 10 MB
 
 		CORSAllowedOrigins: getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:3000"),
 	}

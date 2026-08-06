@@ -39,6 +39,7 @@ var (
 	ErrInvalidSupervisorCount = errors.New("jumlah supervisor minimal 1 dan maksimal 2")
 	ErrSupervisorNotEligible  = errors.New("supervisor harus dosen pembimbing yang aktif")
 	ErrThesisAlreadyCancelled = errors.New("thesis sudah dibatalkan")
+	ErrThesisCannotCancel     = errors.New("thesis tidak dapat dibatalkan karena sudah graduated")
 	ErrForbidden              = errors.New("akses ditolak")
 )
 
@@ -371,12 +372,9 @@ func (uc *ThesisUseCase) AssignSupervisor(ctx context.Context, id uuid.UUID, req
 		supervisorEmails = append(supervisorEmails, validIDs[sid].Email)
 	}
 
-	for _, sid := range req.SupervisorIDs {
-		if err := uc.thesisRepo.AssignSupervisor(ctx, id, sid, actor.UserID); err != nil {
-			return nil, err
-		}
-	}
-	if err := uc.thesisRepo.UpdateStatus(ctx, id, "in_progress", ""); err != nil {
+	// Assign all supervisors and move the thesis to in_progress atomically so a
+	// failure cannot leave the thesis with a partial supervisor set.
+	if err := uc.thesisRepo.AssignSupervisors(ctx, id, req.SupervisorIDs, actor.UserID); err != nil {
 		return nil, err
 	}
 	// Re-fetch so the supervisors association reflects the new assignment.
@@ -418,6 +416,9 @@ func (uc *ThesisUseCase) Cancel(ctx context.Context, id uuid.UUID, req CancelThe
 	}
 	if thesis.Status == "cancelled" {
 		return ErrThesisAlreadyCancelled
+	}
+	if thesis.Status == "graduated" {
+		return ErrThesisCannotCancel
 	}
 
 	if err := uc.thesisRepo.UpdateStatus(ctx, id, "cancelled", req.Reason); err != nil {

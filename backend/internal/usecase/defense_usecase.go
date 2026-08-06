@@ -12,7 +12,6 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
-	"github.com/aliimndev/simtas-filkom-app/backend/pkg/grading"
 )
 
 // Defense status values (Job 09). Kept in sync with the DB check constraint.
@@ -535,76 +534,42 @@ func (uc *DefenseUseCase) Result(ctx context.Context, id, userID uuid.UUID, role
 	return result, nil
 }
 
-// TryFinalizeDefense computes the final score once all examiners submitted and
-// updates defense + thesis statuses (triggered after every score submission).
+// TryFinalizeDefense finalizes a defense once all examiners have submitted.
+// The score aggregation and defense status update happen atomically inside the
+// repository (row-locked transaction), so concurrent submissions cannot both
+// finalize (the second observer sees status != "scheduled" and no-ops). The
+// thesis status update is coordinated here across repositories afterwards.
 func (uc *DefenseUseCase) TryFinalizeDefense(ctx context.Context, defenseID uuid.UUID) error {
-	examiners, err := uc.defenseRepo.GetExaminers(ctx, defenseID)
+	finalScore, status, thesisID, err := uc.defenseRepo.FinalizeDefense(ctx, defenseID)
 	if err != nil {
 		return err
 	}
-	scoredCount, err := uc.defenseRepo.CountDistinctScoredExaminers(ctx, defenseID)
-	if err != nil {
-		return err
-	}
-	if scoredCount < len(examiners) || len(examiners) == 0 {
+	// status == "" means not yet complete or already finalized → nothing to do.
+	if status == "" {
 		return nil
 	}
 
-	allScores, err := uc.defenseRepo.GetAllScores(ctx, defenseID)
-	if err != nil {
+	// Move the thesis forward (or back to defense_ready on failure).
+	thesisStatus := "defense_done"
+	if status == DefenseStatusFailed {
+		thesisStatus = "defense_ready"
+	}
+	if err := uc.thesisRepo.UpdateStatus(ctx, thesisID, thesisStatus, ""); err != nil {
 		return err
 	}
 
-	order := []string{}
-	perExaminer := map[string]float64{}
-	for _, s := range allScores {
-		key := s.ExaminerID.String()
-		if _, ok := perExaminer[key]; !ok {
-			order = append(order, key)
+	if thesisID != uuid.Nil {
+		thesis, terr := uc.thesisRepo.FindByID(ctx, thesisID)
+		if terr == nil {
+			go func() {
+				_ = uc.emailSvc.SendDefenseFinalized(context.Background(), thesis.Student.Email, &entity.ThesisDefense{
+					ID:         defenseID,
+					ThesisID:   thesisID,
+					Status:     status,
+					FinalScore: &finalScore,
+				})
+			}()
 		}
-		perExaminer[key] += s.Score * s.ComponentWeight / 100.0
-	}
-	examinerScores := make([]float64, 0, len(order))
-	for _, key := range order {
-		examinerScores = append(examinerScores, perExaminer[key])
-	}
-	finalScore := grading.CalculateFinalScore(examinerScores)
-
-	status := DefenseStatusPassed
-	switch {
-	case finalScore < DefenseFailThreshold:
-		status = DefenseStatusFailed
-	case finalScore < DefenseRevisionThreshold:
-		status = DefenseStatusRevisionRequired
-	}
-
-	if err := uc.defenseRepo.UpdateFinalScore(ctx, defenseID, finalScore); err != nil {
-		return err
-	}
-	if err := uc.defenseRepo.UpdateStatus(ctx, defenseID, status); err != nil {
-		return err
-	}
-
-	defense, err := uc.defenseRepo.FindByID(ctx, defenseID)
-	if err != nil {
-		return err
-	}
-	switch status {
-	case DefenseStatusPassed, DefenseStatusRevisionRequired:
-		if err := uc.thesisRepo.UpdateStatus(ctx, defense.ThesisID, "defense_done", ""); err != nil {
-			return err
-		}
-	case DefenseStatusFailed:
-		// Thesis returns to defense_ready (student may retry).
-		if err := uc.thesisRepo.UpdateStatus(ctx, defense.ThesisID, "defense_ready", ""); err != nil {
-			return err
-		}
-	}
-
-	thesis, err := uc.thesisRepo.FindByID(ctx, defense.ThesisID)
-	if err == nil {
-		studentEmail := thesis.Student.Email
-		go func() { _ = uc.emailSvc.SendDefenseFinalized(context.Background(), studentEmail, defense) }()
 	}
 
 	uc.auditSvc.Log(ctx, audit.AuditParams{

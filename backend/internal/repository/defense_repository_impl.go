@@ -6,9 +6,11 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/grading"
 )
 
 type defenseRepository struct {
@@ -182,6 +184,98 @@ func (r *defenseRepository) GetAllScores(ctx context.Context, defenseID uuid.UUI
 		Where("defense_id = ?", defenseID).
 		Find(&scores).Error
 	return scores, err
+}
+
+// defense statuses (mirrors usecase.DefenseStatus* to avoid an import cycle).
+const (
+	defStatusScheduled        = "scheduled"
+	defStatusPassed           = "passed"
+	defStatusFailed           = "failed"
+	defStatusRevisionRequired = "revision_required"
+)
+
+// FinalizeDefense computes the final score and updates defense + thesis statuses
+// atomically. A row lock (FOR UPDATE) guarantees that only one concurrent
+// submission finalizes; late submitters observe status != "scheduled" and no-op.
+func (r *defenseRepository) FinalizeDefense(ctx context.Context, defenseID uuid.UUID) (float64, string, uuid.UUID, error) {
+	var finalScore float64
+	var status string
+	var thesisID uuid.UUID
+
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var d entity.ThesisDefense
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("id = ?", defenseID).
+			First(&d).Error; err != nil {
+			return err
+		}
+		// Already finalized (or not yet scheduled) → nothing to do.
+		if d.Status != defStatusScheduled {
+			return nil
+		}
+
+		var examiners []*entity.User
+		if err := tx.Model(&entity.User{}).
+			Joins("JOIN defense_examiners de ON de.examiner_id = users.id").
+			Where("de.defense_id = ?", defenseID).
+			Find(&examiners).Error; err != nil {
+			return err
+		}
+
+		var scored int64
+		if err := tx.Model(&entity.DefenseScore{}).
+			Distinct("examiner_id").
+			Where("defense_id = ?", defenseID).
+			Count(&scored).Error; err != nil {
+			return err
+		}
+		if int(scored) < len(examiners) {
+			return nil
+		}
+
+		var scores []*entity.DefenseScore
+		if err := tx.Where("defense_id = ?", defenseID).Find(&scores).Error; err != nil {
+			return err
+		}
+
+		order := []string{}
+		perExaminer := map[string]float64{}
+		for _, s := range scores {
+			key := s.ExaminerID.String()
+			if _, ok := perExaminer[key]; !ok {
+				order = append(order, key)
+			}
+			perExaminer[key] += s.Score * s.ComponentWeight / 100.0
+		}
+		examinerScores := make([]float64, 0, len(order))
+		for _, key := range order {
+			examinerScores = append(examinerScores, perExaminer[key])
+		}
+		fs := grading.CalculateFinalScore(examinerScores)
+
+		st := defStatusPassed
+		switch {
+		case fs < 60:
+			st = defStatusFailed
+		case fs < 75:
+			st = defStatusRevisionRequired
+		}
+
+		if err := tx.Model(&entity.ThesisDefense{}).
+			Where("id = ?", defenseID).
+			Updates(map[string]interface{}{"final_score": fs, "status": st}).Error; err != nil {
+			return err
+		}
+
+		finalScore = fs
+		status = st
+		thesisID = d.ThesisID
+		return nil
+	})
+	if err != nil {
+		return 0, "", uuid.Nil, err
+	}
+	return finalScore, status, thesisID, nil
 }
 
 func (r *defenseRepository) HasExaminerScored(ctx context.Context, defenseID, examinerID uuid.UUID) (bool, error) {
