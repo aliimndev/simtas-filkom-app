@@ -63,8 +63,9 @@ func (j *JWTManager) GenerateAccessToken(userID uuid.UUID, role, email string, t
 	return tokenString, tokenJTI, nil
 }
 
-// GenerateRefreshToken creates a long-lived refresh token
-func (j *JWTManager) GenerateRefreshToken(userID uuid.UUID) (string, error) {
+// GenerateRefreshToken creates a long-lived refresh token and returns
+// (token, jti, error) so callers can track the token family for rotation.
+func (j *JWTManager) GenerateRefreshToken(userID uuid.UUID) (string, string, error) {
 	tokenJTI := uuid.New().String()
 
 	claims := &Claims{
@@ -79,7 +80,11 @@ func (j *JWTManager) GenerateRefreshToken(userID uuid.UUID) (string, error) {
 	}
 
 	tokenObj := gojwt.NewWithClaims(gojwt.SigningMethodHS256, claims)
-	return tokenObj.SignedString(j.secretKey)
+	signed, err := tokenObj.SignedString(j.secretKey)
+	if err != nil {
+		return "", "", err
+	}
+	return signed, tokenJTI, nil
 }
 
 // ValidateToken parses and validates a JWT string
@@ -109,4 +114,9 @@ func (j *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 // AccessTokenExpiry returns the configured access token duration
 func (j *JWTManager) AccessTokenExpiry() time.Duration {
 	return j.accessTokenExpy
+}
+
+// RefreshTokenExpiry returns the configured refresh token duration
+func (j *JWTManager) RefreshTokenExpiry() time.Duration {
+	return j.refreshTokenExpy
 }

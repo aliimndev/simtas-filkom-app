@@ -9,6 +9,7 @@ backend/.env
 backend/coverage.out
 backend/coverage.html
 backend/seed
+backend/internal/handler/tmp/
 
 # Node
 node_modules/

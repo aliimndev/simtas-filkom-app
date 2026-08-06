@@ -46,7 +46,7 @@ func HealthCheck(c *gin.Context, db *gorm.DB) {
 
 	response.Success(c, httpStatus, gin.H{
 		"status":         status,
-		"version":        "1.0.0",
+		"version":        "1.1.0",
 		"timestamp":      time.Now().UTC().Format(time.RFC3339),
 		"uptime_seconds": int64(time.Since(serverStartAt).Seconds()),
 		"database":       databaseStatus,

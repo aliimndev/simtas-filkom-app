@@ -131,3 +131,41 @@ func (r *authRepository) GetUserTokenVersion(ctx context.Context, userID string)
 	}
 	return user.TokenVersion, nil
 }
+
+// ── Refresh token rotation ──────────────────────────────────────────────
+
+func (r *authRepository) CreateRefreshTokenFamily(ctx context.Context, family *entity.RefreshTokenFamily) error {
+	return r.db.WithContext(ctx).Create(family).Error
+}
+
+func (r *authRepository) FindRefreshTokenFamilyByJTI(ctx context.Context, jti string) (*entity.RefreshTokenFamily, error) {
+	var family entity.RefreshTokenFamily
+	err := r.db.WithContext(ctx).
+		Where("token_jti = ?", jti).
+		First(&family).Error
+	if err != nil {
+		return nil, err
+	}
+	return &family, nil
+}
+
+func (r *authRepository) RotateRefreshTokenFamily(ctx context.Context, oldJTI, newJTI string, newExpiresAt time.Time) (bool, error) {
+	result := r.db.WithContext(ctx).
+		Model(&entity.RefreshTokenFamily{}).
+		Where("token_jti = ?", oldJTI).
+		Updates(map[string]interface{}{
+			"token_jti":  newJTI,
+			"expires_at": newExpiresAt,
+			"rotated_at": time.Now(),
+		})
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return result.RowsAffected > 0, nil
+}
+
+func (r *authRepository) RevokeRefreshTokenFamiliesByUser(ctx context.Context, userID uuid.UUID) error {
+	return r.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Delete(&entity.RefreshTokenFamily{}).Error
+}

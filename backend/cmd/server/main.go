@@ -3,7 +3,7 @@ package main
 // SIMTAS FILKOM API (Job 22)
 //
 //	@title           SIMTAS FILKOM API
-//	@version         1.0
+//	@version         1.1.0
 //	@description     API untuk Sistem Manajemen Tugas Akhir dan Skripsi Fakultas Ilmu Komputer Universitas Djuanda.
 //	@termsOfService  https://filkom.unida.ac.id
 //

@@ -238,6 +238,25 @@ func (r *defenseRepository) FinalizeDefense(ctx context.Context, defenseID uuid.
 			return err
 		}
 
+		// Guard against a partial score set being finalized while another
+		// examiner's inserts are still committing: each examiner must have
+		// submitted every grading component, or we wait (no-op) for the rest to
+		// land. Otherwise a racing submitter could be counted once with only a
+		// subset of their components, skewing the final average.
+		perExaminerComponents := map[string]map[string]bool{}
+		for _, s := range scores {
+			if _, ok := perExaminerComponents[s.ExaminerID.String()]; !ok {
+				perExaminerComponents[s.ExaminerID.String()] = map[string]bool{}
+			}
+			perExaminerComponents[s.ExaminerID.String()][s.ComponentName] = true
+		}
+		for _, e := range examiners {
+			components := perExaminerComponents[e.ID.String()]
+			if len(components) < len(entity.DefenseGradingComponents) {
+				return nil // examiner's score set is incomplete — wait
+			}
+		}
+
 		order := []string{}
 		perExaminer := map[string]float64{}
 		for _, s := range scores {

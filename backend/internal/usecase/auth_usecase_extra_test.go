@@ -48,11 +48,20 @@ func newAuthUC(user *entity.User) (*AuthUseCase, *jwt.JWTManager) {
 
 func TestRefreshTokenSuccess(t *testing.T) {
 	user := newTestUser("Password123")
-	uc, jwtMgr := newAuthUC(user)
+	uc, jwtMgr, repo := newRotationAuthUC(user)
 
-	refresh, err := jwtMgr.GenerateRefreshToken(user.ID)
+	refresh, jti, err := jwtMgr.GenerateRefreshToken(user.ID)
 	if err != nil {
 		t.Fatalf("GenerateRefreshToken: %v", err)
+	}
+	// Seed the family row the way Login would.
+	if err := repo.CreateRefreshTokenFamily(context.Background(), &entity.RefreshTokenFamily{
+		UserID:    user.ID,
+		FamilyID:  uuid.New(),
+		TokenJTI:  jti,
+		ExpiresAt: time.Now().Add(jwtMgr.RefreshTokenExpiry()),
+	}); err != nil {
+		t.Fatalf("seed family: %v", err)
 	}
 
 	resp, err := uc.RefreshToken(context.Background(), refresh)
@@ -61,6 +70,9 @@ func TestRefreshTokenSuccess(t *testing.T) {
 	}
 	if resp.AccessToken == "" {
 		t.Error("expected a new access token")
+	}
+	if resp.RefreshToken == "" {
+		t.Error("expected a rotated refresh token")
 	}
 	if resp.ExpiresIn != 3600 {
 		t.Errorf("expires_in = %d, want 3600", resp.ExpiresIn)
@@ -77,14 +89,36 @@ func TestRefreshTokenInvalid(t *testing.T) {
 	}
 }
 
+// blacklistAwareRotationRepo combines family tracking with a forced blacklist
+// so the blacklisted-token path can be tested after the family check.
+type blacklistAwareRotationRepo struct {
+	*rotationAuthRepo
+	blacklisted bool
+}
+
+func (f *blacklistAwareRotationRepo) IsTokenBlacklisted(_ context.Context, _ string) (bool, error) {
+	return f.blacklisted, nil
+}
+
 func TestRefreshTokenBlacklisted(t *testing.T) {
 	user := newTestUser("Password123")
-	repo := &blacklistAwareAuthRepo{authUserRepo: &authUserRepo{user: user}, blacklisted: true}
+	repo := &blacklistAwareRotationRepo{
+		rotationAuthRepo: newRotationAuthRepo(user),
+		blacklisted:      true,
+	}
 	jwtMgr := jwt.NewJWTManager("test-secret", time.Hour, 24*time.Hour)
 	auditRepo := &chanAuditRepo{actions: make(chan string, 4)}
 	uc := NewAuthUseCase(repo, jwtMgr, audit.NewAuditService(auditRepo))
 
-	refresh, _ := jwtMgr.GenerateRefreshToken(user.ID)
+	refresh, jti, _ := jwtMgr.GenerateRefreshToken(user.ID)
+	if err := repo.CreateRefreshTokenFamily(context.Background(), &entity.RefreshTokenFamily{
+		UserID:    user.ID,
+		FamilyID:  uuid.New(),
+		TokenJTI:  jti,
+		ExpiresAt: time.Now().Add(jwtMgr.RefreshTokenExpiry()),
+	}); err != nil {
+		t.Fatalf("seed family: %v", err)
+	}
 	_, err := uc.RefreshToken(context.Background(), refresh)
 	if !errors.Is(err, ErrTokenBlacklisted) {
 		t.Errorf("expected ErrTokenBlacklisted, got %v", err)
@@ -94,9 +128,17 @@ func TestRefreshTokenBlacklisted(t *testing.T) {
 func TestRefreshTokenInactiveUser(t *testing.T) {
 	user := newTestUser("Password123")
 	user.IsActive = false
-	uc, jwtMgr := newAuthUC(user)
+	uc, jwtMgr, repo := newRotationAuthUC(user)
 
-	refresh, _ := jwtMgr.GenerateRefreshToken(user.ID)
+	refresh, jti, _ := jwtMgr.GenerateRefreshToken(user.ID)
+	if err := repo.CreateRefreshTokenFamily(context.Background(), &entity.RefreshTokenFamily{
+		UserID:    user.ID,
+		FamilyID:  uuid.New(),
+		TokenJTI:  jti,
+		ExpiresAt: time.Now().Add(jwtMgr.RefreshTokenExpiry()),
+	}); err != nil {
+		t.Fatalf("seed family: %v", err)
+	}
 	_, err := uc.RefreshToken(context.Background(), refresh)
 	if err == nil {
 		t.Fatal("expected error for inactive user")
@@ -105,14 +147,15 @@ func TestRefreshTokenInactiveUser(t *testing.T) {
 
 func TestRefreshTokenUserNotFound(t *testing.T) {
 	user := newTestUser("Password123")
-	uc, jwtMgr := newAuthUC(user)
+	uc, _ := newAuthUC(user)
 
 	// Refresh token for a user that is not the one stored in the repo.
 	other := uuid.New()
-	refresh, _ := jwtMgr.GenerateRefreshToken(other)
+	mgr := jwt.NewJWTManager("test-secret", time.Hour, 24*time.Hour)
+	refresh, _, _ := mgr.GenerateRefreshToken(other)
 	_, err := uc.RefreshToken(context.Background(), refresh)
-	if !errors.Is(err, ErrUserNotFound) {
-		t.Errorf("expected ErrUserNotFound, got %v", err)
+	if !errors.Is(err, ErrRefreshTokenInvalid) {
+		t.Errorf("expected ErrRefreshTokenInvalid (no family row for unknown user), got %v", err)
 	}
 }
 

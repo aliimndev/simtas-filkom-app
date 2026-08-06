@@ -173,6 +173,9 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		switch {
 		case errors.Is(err, usecase.ErrRefreshTokenInvalid),
 			errors.Is(err, usecase.ErrTokenBlacklisted):
+			// On reuse/theft detection the family was revoked: expire the
+			// cookie so the client cannot keep hammering the endpoint.
+			clearRefreshCookie(c, h.cfg)
 			response.Error(c, http.StatusUnauthorized, "Refresh token tidak valid", err)
 		case errors.Is(err, usecase.ErrUserNotFound):
 			response.Error(c, http.StatusUnauthorized, "User tidak ditemukan", err)
@@ -181,6 +184,13 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		}
 		return
 	}
+
+	// Rotation produced a fresh refresh token: rotate the HttpOnly cookie so
+	// the client always holds the current family member.
+	if resp.RefreshToken != "" {
+		setRefreshCookie(c, h.cfg, resp.RefreshToken)
+	}
+	resp.RefreshToken = ""
 
 	response.Success(c, http.StatusOK, resp)
 }
