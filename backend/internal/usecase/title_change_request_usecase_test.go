@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -590,5 +591,189 @@ func TestTitleChangeListPendingForSupervisor(t *testing.T) {
 	}
 	if len(empty) != 0 {
 		t.Errorf("expected 0 pending requests for unassigned supervisor, got %d", len(empty))
+	}
+}
+
+func TestTitleChangeSubmitThesisNotFound(t *testing.T) {
+	uc, _, _, _ := newTestTCRUseCase(newFakeThesisRepo())
+	_, err := uc.Submit(context.Background(), uuid.New(), CreateTitleChangeRequest{RequestedTitle: newTCRTitle()}, Actor{UserID: uuid.New()})
+	if !errors.Is(err, ErrThesisNotFound) {
+		t.Fatalf("expected ErrThesisNotFound, got %v", err)
+	}
+}
+
+func TestTitleChangeSubmitTitleTooShort(t *testing.T) {
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	thesisID, _ := seedTCRThesis(t, thesisRepo, userRepo, studentID, "approved")
+
+	uc, _, _, _ := newTestTCRUseCase(thesisRepo)
+	_, err := uc.Submit(context.Background(), thesisID, CreateTitleChangeRequest{RequestedTitle: "Judul Singkat"}, Actor{UserID: studentID})
+	if !errors.Is(err, ErrTitleChangeTitleTooShort) {
+		t.Fatalf("expected ErrTitleChangeTitleTooShort, got %v", err)
+	}
+}
+
+func TestTitleChangeSubmitTitleTooLong(t *testing.T) {
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	thesisID, _ := seedTCRThesis(t, thesisRepo, userRepo, studentID, "approved")
+
+	uc, _, _, _ := newTestTCRUseCase(thesisRepo)
+	longTitle := strings.Repeat("kata ", 101) // > 500 chars
+	_, err := uc.Submit(context.Background(), thesisID, CreateTitleChangeRequest{RequestedTitle: longTitle}, Actor{UserID: studentID})
+	if !errors.Is(err, ErrTitleChangeTitleTooLong) {
+		t.Fatalf("expected ErrTitleChangeTitleTooLong, got %v", err)
+	}
+}
+
+func TestTitleChangeSubmitPendingExists(t *testing.T) {
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	thesisID, _ := seedTCRThesis(t, thesisRepo, userRepo, studentID, "approved")
+
+	uc, _, _, _ := newTestTCRUseCase(thesisRepo)
+	if _, err := uc.Submit(context.Background(), thesisID, CreateTitleChangeRequest{RequestedTitle: newTCRTitle()}, Actor{UserID: studentID}); err != nil {
+		t.Fatalf("first submit failed: %v", err)
+	}
+	_, err := uc.Submit(context.Background(), thesisID, CreateTitleChangeRequest{RequestedTitle: newTCRTitle()}, Actor{UserID: studentID})
+	if !errors.Is(err, ErrPendingTitleChangeExists) {
+		t.Fatalf("expected ErrPendingTitleChangeExists, got %v", err)
+	}
+}
+
+func TestTitleChangeListEmpty(t *testing.T) {
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	thesisID, _ := seedTCRThesis(t, thesisRepo, userRepo, studentID, "approved")
+
+	uc, _, _, _ := newTestTCRUseCase(thesisRepo)
+	list, err := uc.List(context.Background(), thesisID, studentID, "mahasiswa")
+	if err != nil {
+		t.Fatalf("List error: %v", err)
+	}
+	if len(list) != 0 {
+		t.Errorf("expected empty list, got %d", len(list))
+	}
+}
+
+func TestTitleChangeListForOwner(t *testing.T) {
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	requestID, thesisID, _, uc := seedPendingTCR(t, thesisRepo, userRepo, studentID)
+
+	list, err := uc.List(context.Background(), thesisID, studentID, "mahasiswa")
+	if err != nil {
+		t.Fatalf("List error: %v", err)
+	}
+	if len(list) != 1 || list[0].ID != requestID {
+		t.Fatalf("expected the seeded request, got %d items", len(list))
+	}
+	if list[0].Status != TitleChangeStatusPending {
+		t.Errorf("status = %q, want PENDING", list[0].Status)
+	}
+}
+
+func TestTitleChangeListForSupervisor(t *testing.T) {
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	_, thesisID, supervisorID, uc := seedPendingTCR(t, thesisRepo, userRepo, studentID)
+
+	list, err := uc.List(context.Background(), thesisID, supervisorID, "dosen_pembimbing")
+	if err != nil {
+		t.Fatalf("List error: %v", err)
+	}
+	if len(list) != 1 {
+		t.Fatalf("expected 1 request for assigned supervisor, got %d", len(list))
+	}
+}
+
+func TestTitleChangeListForStaff(t *testing.T) {
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	_, thesisID, _, uc := seedPendingTCR(t, thesisRepo, userRepo, studentID)
+
+	for _, role := range []string{ThesisRoleKaprodi, ThesisRoleAdminFakultas} {
+		list, err := uc.List(context.Background(), thesisID, uuid.New(), role)
+		if err != nil {
+			t.Fatalf("List (%s) error: %v", role, err)
+		}
+		if len(list) != 1 {
+			t.Errorf("expected 1 request for %s, got %d", role, len(list))
+		}
+	}
+}
+
+func TestTitleChangeListForbidden(t *testing.T) {
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	_, thesisID, _, uc := seedPendingTCR(t, thesisRepo, userRepo, studentID)
+
+	otherStudent := seedStudent(t, userRepo, "mahasiswa")
+	_, err := uc.List(context.Background(), thesisID, otherStudent, "mahasiswa")
+	if !errors.Is(err, ErrTitleChangeForbidden) {
+		t.Fatalf("expected ErrTitleChangeForbidden, got %v", err)
+	}
+}
+
+func TestTitleChangeListThesisNotFound(t *testing.T) {
+	uc, _, _, _ := newTestTCRUseCase(newFakeThesisRepo())
+	_, err := uc.List(context.Background(), uuid.New(), uuid.New(), "mahasiswa")
+	if !errors.Is(err, ErrThesisNotFound) {
+		t.Fatalf("expected ErrThesisNotFound, got %v", err)
+	}
+}
+
+func TestTitleChangeCancelNotFound(t *testing.T) {
+	uc, _, _, _ := newTestTCRUseCase(newFakeThesisRepo())
+	_, err := uc.Cancel(context.Background(), uuid.New(), Actor{UserID: uuid.New()})
+	if !errors.Is(err, ErrTitleChangeNotFound) {
+		t.Fatalf("expected ErrTitleChangeNotFound, got %v", err)
+	}
+}
+
+func TestTitleChangeRejectNotFound(t *testing.T) {
+	uc, _, _, _ := newTestTCRUseCase(newFakeThesisRepo())
+	notes := "Ditolak"
+	_, err := uc.Reject(context.Background(), uuid.New(), ReviewTitleChangeRequest{ReviewNotes: &notes}, Actor{UserID: uuid.New()})
+	if !errors.Is(err, ErrTitleChangeNotFound) {
+		t.Fatalf("expected ErrTitleChangeNotFound, got %v", err)
+	}
+}
+
+func TestTitleChangeRejectNotPending(t *testing.T) {
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	requestID, _, supervisorID, uc := seedPendingTCR(t, thesisRepo, userRepo, studentID)
+
+	if _, err := uc.Approve(context.Background(), requestID, ReviewTitleChangeRequest{}, Actor{UserID: supervisorID}); err != nil {
+		t.Fatalf("approve before reject: %v", err)
+	}
+	notes := "Ditolak setelah disetujui"
+	_, err := uc.Reject(context.Background(), requestID, ReviewTitleChangeRequest{ReviewNotes: &notes}, Actor{UserID: supervisorID})
+	if !errors.Is(err, ErrTitleChangeNotPending) {
+		t.Fatalf("expected ErrTitleChangeNotPending, got %v", err)
+	}
+}
+
+func TestTitleChangeCancelNotSupervisorPendingStillWorks(t *testing.T) {
+	// Regression: a supervisor (not the owner) must NOT be able to cancel.
+	_, _, userRepo, _ := newTestThesisUseCase()
+	studentID := seedStudent(t, userRepo, "mahasiswa")
+	thesisRepo := newFakeThesisRepo()
+	requestID, _, supervisorID, uc := seedPendingTCR(t, thesisRepo, userRepo, studentID)
+
+	_, err := uc.Cancel(context.Background(), requestID, Actor{UserID: supervisorID})
+	if !errors.Is(err, ErrTitleChangeForbidden) {
+		t.Fatalf("expected ErrTitleChangeForbidden, got %v", err)
 	}
 }
