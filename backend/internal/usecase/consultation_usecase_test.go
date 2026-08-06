@@ -268,7 +268,7 @@ func newTestConsultationUseCase() (*ConsultationUseCase, *fakeConsultationRepo, 
 	userRepo.roles["dosen_penguji"] = &entity.Role{ID: 5, Name: "dosen_penguji"}
 
 	auditSvc := audit.NewAuditService(nil)
-	uc := NewConsultationUseCase(consultRepo, thesisRepo, email, auditSvc)
+	uc := NewConsultationUseCase(consultRepo, thesisRepo, email, auditSvc, nil)
 	return uc, consultRepo, thesisRepo, userRepo, email
 }
 

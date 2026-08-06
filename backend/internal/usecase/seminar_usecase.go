@@ -13,6 +13,7 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/grading"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 )
 
 // Seminar status values (Job 08). Kept in sync with the DB check constraint.
@@ -142,6 +143,7 @@ type SeminarUseCase struct {
 	access      *ThesisAccess
 	emailSvc    email.EmailService
 	auditSvc    *audit.AuditService
+	notifSvc    *notification.NotificationService
 }
 
 func NewSeminarUseCase(
@@ -151,6 +153,7 @@ func NewSeminarUseCase(
 	documentUC *DocumentUseCase,
 	emailSvc email.EmailService,
 	auditSvc *audit.AuditService,
+	notifSvc *notification.NotificationService,
 ) *SeminarUseCase {
 	return &SeminarUseCase{
 		seminarRepo: seminarRepo,
@@ -160,6 +163,7 @@ func NewSeminarUseCase(
 		access:      NewThesisAccess(thesisRepo),
 		emailSvc:    emailSvc,
 		auditSvc:    auditSvc,
+		notifSvc:    notifSvc,
 	}
 }
 
@@ -213,13 +217,29 @@ func (uc *SeminarUseCase) Submit(ctx context.Context, thesisID uuid.UUID, actor 
 
 	// Notify kaprodi + admin (async, non-fatal).
 	go func() {
-		emails := collectRoleEmails(ctx, uc.userRepo, ThesisRoleKaprodi)
-		adminEmails, _ := uc.userRepo.FindByRole(context.Background(), ThesisRoleAdminFakultas)
-		for _, a := range adminEmails {
+		ids := make([]uuid.UUID, 0, 4)
+		emails := make([]string, 0, 4)
+		kaprodi, _ := uc.userRepo.FindByRole(context.Background(), ThesisRoleKaprodi)
+		adminUsers, _ := uc.userRepo.FindByRole(context.Background(), ThesisRoleAdminFakultas)
+		for _, k := range kaprodi {
+			emails = append(emails, k.Email)
+			ids = append(ids, k.ID)
+		}
+		for _, a := range adminUsers {
 			emails = append(emails, a.Email)
+			ids = append(ids, a.ID)
 		}
 		if len(emails) > 0 {
 			_ = uc.emailSvc.SendSeminarSubmitted(context.Background(), emails, seminar)
+		}
+		if len(ids) > 0 {
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: ids,
+				Title:   "Pengajuan Seminar Proposal Baru",
+				Message: thesis.Student.FullName + " mengajukan seminar proposal.",
+				Type:    "seminar",
+				Link:    notification.Path("/seminars/%s", seminar.ID),
+			})
 		}
 	}()
 
@@ -361,12 +381,24 @@ func (uc *SeminarUseCase) Schedule(ctx context.Context, id uuid.UUID, req Schedu
 		return nil, err
 	}
 
-	// Notify student, supervisors, examiners (async, non-fatal).
+	// Notify student, supervisors, examiners (async, non-fatal). Snapshot the
+	// values so the goroutine does not race with the re-fetch below (line ~417)
+	// that reassigns `seminar`.
+	sem := *seminar
+	emails := append([]string(nil), examinerEmails...)
+	eids := append([]uuid.UUID(nil), examinerIDs...)
 	go func() {
-		recipients := seminarRecipients(seminar, examinerEmails)
+		recipients := seminarRecipients(&sem, emails)
 		if len(recipients) > 0 {
-			_ = uc.emailSvc.SendSeminarScheduled(context.Background(), recipients, seminar)
+			_ = uc.emailSvc.SendSeminarScheduled(context.Background(), recipients, &sem)
 		}
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: append(append(userIDs(sem.Thesis.Supervisors), eids...), sem.Thesis.Student.ID),
+			Title:   "Jadwal Seminar Proposal",
+			Message: "Jadwal seminar proposal " + sem.Thesis.Student.FullName + " telah ditetapkan.",
+			Type:    "seminar",
+			Link:    notification.Path("/seminars/%s", sem.ID),
+		})
 	}()
 
 	action := audit.ActionSeminarScheduled
@@ -609,7 +641,16 @@ func (uc *SeminarUseCase) TryFinalizeSeminar(ctx context.Context, seminarID uuid
 	thesis, err := uc.thesisRepo.FindByID(ctx, seminar.ThesisID)
 	if err == nil {
 		studentEmail := thesis.Student.Email
-		go func() { _ = uc.emailSvc.SendSeminarFinalized(context.Background(), studentEmail, seminar) }()
+		go func() {
+			_ = uc.emailSvc.SendSeminarFinalized(context.Background(), studentEmail, seminar)
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: []uuid.UUID{thesis.Student.ID},
+				Title:   "Hasil Seminar Proposal",
+				Message: "Hasil seminar proposal Anda telah dirilis.",
+				Type:    "seminar",
+				Link:    notification.Path("/seminars/%s", seminarID),
+			})
+		}()
 	}
 
 	uc.auditSvc.Log(ctx, audit.AuditParams{

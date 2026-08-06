@@ -129,6 +129,12 @@ func main() {
 	stopCleanup := scheduler.StartTokenCleanup(db)
 	defer stopCleanup()
 
+	// ── Durable email retry (Job 24) ─────────────────────────────────────
+	// Re-enqueues email_logs rows stuck as "queued" (crashed mid-delivery) or
+	// "failed" so sends survive restarts and transient provider outages.
+	stopEmailRetry := scheduler.StartEmailRetry(db, r.EmailService())
+	defer stopEmailRetry()
+
 	// ── Start server (production-ready with timeouts + graceful shutdown) ─
 	addr := fmt.Sprintf(":%s", cfg.AppPort)
 	srv := &http.Server{

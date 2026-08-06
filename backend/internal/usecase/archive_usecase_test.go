@@ -197,7 +197,7 @@ func newTestArchiveUseCase(t *testing.T) (*ArchiveUseCase, *fakeArchiveRepo, *fa
 
 	auditSvc := audit.NewAuditService(nil)
 	storageSvc := storage.NewStubStorageService(t.TempDir(), "http://test.local")
-	uc := NewArchiveUseCase(archiveRepo, thesisRepo, storageSvc, email, auditSvc)
+	uc := NewArchiveUseCase(archiveRepo, thesisRepo, storageSvc, email, auditSvc, nil)
 	return uc, archiveRepo, thesisRepo, userRepo, email
 }
 

@@ -14,6 +14,7 @@ import (
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/statemachine"
 )
 
@@ -115,6 +116,7 @@ type ThesisUseCase struct {
 	acadRepo   domainRepo.AcademicYearRepository
 	emailSvc   email.EmailService
 	auditSvc   *audit.AuditService
+	notifSvc   *notification.NotificationService
 }
 
 func NewThesisUseCase(
@@ -123,6 +125,7 @@ func NewThesisUseCase(
 	acadRepo domainRepo.AcademicYearRepository,
 	emailSvc email.EmailService,
 	auditSvc *audit.AuditService,
+	notifSvc *notification.NotificationService,
 ) *ThesisUseCase {
 	return &ThesisUseCase{
 		thesisRepo: thesisRepo,
@@ -130,6 +133,7 @@ func NewThesisUseCase(
 		acadRepo:   acadRepo,
 		emailSvc:   emailSvc,
 		auditSvc:   auditSvc,
+		notifSvc:   notifSvc,
 	}
 }
 
@@ -201,11 +205,22 @@ func (uc *ThesisUseCase) Submit(ctx context.Context, req CreateThesisRequest, st
 			return
 		}
 		emails := make([]string, 0, len(kaprodi))
+		ids := make([]uuid.UUID, 0, len(kaprodi))
 		for _, k := range kaprodi {
 			emails = append(emails, k.Email)
+			ids = append(ids, k.ID)
 		}
 		if len(emails) > 0 {
 			_ = uc.emailSvc.SendThesisSubmitted(context.Background(), emails, thesis)
+		}
+		if len(ids) > 0 {
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: ids,
+				Title:   "Pengajuan Judul Skripsi Baru",
+				Message: thesis.Student.FullName + " mengajukan judul skripsi baru.",
+				Type:    "thesis",
+				Link:    notification.Path("/theses/%s", thesis.ID),
+			})
 		}
 	}()
 
@@ -303,8 +318,22 @@ func (uc *ThesisUseCase) Review(ctx context.Context, id uuid.UUID, req ReviewThe
 	go func() {
 		if req.Decision == "approved" {
 			_ = uc.emailSvc.SendThesisApproved(context.Background(), studentEmail, thesis)
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: []uuid.UUID{thesis.Student.ID},
+				Title:   "Judul Skripsi Disetujui",
+				Message: "Selamat, judul skripsi Anda telah disetujui oleh Kaprodi.",
+				Type:    "thesis",
+				Link:    notification.Path("/theses/%s", thesis.ID),
+			})
 		} else {
 			_ = uc.emailSvc.SendThesisRejected(context.Background(), studentEmail, thesis, req.Notes)
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: []uuid.UUID{thesis.Student.ID},
+				Title:   "Judul Skripsi Perlu Revisi",
+				Message: "Judul skripsi Anda belum dapat disetujui. Periksa catatan Kaprodi.",
+				Type:    "thesis",
+				Link:    notification.Path("/theses/%s", thesis.ID),
+			})
 		}
 	}()
 
@@ -387,6 +416,13 @@ func (uc *ThesisUseCase) AssignSupervisor(ctx context.Context, id uuid.UUID, req
 	studentEmail := thesis.Student.Email
 	go func() {
 		_ = uc.emailSvc.SendSupervisorAssigned(context.Background(), studentEmail, supervisorEmails, thesis)
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: append(userIDs(thesis.Supervisors), thesis.Student.ID),
+			Title:   "Dosen Pembimbing Ditetapkan",
+			Message: "Dosen pembimbing telah ditetapkan untuk skripsi \"" + thesis.Title + "\".",
+			Type:    "thesis",
+			Link:    notification.Path("/theses/%s", thesis.ID),
+		})
 	}()
 
 	uc.auditSvc.Log(ctx, audit.AuditParams{

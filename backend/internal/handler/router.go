@@ -15,6 +15,7 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/config"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/jwt"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/storage"
 )
 
@@ -37,6 +38,9 @@ type Router struct {
 	auditHandler        *AuditHandler
 	auditSvc            *audit.AuditService
 	internalHandler     *InternalHandler
+	notificationHandler *NotificationHandler
+	notifSvc            *notification.NotificationService
+	emailSvc            *email.ResendEmailService
 	authMid             *middleware.AuthMiddleware
 }
 
@@ -61,6 +65,8 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	auditRepository := repository.NewAuditRepository(db)
 
 	auditService := audit.NewAuditService(auditRepository)
+	notificationRepository := repository.NewNotificationRepository(db)
+	notificationService := notification.NewNotificationService(notificationRepository)
 	// Email: real Resend implementation in production; console-logging dev mode
 	// when EMAIL_DEV_MODE=true or when no API key is configured.
 	emailService := email.NewResendEmailService(cfg.ResendAPIKey, cfg.EmailFrom, cfg.EmailFromName, cfg.FrontendURL, db, cfg.EmailDevMode || cfg.ResendAPIKey == "")
@@ -100,17 +106,18 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	}
 
 	authUseCase := usecase.NewAuthUseCase(authRepository, jwtManager, auditService)
-	userUseCase := usecase.NewUserUseCase(userRepository, emailService, auditService)
+	userUseCase := usecase.NewUserUseCase(userRepository, emailService, auditService, notificationService)
 	academicYearUseCase := usecase.NewAcademicYearUseCase(academicYearRepository)
-	thesisUseCase := usecase.NewThesisUseCase(thesisRepository, userRepository, academicYearRepository, emailService, auditService)
-	consultationUseCase := usecase.NewConsultationUseCase(consultationRepository, thesisRepository, emailService, auditService)
-	documentUseCase := usecase.NewDocumentUseCase(documentRepository, thesisRepository, storageService, emailService, auditService)
-	seminarUseCase := usecase.NewSeminarUseCase(seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService)
-	defenseUseCase := usecase.NewDefenseUseCase(defenseRepository, seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService)
-	archiveUseCase := usecase.NewArchiveUseCase(archiveRepository, thesisRepository, storageService, emailService, auditService)
-	titleChangeUseCase := usecase.NewTitleChangeRequestUseCase(titleChangeRequestRepository, thesisRepository, emailService, auditService)
+	thesisUseCase := usecase.NewThesisUseCase(thesisRepository, userRepository, academicYearRepository, emailService, auditService, notificationService)
+	consultationUseCase := usecase.NewConsultationUseCase(consultationRepository, thesisRepository, emailService, auditService, notificationService)
+	documentUseCase := usecase.NewDocumentUseCase(documentRepository, thesisRepository, storageService, emailService, auditService, notificationService)
+	seminarUseCase := usecase.NewSeminarUseCase(seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService, notificationService)
+	defenseUseCase := usecase.NewDefenseUseCase(defenseRepository, seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService, notificationService)
+	archiveUseCase := usecase.NewArchiveUseCase(archiveRepository, thesisRepository, storageService, emailService, auditService, notificationService)
+	titleChangeUseCase := usecase.NewTitleChangeRequestUseCase(titleChangeRequestRepository, thesisRepository, emailService, auditService, notificationService)
 	dashboardUseCase := usecase.NewDashboardUseCase(dashboardRepository)
 	auditUseCase := usecase.NewAuditUseCase(auditRepository)
+	notificationUseCase := usecase.NewNotificationUseCase(notificationRepository)
 
 	authHandler := NewAuthHandler(authUseCase, cfg)
 	userHandler := NewUserHandler(userUseCase)
@@ -125,6 +132,7 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	dashboardHandler := NewDashboardHandler(dashboardUseCase)
 	auditHandler := NewAuditHandler(auditUseCase)
 	internalHandler := NewInternalHandler(emailService)
+	notificationHandler := NewNotificationHandler(notificationUseCase)
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager, authRepository, authRepository)
 
@@ -146,16 +154,32 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 		auditHandler:        auditHandler,
 		auditSvc:            auditService,
 		internalHandler:     internalHandler,
+		notificationHandler: notificationHandler,
+		notifSvc:            notificationService,
+		emailSvc:            emailService,
 		authMid:             authMiddleware,
 	}
 }
 
-// Shutdown gracefully drains the audit-service worker goroutine so that all
-// queued audit entries are persisted before the caller (e.g. the test harness)
-// truncates tables or closes the database connection.
+// EmailService returns the wired email service so the durable email retry
+// scheduler can re-enqueue undelivered rows.
+func (r *Router) EmailService() *email.ResendEmailService {
+	return r.emailSvc
+}
+
+// Shutdown gracefully drains the audit-service and notification worker
+// goroutines and the email worker pool so that all queued entries are persisted
+// before the caller (e.g. the test harness) truncates tables or closes the
+// database connection.
 func (r *Router) Shutdown() {
 	if r.auditSvc != nil {
 		r.auditSvc.Shutdown()
+	}
+	if r.notifSvc != nil {
+		r.notifSvc.Shutdown()
+	}
+	if r.emailSvc != nil {
+		r.emailSvc.Shutdown()
 	}
 }
 
@@ -261,6 +285,15 @@ func (r *Router) Setup() {
 	)
 	{
 		auditEntity.GET("/:entity_type/:entity_id", r.auditHandler.ByEntity)
+	}
+
+	// ── In-app notifications (all authenticated users) ──────────────────
+	notifications := v1.Group("/notifications", r.authMid.Authenticate())
+	{
+		notifications.GET("", r.notificationHandler.List)
+		notifications.GET("/unread-count", r.notificationHandler.UnreadCount)
+		notifications.PATCH("/:id/read", r.notificationHandler.MarkRead)
+		notifications.PATCH("/read-all", r.notificationHandler.MarkAllRead)
 	}
 
 	// ── Theses ────────────────────────────────────────────────────────────

@@ -56,6 +56,37 @@ func isThesisOwner(thesis *entity.Thesis, userID uuid.UUID) bool {
 	return thesis != nil && thesis.StudentID == userID
 }
 
+// userIDs extracts the IDs from a slice of users (used to fan out notifications).
+func userIDs(users []entity.User) []uuid.UUID {
+	ids := make([]uuid.UUID, 0, len(users))
+	for _, u := range users {
+		ids = append(ids, u.ID)
+	}
+	return ids
+}
+
+// documentTypeLabel maps a document type code to a human-friendly Indonesian label.
+func documentTypeLabel(t string) string {
+	switch t {
+	case entity.DocTypeProposal:
+		return "Proposal"
+	case entity.DocTypeDraftChapter:
+		return "Draft Bab"
+	case entity.DocTypeSeminarDoc:
+		return "Dokumen Seminar"
+	case entity.DocTypeDefenseDoc:
+		return "Dokumen Sidang"
+	case entity.DocTypeFinalThesis:
+		return "Skripsi Final"
+	case entity.DocTypeRevisionSheet:
+		return "Lembar Revisi"
+	case entity.DocTypeEndorsementLetter:
+		return "Surat Pengesahan"
+	default:
+		return t
+	}
+}
+
 // isSupervisor is a pure predicate over an already-loaded thesis.
 func isSupervisor(thesis *entity.Thesis, userID uuid.UUID) bool {
 	if thesis == nil {

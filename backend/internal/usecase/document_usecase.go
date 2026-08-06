@@ -17,6 +17,7 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/service"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/utils"
 )
 
@@ -80,6 +81,7 @@ type DocumentUseCase struct {
 	access       *ThesisAccess
 	emailSvc     email.EmailService
 	auditSvc     *audit.AuditService
+	notifSvc     *notification.NotificationService
 }
 
 func NewDocumentUseCase(
@@ -88,6 +90,7 @@ func NewDocumentUseCase(
 	storage service.StorageService,
 	emailSvc email.EmailService,
 	auditSvc *audit.AuditService,
+	notifSvc *notification.NotificationService,
 ) *DocumentUseCase {
 	return &DocumentUseCase{
 		documentRepo: documentRepo,
@@ -96,6 +99,7 @@ func NewDocumentUseCase(
 		access:       NewThesisAccess(thesisRepo),
 		emailSvc:     emailSvc,
 		auditSvc:     auditSvc,
+		notifSvc:     notifSvc,
 	}
 }
 
@@ -180,7 +184,16 @@ func (uc *DocumentUseCase) Upload(
 	// Notify the supervisors (async, non-fatal).
 	emails := supervisorEmails(thesis)
 	if len(emails) > 0 {
-		go func() { _ = uc.emailSvc.SendDocumentUploaded(context.Background(), emails, doc) }()
+		go func() {
+			_ = uc.emailSvc.SendDocumentUploaded(context.Background(), emails, doc)
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: userIDs(thesis.Supervisors),
+				Title:   "Dokumen Baru Diunggah",
+				Message: thesis.Student.FullName + " mengunggah " + documentTypeLabel(doc.DocumentType) + " versi " + strconv.Itoa(doc.Version) + ".",
+				Type:    "document",
+				Link:    notification.Path("/theses/%s/documents", thesisID),
+			})
+		}()
 	}
 
 	uc.auditSvc.Log(ctx, audit.AuditParams{
@@ -327,7 +340,16 @@ func (uc *DocumentUseCase) Review(ctx context.Context, id uuid.UUID, decision, n
 	thesis, err := uc.thesisRepo.FindByID(ctx, doc.ThesisID)
 	if err == nil {
 		studentEmail := thesis.Student.Email
-		go func() { _ = uc.emailSvc.SendDocumentReviewed(context.Background(), studentEmail, doc, decision) }()
+		go func() {
+			_ = uc.emailSvc.SendDocumentReviewed(context.Background(), studentEmail, doc, decision)
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: []uuid.UUID{thesis.Student.ID},
+				Title:   "Dokumen Diperbarui",
+				Message: documentTypeLabel(doc.DocumentType) + " versi " + strconv.Itoa(doc.Version) + " Anda telah direview oleh dosen pembimbing.",
+				Type:    "document",
+				Link:    notification.Path("/theses/%s/documents", doc.ThesisID),
+			})
+		}()
 	}
 
 	action := audit.ActionDocumentApproved

@@ -12,6 +12,7 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 )
 
 // Defense status values (Job 09). Kept in sync with the DB check constraint.
@@ -130,6 +131,7 @@ type DefenseUseCase struct {
 	access      *ThesisAccess
 	emailSvc    email.EmailService
 	auditSvc    *audit.AuditService
+	notifSvc    *notification.NotificationService
 }
 
 func NewDefenseUseCase(
@@ -140,6 +142,7 @@ func NewDefenseUseCase(
 	documentUC *DocumentUseCase,
 	emailSvc email.EmailService,
 	auditSvc *audit.AuditService,
+	notifSvc *notification.NotificationService,
 ) *DefenseUseCase {
 	return &DefenseUseCase{
 		defenseRepo: defenseRepo,
@@ -150,6 +153,7 @@ func NewDefenseUseCase(
 		access:      NewThesisAccess(thesisRepo),
 		emailSvc:    emailSvc,
 		auditSvc:    auditSvc,
+		notifSvc:    notifSvc,
 	}
 }
 
@@ -201,13 +205,29 @@ func (uc *DefenseUseCase) Submit(ctx context.Context, thesisID uuid.UUID, actor 
 	// local copy: `defense` is reassigned below and goroutines capture by reference.
 	submitted := defense
 	go func() {
-		emails := collectRoleEmails(context.Background(), uc.userRepo, ThesisRoleKaprodi)
-		adminEmails, _ := uc.userRepo.FindByRole(context.Background(), ThesisRoleAdminFakultas)
-		for _, a := range adminEmails {
+		ids := make([]uuid.UUID, 0, 4)
+		emails := make([]string, 0, 4)
+		kaprodi, _ := uc.userRepo.FindByRole(context.Background(), ThesisRoleKaprodi)
+		adminUsers, _ := uc.userRepo.FindByRole(context.Background(), ThesisRoleAdminFakultas)
+		for _, k := range kaprodi {
+			emails = append(emails, k.Email)
+			ids = append(ids, k.ID)
+		}
+		for _, a := range adminUsers {
 			emails = append(emails, a.Email)
+			ids = append(ids, a.ID)
 		}
 		if len(emails) > 0 {
 			_ = uc.emailSvc.SendDefenseSubmitted(context.Background(), emails, submitted)
+		}
+		if len(ids) > 0 {
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: ids,
+				Title:   "Pengajuan Sidang Skripsi Baru",
+				Message: thesis.Student.FullName + " mengajukan sidang skripsi.",
+				Type:    "defense",
+				Link:    notification.Path("/defenses/%s", submitted.ID),
+			})
 		}
 	}()
 
@@ -361,6 +381,13 @@ func (uc *DefenseUseCase) Schedule(ctx context.Context, id uuid.UUID, req Schedu
 		if len(recipients) > 0 {
 			_ = uc.emailSvc.SendDefenseScheduled(context.Background(), recipients, scheduled)
 		}
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: append(append(userIDs(scheduled.Thesis.Supervisors), examinerIDs...), scheduled.Thesis.Student.ID),
+			Title:   "Jadwal Sidang Skripsi",
+			Message: "Jadwal sidang skripsi " + scheduled.Thesis.Student.FullName + " telah ditetapkan.",
+			Type:    "defense",
+			Link:    notification.Path("/defenses/%s", scheduled.ID),
+		})
 	}()
 
 	action := audit.ActionDefenseScheduled
@@ -568,6 +595,13 @@ func (uc *DefenseUseCase) TryFinalizeDefense(ctx context.Context, defenseID uuid
 					Status:     status,
 					FinalScore: &finalScore,
 				})
+				uc.notifSvc.Notify(notification.Params{
+					UserIDs: []uuid.UUID{thesis.Student.ID},
+					Title:   "Hasil Sidang Skripsi",
+					Message: "Hasil sidang skripsi Anda telah dirilis.",
+					Type:    "defense",
+					Link:    notification.Path("/defenses/%s", defenseID),
+				})
 			}()
 		}
 	}
@@ -625,7 +659,16 @@ func (uc *DefenseUseCase) SetRevisionNotes(ctx context.Context, id uuid.UUID, no
 	revisioned := defense
 	thesis, err := uc.thesisRepo.FindByID(ctx, defense.ThesisID)
 	if err == nil {
-		go func() { _ = uc.emailSvc.SendDefenseFinalized(context.Background(), thesis.Student.Email, revisioned) }()
+		go func() {
+			_ = uc.emailSvc.SendDefenseFinalized(context.Background(), thesis.Student.Email, revisioned)
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: []uuid.UUID{thesis.Student.ID},
+				Title:   "Catatan Revisi Sidang",
+				Message: "Catatan revisi sidang skripsi Anda telah diperbarui.",
+				Type:    "defense",
+				Link:    notification.Path("/defenses/%s", revisioned.ID),
+			})
+		}()
 	}
 
 	defense, err = uc.defenseRepo.FindByID(ctx, id)
@@ -687,7 +730,16 @@ func (uc *DefenseUseCase) Graduate(ctx context.Context, thesisID uuid.UUID, req 
 	})
 
 	// Notify the student (async, non-fatal).
-	go func() { _ = uc.emailSvc.SendGraduated(context.Background(), thesis.Student.Email, thesis) }()
+	go func() {
+		_ = uc.emailSvc.SendGraduated(context.Background(), thesis.Student.Email, thesis)
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: []uuid.UUID{thesis.Student.ID},
+			Title:   "Selamat! Skripsi Anda Dinyatakan Lulus",
+			Message: "Skripsi Anda telah dinyatakan LULUS pada yudisium.",
+			Type:    "defense",
+			Link:    notification.Path("/theses/%s", thesisID),
+		})
+	}()
 	return nil
 }
 

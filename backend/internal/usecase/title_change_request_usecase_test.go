@@ -279,7 +279,7 @@ func newTestTCRUseCase(thesisRepo *fakeThesisRepo) (*TitleChangeRequestUseCase, 
 	tcrRepo.thesisRepo = thesisRepo
 	emailRec := newTCRRecordingEmail()
 	auditSvc := audit.NewAuditService(nil)
-	uc := NewTitleChangeRequestUseCase(tcrRepo, thesisRepo, emailRec, auditSvc)
+	uc := NewTitleChangeRequestUseCase(tcrRepo, thesisRepo, emailRec, auditSvc, nil)
 	userRepo := newFakeUserRepo()
 	userRepo.roles["mahasiswa"] = &entity.Role{ID: 3, Name: "mahasiswa"}
 	userRepo.roles["dosen_pembimbing"] = &entity.Role{ID: 4, Name: "dosen_pembimbing"}

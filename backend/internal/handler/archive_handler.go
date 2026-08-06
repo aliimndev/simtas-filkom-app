@@ -242,7 +242,7 @@ func (h *ArchiveHandler) respondArchiveError(c *gin.Context, err error) {
 		response.BadRequest(c, err.Error())
 	case errors.Is(err, usecase.ErrArchiveExists):
 		response.Error(c, http.StatusConflict, err.Error(), err)
-	// Gate failure is a state violation → 422 per docs/phase-3-supporting-features/10-archive-module.md.
+	// Gate failure is a state violation → 422.
 	case errors.Is(err, usecase.ErrArchiveThesisNotGrad):
 		response.Error(c, http.StatusUnprocessableEntity, err.Error(), err)
 	default:

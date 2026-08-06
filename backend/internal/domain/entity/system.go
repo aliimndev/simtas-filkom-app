@@ -28,9 +28,11 @@ type EmailLog struct {
 	RecipientEmail string    `gorm:"type:varchar(255);not null" json:"recipient_email"`
 	EventType      string    `gorm:"type:varchar(100);not null" json:"event_type"`
 	Subject        *string   `gorm:"type:varchar(500)" json:"subject,omitempty"`
-	Status         string    `gorm:"type:varchar(20);not null;default:sent" json:"status"`
+	Status         string    `gorm:"type:varchar(20);not null;default:queued" json:"status"`
 	Provider       string    `gorm:"type:varchar(50);not null;default:resend" json:"provider"`
 	ErrorMessage   *string   `gorm:"type:text" json:"error_message,omitempty"`
+	Body           *string   `gorm:"type:text" json:"-"`
+	Attempts       int       `gorm:"not null;default:0" json:"-"`
 	CreatedAt      time.Time `gorm:"not null;default:now()" json:"created_at"`
 }
 

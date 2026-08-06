@@ -373,8 +373,8 @@ func newTestDefenseUseCase(t *testing.T) (*DefenseUseCase, *fakeDefenseRepo, *fa
 	}
 
 	auditSvc := audit.NewAuditService(nil)
-	documentUC := NewDocumentUseCase(docRepo, thesisRepo, nil, email, auditSvc)
-	uc := NewDefenseUseCase(defRepo, semRepo, thesisRepo, userRepo, documentUC, email, auditSvc)
+	documentUC := NewDocumentUseCase(docRepo, thesisRepo, nil, email, auditSvc, nil)
+	uc := NewDefenseUseCase(defRepo, semRepo, thesisRepo, userRepo, documentUC, email, auditSvc, nil)
 	return uc, defRepo, semRepo, docRepo, thesisRepo, userRepo, email
 }
 

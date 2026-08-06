@@ -14,6 +14,7 @@ import (
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 )
 
 // Title change request status values (kept in sync with the DB constraint).
@@ -78,6 +79,7 @@ type TitleChangeRequestUseCase struct {
 	access          *ThesisAccess
 	emailSvc        email.EmailService
 	auditSvc        *audit.AuditService
+	notifSvc        *notification.NotificationService
 }
 
 func NewTitleChangeRequestUseCase(
@@ -85,6 +87,7 @@ func NewTitleChangeRequestUseCase(
 	thesisRepo domainRepo.ThesisRepository,
 	emailSvc email.EmailService,
 	auditSvc *audit.AuditService,
+	notifSvc *notification.NotificationService,
 ) *TitleChangeRequestUseCase {
 	return &TitleChangeRequestUseCase{
 		titleChangeRepo: titleChangeRepo,
@@ -92,6 +95,7 @@ func NewTitleChangeRequestUseCase(
 		access:          NewThesisAccess(thesisRepo),
 		emailSvc:        emailSvc,
 		auditSvc:        auditSvc,
+		notifSvc:        notifSvc,
 	}
 }
 
@@ -164,6 +168,13 @@ func (uc *TitleChangeRequestUseCase) Submit(ctx context.Context, thesisID uuid.U
 	// async and non-fatal like every other email in this codebase.
 	go func() {
 		_ = uc.emailSvc.SendTitleChangeRequested(context.Background(), subscriberEmails(thesis, true), thesis, tcr)
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: userIDs(thesis.Supervisors),
+			Title:   "Pengajuan Perubahan Judul",
+			Message: thesis.Student.FullName + " mengajukan perubahan judul skripsi.",
+			Type:    "title_change",
+			Link:    notification.Path("/theses/%s", thesis.ID),
+		})
 	}()
 
 	return toTitleChangeRequestDetail(tcr), nil
@@ -236,6 +247,13 @@ func (uc *TitleChangeRequestUseCase) Cancel(ctx context.Context, requestID uuid.
 	// needed and a post-commit error cannot be misreported as a failure.
 	go func() {
 		_ = uc.emailSvc.SendTitleChangeCancelled(context.Background(), supervisorEmails(&tcr.Thesis), &tcr.Thesis, tcr)
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: userIDs(tcr.Thesis.Supervisors),
+			Title:   "Perubahan Judul Dibatalkan",
+			Message: tcr.Thesis.Student.FullName + " membatalkan permintaan perubahan judul skripsi.",
+			Type:    "title_change",
+			Link:    notification.Path("/theses/%s", tcr.ThesisID),
+		})
 	}()
 
 	return toTitleChangeRequestDetail(tcr), nil
@@ -303,6 +321,13 @@ func (uc *TitleChangeRequestUseCase) Approve(ctx context.Context, requestID uuid
 	// Notify the student that the title change was approved (async, non-fatal).
 	go func() {
 		_ = uc.emailSvc.SendTitleChangeApproved(context.Background(), []string{tcr.Thesis.Student.Email}, &tcr.Thesis, tcr)
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: []uuid.UUID{tcr.Thesis.Student.ID},
+			Title:   "Perubahan Judul Disetujui",
+			Message: "Permintaan perubahan judul skripsi Anda telah disetujui oleh Dosen Pembimbing.",
+			Type:    "title_change",
+			Link:    notification.Path("/theses/%s", tcr.ThesisID),
+		})
 	}()
 
 	return toTitleChangeRequestDetail(tcr), nil
@@ -361,6 +386,13 @@ func (uc *TitleChangeRequestUseCase) Reject(ctx context.Context, requestID uuid.
 	// Notify the student that the title change was rejected (async, non-fatal).
 	go func() {
 		_ = uc.emailSvc.SendTitleChangeRejected(context.Background(), []string{tcr.Thesis.Student.Email}, &tcr.Thesis, tcr)
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: []uuid.UUID{tcr.Thesis.Student.ID},
+			Title:   "Perubahan Judul Ditolak",
+			Message: "Permintaan perubahan judul skripsi Anda ditolak oleh Dosen Pembimbing.",
+			Type:    "title_change",
+			Link:    notification.Path("/theses/%s", tcr.ThesisID),
+		})
 	}()
 
 	return toTitleChangeRequestDetail(tcr), nil

@@ -247,7 +247,7 @@ func newTestThesisUseCase() (*ThesisUseCase, *fakeThesisRepo, *fakeUserRepo, *fa
 	_ = acadRepo.Activate(context.Background(), year.ID)
 
 	auditSvc := audit.NewAuditService(nil) // nil repo → no-op, safe
-	uc := NewThesisUseCase(thesisRepo, userRepo, acadRepo, &fakeEmailService{}, auditSvc)
+	uc := NewThesisUseCase(thesisRepo, userRepo, acadRepo, &fakeEmailService{}, auditSvc, nil)
 	return uc, thesisRepo, userRepo, acadRepo
 }
 
@@ -359,7 +359,7 @@ func TestSubmitThesisNoActiveAcademicYear(t *testing.T) {
 	studentID := seedStudent(t, userRepo, "mahasiswa")
 
 	auditSvc := audit.NewAuditService(nil)
-	uc := NewThesisUseCase(thesisRepo, userRepo, acadRepo, &fakeEmailService{}, auditSvc)
+	uc := NewThesisUseCase(thesisRepo, userRepo, acadRepo, &fakeEmailService{}, auditSvc, nil)
 
 	_, err := uc.Submit(context.Background(), CreateThesisRequest{
 		Title:      validTitle(),

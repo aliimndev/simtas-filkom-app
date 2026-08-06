@@ -309,8 +309,8 @@ func newTestSeminarUseCase(t *testing.T) (*SeminarUseCase, *fakeSeminarRepo, *fa
 	userRepo.roles["kaprodi"] = &entity.Role{ID: 2, Name: "kaprodi"}
 
 	auditSvc := audit.NewAuditService(nil)
-	documentUC := NewDocumentUseCase(docRepo, thesisRepo, nil, email, auditSvc)
-	uc := NewSeminarUseCase(semRepo, thesisRepo, userRepo, documentUC, email, auditSvc)
+	documentUC := NewDocumentUseCase(docRepo, thesisRepo, nil, email, auditSvc, nil)
+	uc := NewSeminarUseCase(semRepo, thesisRepo, userRepo, documentUC, email, auditSvc, nil)
 	return uc, semRepo, docRepo, thesisRepo, userRepo, email
 }
 
