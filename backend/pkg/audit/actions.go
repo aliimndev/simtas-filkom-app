@@ -69,3 +69,12 @@ const (
 	ActionArchiveCreated    = "ARCHIVE_CREATED"
 	ActionArchiveDownloaded = "ARCHIVE_DOWNLOADED"
 )
+
+// Audit action constants — title change request actions.
+const (
+	ActionTitleChangeRequested = "TITLE_CHANGE_REQUESTED"
+	ActionTitleChangeApproved  = "TITLE_CHANGE_APPROVED"
+	ActionTitleChangeRejected  = "TITLE_CHANGE_REJECTED"
+	ActionTitleChangeCancelled = "TITLE_CHANGE_CANCELLED"
+	ActionThesisTitleUpdated   = "THESIS_TITLE_UPDATED"
+)

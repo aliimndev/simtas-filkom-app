@@ -1,0 +1,8 @@
+{{define "content"}}
+<h1 style="margin:0 0 12px 0;font-size:20px;color:#111827;">Pengajuan Perubahan Judul</h1>
+{{if .Greeting}}<p style="margin:0 0 16px 0;font-size:14px;color:#374151;line-height:1.7;">{{.Greeting}}</p>{{end}}
+{{if .Message}}<p style="margin:0 0 16px 0;font-size:14px;color:#374151;line-height:1.7;">{{.Message}}</p>{{end}}
+{{template "detailTable" .}}
+{{if .Notes}}<p style="margin:16px 0 0 0;font-size:13px;color:#6b7280;font-style:italic;">Alasan: {{.Notes}}</p>{{end}}
+{{template "ctaButton" .}}
+{{end}}
