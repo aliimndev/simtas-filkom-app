@@ -43,6 +43,10 @@ func TestRenderAllTemplates(t *testing.T) {
 		"defense_scheduled.html",
 		"defense_result.html",
 		"graduation.html",
+		"title_change_requested.html",
+		"title_change_approved.html",
+		"title_change_rejected.html",
+		"title_change_cancelled.html",
 	}
 
 	for _, name := range templates {

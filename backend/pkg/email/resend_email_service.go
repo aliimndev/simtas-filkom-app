@@ -571,6 +571,11 @@ func loadTemplates() map[string]*template.Template {
 		"supervisor_assigned.html",
 		"seminar_scheduled.html",
 		"seminar_result.html",
+		"title_change_requested.html",
+		"title_change_approved.html",
+		"title_change_rejected.html",
+		"title_change_cancelled.html",
+
 		"defense_scheduled.html",
 		"defense_result.html",
 		"graduation.html",
