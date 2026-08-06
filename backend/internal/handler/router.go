@@ -112,7 +112,7 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	dashboardUseCase := usecase.NewDashboardUseCase(dashboardRepository)
 	auditUseCase := usecase.NewAuditUseCase(auditRepository)
 
-	authHandler := NewAuthHandler(authUseCase)
+	authHandler := NewAuthHandler(authUseCase, cfg)
 	userHandler := NewUserHandler(userUseCase)
 	academicYearHandler := NewAcademicYearHandler(academicYearUseCase)
 	thesisHandler := NewThesisHandler(thesisUseCase)

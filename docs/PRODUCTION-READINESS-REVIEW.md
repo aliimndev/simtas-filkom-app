@@ -487,7 +487,7 @@ go test ./internal/handler/... -tags integration -count=1 -v
 - [x] **Security: CSRF Protection** — ✅ Done: Double Submit Cookie pattern di `middleware/csrf.go`
 - [x] **Security: JWT Secret Validation** — ✅ Done: `config.Validate()` panic di production
 - [x] **Security: CSP + HSTS Headers** — ✅ Done: CSP, HSTS, Permissions-Policy di `security.go`
-- [ ] **Security: Refresh Token in httpOnly Cookie** — Pindahkan dari localStorage
+- [x] **Security: Refresh Token in httpOnly Cookie** — ✅ Done: backend sets `simtas_refresh_token` (HttpOnly, Secure + SameSite=Strict in prod) in `auth_handler.go`; frontend uses `withCredentials` and reads from the cookie instead of localStorage. In production the API should be served same-origin (reverse proxy) so the cookie is sent on cross-site requests.
 - [x] **Security: Global Rate Limiting** — ✅ Done: 100 req/min per IP di router
 - [x] **Backend: Transaction for Multi-Step Operations** — ✅ Done: `AssignSupervisors` (loop + status flip) dalam `db.Transaction` di `thesis_repository_impl.go`; finalize defense atomik via `SELECT ... FOR UPDATE`
 - [x] **Backend: Input Sanitization** — ✅ Done: `middleware/sanitize.go` strip HTML dari JSON
@@ -858,6 +858,7 @@ Untuk pertanyaan mengenai review ini, hubungi:
 - ✅ Max Request Body Size (`middleware/body_limit.go` + `MaxMultipartMemory`)
 - ✅ Centralized Error Catalog (`handler/errors.go`) + standardized `APIResponse`
 - ✅ Cancel-on-Graduated Guard (`ErrThesisCannotCancel`)
+- ✅ Refresh Token in HttpOnly Cookie (`auth_handler.go` + frontend `withCredentials`, CSRF header wiring)
 
 ---
 
