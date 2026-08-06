@@ -3873,6 +3873,378 @@ const docTemplate = `{
                 }
             }
         },
+        "/theses/{thesis_id}/title-change-requests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil daftar permintaan perubahan judul sebuah thesis (pemilik, pembimbing, Kaprodi, Admin)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Title Change Request"
+                ],
+                "summary": "Riwayat perubahan judul",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Thesis ID (UUID)",
+                        "name": "thesis_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar permintaan",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Akses ditolak",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Thesis tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengajukan perubahan judul skripsi (Mahasiswa pemilik, thesis approved/in_progress dengan pembimbing)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Title Change Request"
+                ],
+                "summary": "Ajukan perubahan judul",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Thesis ID (UUID)",
+                        "name": "thesis_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Data perubahan judul",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usecase.CreateTitleChangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Permintaan dibuat",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/usecase.TitleChangeRequestDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Validasi gagal",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Bukan pemilik thesis",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Thesis tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Sudah ada permintaan pending",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/title-change-requests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Daftar permintaan perubahan judul PENDING untuk mahasiswa bimbingan (Dosen Pembimbing)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Title Change Request"
+                ],
+                "summary": "Antrian review perubahan judul",
+                "responses": {
+                    "200": {
+                        "description": "Antrian review",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Hanya Dosen Pembimbing",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/title-change-requests/{id}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyetujui permintaan perubahan judul (Dosen Pembimbing assigned; PENDING only) dan meng-update judul thesis secara atomik",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Title Change Request"
+                ],
+                "summary": "Setujui perubahan judul",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title change request ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Catatan persetujuan (opsional)",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/usecase.ReviewTitleChangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permintaan disetujui",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/usecase.TitleChangeRequestDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bukan status pending",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Bukan dosen pembimbing thesis ini",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Permintaan tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/title-change-requests/{id}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Membatalkan permintaan perubahan judul yang masih PENDING (Mahasiswa pemilik)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Title Change Request"
+                ],
+                "summary": "Batalkan permintaan perubahan judul",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title change request ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permintaan dibatalkan",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/usecase.TitleChangeRequestDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bukan status pending",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Bukan pemilik permintaan",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Permintaan tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/title-change-requests/{id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menolak permintaan perubahan judul (Dosen Pembimbing assigned; PENDING only) dengan catatan wajib",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Title Change Request"
+                ],
+                "summary": "Tolak perubahan judul",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Title change request ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Alasan penolakan (wajib)",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/usecase.ReviewTitleChangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permintaan ditolak",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/usecase.TitleChangeRequestDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bukan status pending / catatan kosong",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Bukan dosen pembimbing thesis ini",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Permintaan tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/me/password": {
             "put": {
                 "security": [
@@ -4285,6 +4657,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "usecase.CreateTitleChangeRequest": {
+            "type": "object",
+            "required": [
+                "requested_title"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "requested_title": {
                     "type": "string"
                 }
             }
@@ -4798,6 +5184,14 @@ const docTemplate = `{
                 }
             }
         },
+        "usecase.ReviewTitleChangeRequest": {
+            "type": "object",
+            "properties": {
+                "review_notes": {
+                    "type": "string"
+                }
+            }
+        },
         "usecase.ScheduleDefenseRequest": {
             "type": "object",
             "required": [
@@ -5215,6 +5609,50 @@ const docTemplate = `{
                 }
             }
         },
+        "usecase.TitleChangeRequestDetail": {
+            "type": "object",
+            "properties": {
+                "cancelled_at": {
+                    "type": "string"
+                },
+                "cancelled_by": {
+                    "$ref": "#/definitions/usecase.UserBrief"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "previous_title": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "requested_by": {
+                    "$ref": "#/definitions/usecase.UserBrief"
+                },
+                "requested_title": {
+                    "type": "string"
+                },
+                "review_notes": {
+                    "type": "string"
+                },
+                "reviewed_by": {
+                    "$ref": "#/definitions/usecase.UserBrief"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "thesis_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "usecase.UpcomingSchedulesView": {
             "type": "object",
             "properties": {
@@ -5276,6 +5714,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "nim_nidn": {
+                    "description": "NimNidn is populated only where the underlying query preloads the user\n(e.g. title change requests); omitted elsewhere.",
                     "type": "string"
                 }
             }
