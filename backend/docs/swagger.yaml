@@ -548,19 +548,14 @@ definitions:
       pending_title_reviews:
         type: integer
     type: object
-  usecase.RefreshTokenRequest:
-    properties:
-      refresh_token:
-        type: string
-    required:
-    - refresh_token
-    type: object
   usecase.RefreshTokenResponse:
     properties:
       access_token:
         type: string
       expires_in:
         type: integer
+      refresh_token:
+        type: string
     type: object
   usecase.ResetPasswordRequest:
     properties:
@@ -986,7 +981,7 @@ info:
     url: https://opensource.org/licenses/MIT
   termsOfService: https://filkom.unida.ac.id
   title: SIMTAS FILKOM API
-  version: "1.0"
+  version: 1.1.0
 paths:
   /academic-years:
     get:
@@ -1712,14 +1707,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Menukar refresh token dengan access token baru
-      parameters:
-      - description: Refresh token
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/usecase.RefreshTokenRequest'
+      description: Menukar refresh token (HttpOnly cookie) dengan access token baru
       produces:
       - application/json
       responses:
@@ -2249,6 +2237,97 @@ paths:
       summary: Daftar dosen pembimbing
       tags:
       - Thesis Submission
+  /notifications:
+    get:
+      description: Mengambil notifikasi pengguna yang sedang login (terbaru dahulu)
+      parameters:
+      - description: Maksimal item (default 20, max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar notifikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Belum autentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar notifikasi
+      tags:
+      - Notifikasi
+  /notifications/{id}/read:
+    patch:
+      description: Menandai satu notifikasi milik pengguna sebagai sudah dibaca
+      parameters:
+      - description: ID notifikasi
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Berhasil ditandai
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Belum autentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Notifikasi tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Tandai notifikasi sudah dibaca
+      tags:
+      - Notifikasi
+  /notifications/read-all:
+    patch:
+      description: Menandai semua notifikasi belum dibaca pengguna sebagai sudah dibaca
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Berhasil ditandai
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Belum autentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Tandai semua notifikasi sudah dibaca
+      tags:
+      - Notifikasi
+  /notifications/unread-count:
+    get:
+      description: Mengambil jumlah notifikasi yang belum dibaca pengguna
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Jumlah notifikasi belum dibaca
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Belum autentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Jumlah notifikasi belum dibaca
+      tags:
+      - Notifikasi
   /schedules/upcoming:
     get:
       description: Mengambil seminar dan sidang terjadwal dalam N hari ke depan (Admin

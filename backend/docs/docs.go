@@ -1174,7 +1174,7 @@ const docTemplate = `{
         },
         "/auth/refresh": {
             "post": {
-                "description": "Menukar refresh token dengan access token baru",
+                "description": "Menukar refresh token (HttpOnly cookie) dengan access token baru",
                 "consumes": [
                     "application/json"
                 ],
@@ -1185,17 +1185,6 @@ const docTemplate = `{
                     "Authentication"
                 ],
                 "summary": "Refresh access token",
-                "parameters": [
-                    {
-                        "description": "Refresh token",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/usecase.RefreshTokenRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Access token baru",
@@ -2065,6 +2054,153 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "Daftar dosen pembimbing",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil notifikasi pengguna yang sedang login (terbaru dahulu)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifikasi"
+                ],
+                "summary": "Daftar notifikasi",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Maksimal item (default 20, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar notifikasi",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Belum autentikasi",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/read-all": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menandai semua notifikasi belum dibaca pengguna sebagai sudah dibaca",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifikasi"
+                ],
+                "summary": "Tandai semua notifikasi sudah dibaca",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil ditandai",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Belum autentikasi",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/unread-count": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil jumlah notifikasi yang belum dibaca pengguna",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifikasi"
+                ],
+                "summary": "Jumlah notifikasi belum dibaca",
+                "responses": {
+                    "200": {
+                        "description": "Jumlah notifikasi belum dibaca",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Belum autentikasi",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/{id}/read": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menandai satu notifikasi milik pengguna sebagai sudah dibaca",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifikasi"
+                ],
+                "summary": "Tandai notifikasi sudah dibaca",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID notifikasi",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil ditandai",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Belum autentikasi",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Notifikasi tidak ditemukan",
                         "schema": {
                             "$ref": "#/definitions/response.APIResponse"
                         }
@@ -5128,17 +5264,6 @@ const docTemplate = `{
                 }
             }
         },
-        "usecase.RefreshTokenRequest": {
-            "type": "object",
-            "required": [
-                "refresh_token"
-            ],
-            "properties": {
-                "refresh_token": {
-                    "type": "string"
-                }
-            }
-        },
         "usecase.RefreshTokenResponse": {
             "type": "object",
             "properties": {
@@ -5147,6 +5272,9 @@ const docTemplate = `{
                 },
                 "expires_in": {
                     "type": "integer"
+                },
+                "refresh_token": {
+                    "type": "string"
                 }
             }
         },
@@ -5789,7 +5917,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "1.1.0",
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
