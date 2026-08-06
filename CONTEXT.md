@@ -36,5 +36,5 @@
 
 ## Notes
 
-- The repo name and existing `docs/` phase folders (`phase-1-foundation`, `phase-2-core-backend`, etc.) indicate this is a multi-phase project. This `CONTEXT.md` captures the shared vocabulary; per-phase decisions belong in `docs/adr/`.
+- This `CONTEXT.md` captures the shared vocabulary; architectural decisions belong in `docs/adr/`. The current release plan lives in `docs/ROADMAP.md`.
 - Use these exact terms in issue titles, PR descriptions, and code comments rather than loose synonyms (e.g. use **Proposal** instead of "application", **Dosen Pembimbing** instead of "supervisor", etc.).

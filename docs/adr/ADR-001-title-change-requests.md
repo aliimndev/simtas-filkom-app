@@ -299,6 +299,5 @@ Setiap aksi wajib membuat record di `audit_logs`:
 
 - PRD Section 6.2 — Thesis Submission & Review
 - PRD Section 6.10 — Notification System
-- `docs/phase-2-core-backend/05-thesis-submission.md` — Existing thesis flow
 - `docs/pertanyaan-kaprodi-flow.md` — Context Kaprodi review flow
 

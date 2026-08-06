@@ -3,7 +3,7 @@
 Folder ini berisi konfigurasi monitoring & logging untuk deployment production
 (akan diisi saat Job 27 — Monitoring & Logging dikerjakan).
 
-Referensi: `docs/phase-6-deployment/27-monitoring-logging.md`
+Referensi: `docs/ROADMAP.md` (item Monitoring).
 
 Rencana isi folder ini:
 - `prometheus.yml` — scrape config untuk backend API
