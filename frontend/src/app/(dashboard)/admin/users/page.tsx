@@ -124,29 +124,75 @@ export default function AdminUsersPage() {
         <Spinner />
       ) : (
         <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Peran</TableHead>
-                <TableHead>NIM/NIDN</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {list.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell className="font-medium">{u.full_name}</TableCell>
-                  <TableCell>{u.email}</TableCell>
-                  <TableCell><Badge variant="primary">{roleLabel(u.role)}</Badge></TableCell>
-                  <TableCell>{u.nim_nidn ?? '—'}</TableCell>
-                  <TableCell>
-                    {u.is_active === false ? <Badge variant="danger">Nonaktif</Badge> : <Badge variant="success">Aktif</Badge>}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Peran</TableHead>
+                  <TableHead>NIM/NIDN</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {list.map((u) => (
+                  <TableRow key={u.id}>
+                    <TableCell className="font-medium">{u.full_name}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell><Badge variant="primary">{roleLabel(u.role)}</Badge></TableCell>
+                    <TableCell>{u.nim_nidn ?? '—'}</TableCell>
+                    <TableCell>
+                      {u.is_active === false ? <Badge variant="danger">Nonaktif</Badge> : <Badge variant="success">Aktif</Badge>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title={u.is_active === false ? 'Aktifkan' : 'Nonaktifkan'}
+                          onClick={() => toggleActive.mutate(u)}
+                        >
+                          {u.is_active === false ? <Power className="h-4 w-4 text-success" /> : <PowerOff className="h-4 w-4 text-danger-700" />}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Reset password"
+                          onClick={() => {
+                            if (window.confirm(`Reset password untuk ${u.full_name}? Password baru akan dikirim ke email.`)) {
+                              resetPassword.mutate(u.id)
+                            }
+                          }}
+                        >
+                          <KeyRound className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {list.map((u) => (
+              <Card key={u.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{u.full_name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{u.email}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <Badge variant="primary">{roleLabel(u.role)}</Badge>
+                        {u.nim_nidn && <span className="text-xs text-muted-foreground">{u.nim_nidn}</span>}
+                        {u.is_active === false ? <Badge variant="danger">Nonaktif</Badge> : <Badge variant="success">Aktif</Badge>}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
                       <Button
                         size="sm"
                         variant="ghost"
@@ -168,11 +214,11 @@ export default function AdminUsersPage() {
                         <KeyRound className="h-4 w-4" />
                       </Button>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
           {total > 10 && (
             <div className="flex items-center justify-between">

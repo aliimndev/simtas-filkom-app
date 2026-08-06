@@ -300,3 +300,55 @@ body {
   .animate-st-marquee,
   .animate-st-gradient { animation: none !important; }
 }
+
+/* ── Mobile refinements ────────────────────────────────────── */
+
+/* Remove tap highlight on interactive elements for a native-app feel */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area insets for modern mobile browsers */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .simtas-dark header {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+}
+
+/* Overscroll behavior: prevent pull-to-refresh on modal/menu overlays */
+.fixed.inset-0.z-50 {
+  overscroll-behavior: none;
+}
+
+/* Display text scale-down on very small screens */
+@media (max-width: 360px) {
+  .landing-display {
+    font-size: 2rem !important;
+    letter-spacing: -0.01em;
+  }
+  h1, h2 {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Card padding scales down on small screens */
+@media (max-width: 400px) {
+  .st-card {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .landing-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Ensure horizontal scroll containers are smooth and don't capture vertical scroll */
+.overflow-x-auto {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+.overflow-x-auto > * {
+  scroll-snap-align: start;
+}

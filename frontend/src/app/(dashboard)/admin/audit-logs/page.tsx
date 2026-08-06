@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import apiClient from '@/lib/api/client'
 import { formatDateTime } from '@/lib/utils/date'
 import type { PaginatedResponse } from '@/types/api'
@@ -72,31 +73,60 @@ export default function AuditLogsPage() {
         <Spinner />
       ) : (
         <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Waktu</TableHead>
-                <TableHead>Pengguna</TableHead>
-                <TableHead>Aksi</TableHead>
-                <TableHead>Entitas</TableHead>
-                <TableHead>IP</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {list.map((l) => (
-                <TableRow key={l.id}>
-                  <TableCell className="whitespace-nowrap text-xs">{formatDateTime(l.created_at)}</TableCell>
-                  <TableCell>{l.user?.full_name ?? '—'}</TableCell>
-                  <TableCell><Badge variant="muted" className="font-mono">{l.action}</Badge></TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {l.entity_type ?? '—'}
-                    {l.entity_id ? ` · ${l.entity_id.slice(0, 8)}…` : ''}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{l.ip_address ?? '—'}</TableCell>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Waktu</TableHead>
+                  <TableHead>Pengguna</TableHead>
+                  <TableHead>Aksi</TableHead>
+                  <TableHead>Entitas</TableHead>
+                  <TableHead>IP</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {list.map((l) => (
+                  <TableRow key={l.id}>
+                    <TableCell className="whitespace-nowrap text-xs">{formatDateTime(l.created_at)}</TableCell>
+                    <TableCell>{l.user?.full_name ?? '—'}</TableCell>
+                    <TableCell><Badge variant="muted" className="font-mono">{l.action}</Badge></TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {l.entity_type ?? '—'}
+                      {l.entity_id ? ` · ${l.entity_id.slice(0, 8)}…` : ''}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{l.ip_address ?? '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {list.map((l) => (
+              <Card key={l.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="whitespace-nowrap text-xs text-muted-foreground">
+                          {formatDateTime(l.created_at)}
+                        </span>
+                        <Badge variant="muted" className="font-mono text-[10px]">{l.action}</Badge>
+                      </div>
+                      <p className="mt-1.5 text-sm font-medium">{l.user?.full_name ?? '—'}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {l.entity_type ?? '—'}
+                        {l.entity_id ? ` · ${l.entity_id.slice(0, 8)}…` : ''}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground">{l.ip_address ?? '—'}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
           {total > 25 && (
             <div className="flex items-center justify-between">

@@ -20,13 +20,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-            <div className="absolute left-0 top-0 h-full">
+            <div className="absolute left-0 top-0 h-full w-64">
               <Sidebar onNavigate={() => setMobileOpen(false)} />
             </div>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="absolute left-[17rem] top-3 rounded-full bg-background p-2 text-foreground shadow-lg"
+              className="absolute left-[16.25rem] top-3 rounded-full bg-background p-2 text-foreground shadow-lg"
               aria-label="Tutup menu"
             >
               <X className="h-5 w-5" />

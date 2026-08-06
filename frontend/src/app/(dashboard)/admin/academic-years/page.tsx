@@ -83,34 +83,65 @@ export default function AcademicYearsPage() {
       {years.isLoading ? (
         <Spinner />
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Periode</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Periode</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {years.data?.map((y) => (
+                  <TableRow key={y.id}>
+                    <TableCell className="font-medium">{y.name}</TableCell>
+                    <TableCell>{formatDate(y.start_date)} — {formatDate(y.end_date)}</TableCell>
+                    <TableCell>
+                      {y.is_active ? <Badge variant="success">Aktif</Badge> : <Badge variant="muted">Tidak aktif</Badge>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {!y.is_active && (
+                        <Button size="sm" variant="outline" onClick={() => activate.mutate(y.id)}>
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Jadikan Aktif
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
             {years.data?.map((y) => (
-              <TableRow key={y.id}>
-                <TableCell className="font-medium">{y.name}</TableCell>
-                <TableCell>{formatDate(y.start_date)} — {formatDate(y.end_date)}</TableCell>
-                <TableCell>
-                  {y.is_active ? <Badge variant="success">Aktif</Badge> : <Badge variant="muted">Tidak aktif</Badge>}
-                </TableCell>
-                <TableCell className="text-right">
-                  {!y.is_active && (
-                    <Button size="sm" variant="outline" onClick={() => activate.mutate(y.id)}>
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Jadikan Aktif
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
+              <Card key={y.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{y.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {formatDate(y.start_date)} — {formatDate(y.end_date)}
+                      </p>
+                      <div className="mt-2">
+                        {y.is_active ? <Badge variant="success">Aktif</Badge> : <Badge variant="muted">Tidak aktif</Badge>}
+                      </div>
+                    </div>
+                    {!y.is_active && (
+                      <Button size="sm" variant="outline" onClick={() => activate.mutate(y.id)}>
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Aktifkan
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </>
       )}
     </div>
   )
