@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS title_change_requests (
     requested_by    UUID        NOT NULL REFERENCES users(id),
     previous_title  TEXT        NOT NULL,
     requested_title TEXT        NOT NULL,
+    reason          TEXT,
     status          VARCHAR(20) NOT NULL DEFAULT 'PENDING'
         CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'CANCELLED')),
     reviewed_by     UUID        REFERENCES users(id),

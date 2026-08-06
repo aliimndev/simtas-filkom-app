@@ -216,6 +216,22 @@ func (r *recordingEmailService) SendArchiveCreated(context.Context, string, *ent
 	return nil
 }
 
+func (r *recordingEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
 // waitCreated blocks until one consultation-created email arrives (with timeout).
 func (r *recordingEmailService) waitCreated(t *testing.T) []string {
 	t.Helper()

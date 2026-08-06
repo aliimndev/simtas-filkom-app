@@ -167,6 +167,22 @@ func (r *recordingArchiveEmailService) SendArchiveCreated(_ context.Context, to 
 	return nil
 }
 
+func (r *recordingArchiveEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingArchiveEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingArchiveEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingArchiveEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
 // newTestArchiveUseCase wires a fresh archive use case with in-memory fakes.
 func newTestArchiveUseCase(t *testing.T) (*ArchiveUseCase, *fakeArchiveRepo, *fakeThesisRepo, *fakeUserRepo, *recordingArchiveEmailService) {
 	t.Helper()

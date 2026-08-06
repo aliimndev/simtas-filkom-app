@@ -278,6 +278,22 @@ func (r *recordingSeminarEmailService) SendArchiveCreated(context.Context, strin
 	return nil
 }
 
+func (r *recordingSeminarEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingSeminarEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingSeminarEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingSeminarEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
 // newTestSeminarUseCase wires a fresh seminar use case with in-memory fakes.
 func newTestSeminarUseCase(t *testing.T) (*SeminarUseCase, *fakeSeminarRepo, *fakeDocumentRepo, *fakeThesisRepo, *fakeUserRepo, *recordingSeminarEmailService) {
 	t.Helper()

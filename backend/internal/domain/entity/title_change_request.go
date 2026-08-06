@@ -12,9 +12,10 @@ type TitleChangeRequest struct {
 	ThesisID       uuid.UUID      `gorm:"type:uuid;not null;index" json:"thesis_id"`
 	Thesis         Thesis         `gorm:"foreignKey:ThesisID" json:"thesis,omitempty"`
 	RequestedByID  uuid.UUID      `gorm:"type:uuid;not null;index" json:"requested_by_id"`
-	RequestedBy    User           `gorm:"foreignKey:RequestedByID" json:"requested_by,omitempty"`
+	RequestedBy    *User          `gorm:"foreignKey:RequestedByID" json:"requested_by,omitempty"`
 	PreviousTitle  string         `gorm:"type:text;not null" json:"previous_title"`
 	RequestedTitle string         `gorm:"type:text;not null" json:"requested_title"`
+	Reason         *string        `gorm:"type:text" json:"reason,omitempty"`
 	Status         string         `gorm:"type:varchar(20);not null;default:PENDING" json:"status"`
 	ReviewedByID   *uuid.UUID     `gorm:"type:uuid;index" json:"reviewed_by_id,omitempty"`
 	ReviewedBy     *User          `gorm:"foreignKey:ReviewedByID" json:"reviewed_by,omitempty"`

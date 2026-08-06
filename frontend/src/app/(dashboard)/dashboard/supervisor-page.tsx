@@ -1,12 +1,13 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { MessagesSquare, FolderOpen, CalendarDays, ClipboardCheck, AlertTriangle } from 'lucide-react'
+import { MessagesSquare, FolderOpen, CalendarDays, ClipboardCheck, AlertTriangle, FilePen } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatCard, ViewAllLink } from '@/components/features/dashboard/stat-card'
 import { dashboardApi } from '@/lib/api/dashboard-api'
+import { titleChangeApi } from '@/lib/api/title-change-api'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { roleLabel } from '@/constants/roles'
 import { flattenSchedules } from '@/types/dashboard'
@@ -31,6 +32,11 @@ export default function SupervisorDashboardPage() {
   const d = dash.data
   const schedules = flattenSchedules(d?.upcoming_schedules)
 
+  const pendingTitleChanges = useQuery({
+    queryKey: ['title-change', 'pending'],
+    queryFn: titleChangeApi.listPending,
+  })
+
   return (
     <div className="space-y-6">
       <div>
@@ -38,9 +44,10 @@ export default function SupervisorDashboardPage() {
         <p className="mt-1 text-sm text-muted-foreground">{roleLabel(user?.role)} — NIDN {user?.nim_nidn ?? '—'}</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Bimbingan" value={d?.total_students ?? '—'} icon={MessagesSquare} href="/supervision" iconClass="bg-primary-50 text-primary" />
         <StatCard title="Dokumen Pending" value={d?.pending_document_reviews ?? '—'} icon={FolderOpen} href="/documents" iconClass="bg-warning-50 text-warning" />
+        <StatCard title="Perubahan Judul Pending" value={pendingTitleChanges.data?.length ?? '—'} icon={FilePen} href="/title-change-reviews" iconClass="bg-secondary-50 text-secondary" />
         <StatCard title="Jadwal 14 Hari" value={schedules.length} icon={CalendarDays} href="/schedules" iconClass="bg-success-50 text-success" />
       </div>
 

@@ -577,6 +577,7 @@ func loadTemplates() map[string]*template.Template {
 		"title_change_cancelled.html",
 
 		"defense_scheduled.html",
+
 		"defense_result.html",
 		"graduation.html",
 	}
@@ -592,4 +593,75 @@ func loadTemplates() map[string]*template.Template {
 		out[name] = tmpl
 	}
 	return out
+}
+
+// SendTitleChangeRequested notifies the student (confirmation) and the assigned
+// supervisors (review prompt) about a new title change request.
+func (s *ResendEmailService) SendTitleChangeRequested(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error {
+	subject := "[SIMTAS] Pengajuan Perubahan Judul Skripsi"
+	data := s.baseData("Pengajuan Perubahan Judul")
+	data.Message = "Sebuah pengajuan perubahan judul telah dibuat dan menunggu persetujuan Dosen Pembimbing."
+	data.Details = []Detail{
+		{Label: "Judul Saat Ini", Value: req.PreviousTitle},
+		{Label: "Judul Baru", Value: req.RequestedTitle},
+	}
+	if req.Reason != nil && *req.Reason != "" {
+		data.Notes = *req.Reason
+	}
+	data.CTA = &CTA{Label: "Lihat Detail", URL: s.frontendURL + "/theses/" + thesis.ID.String()}
+	return s.send(to, subject, "title_change_requested.html", "title_change_requested", data)
+}
+
+// SendTitleChangeCancelled notifies the assigned supervisors that a student
+// retracted a pending title change request.
+func (s *ResendEmailService) SendTitleChangeCancelled(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error {
+	subject := "[SIMTAS] Perubahan Judul Dibatalkan"
+	data := s.baseData("Perubahan Judul Dibatalkan")
+	data.Message = "Mahasiswa telah membatalkan permintaan perubahan judul skripsi yang sedang diproses."
+	data.Details = []Detail{
+		{Label: "Judul Saat Ini", Value: req.PreviousTitle},
+		{Label: "Judul Baru (dibatalkan)", Value: req.RequestedTitle},
+	}
+	data.CTA = &CTA{Label: "Lihat Detail", URL: s.frontendURL + "/theses/" + thesis.ID.String()}
+	return s.send(to, subject, "title_change_cancelled.html", "title_change_cancelled", data)
+}
+
+// SendTitleChangeApproved notifies the student that their requested title
+// change was approved and the thesis title was updated.
+func (s *ResendEmailService) SendTitleChangeApproved(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error {
+	subject := "[SIMTAS] Perubahan Judul Disetujui"
+	data := s.baseData("Perubahan Judul Disetujui")
+	data.Greeting = "Halo " + thesis.Student.FullName + ","
+	data.Status = "DISETUJUI"
+	data.StatusGood = true
+	data.Message = "Permintaan perubahan judul skripsi Anda telah disetujui oleh Dosen Pembimbing."
+	data.Details = []Detail{
+		{Label: "Judul Sebelumnya", Value: req.PreviousTitle},
+		{Label: "Judul Baru", Value: req.RequestedTitle},
+	}
+	if req.ReviewNotes != nil && *req.ReviewNotes != "" {
+		data.Notes = *req.ReviewNotes
+	}
+	data.CTA = &CTA{Label: "Lihat Detail", URL: s.frontendURL + "/theses/" + thesis.ID.String()}
+	return s.send(to, subject, "title_change_approved.html", "title_change_approved", data)
+}
+
+// SendTitleChangeRejected notifies the student that their requested title
+// change was rejected by the supervisor.
+func (s *ResendEmailService) SendTitleChangeRejected(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error {
+	subject := "[SIMTAS] Perubahan Judul Ditolak"
+	data := s.baseData("Perubahan Judul Ditolak")
+	data.Greeting = "Halo " + thesis.Student.FullName + ","
+	data.Status = "DITOLAK"
+	data.StatusGood = false
+	data.Message = "Permintaan perubahan judul skripsi Anda ditolak oleh Dosen Pembimbing."
+	data.Details = []Detail{
+		{Label: "Judul Sebelumnya", Value: req.PreviousTitle},
+		{Label: "Judul yang Diajukan", Value: req.RequestedTitle},
+	}
+	if req.ReviewNotes != nil && *req.ReviewNotes != "" {
+		data.Notes = *req.ReviewNotes
+	}
+	data.CTA = &CTA{Label: "Lihat Detail", URL: s.frontendURL + "/theses/" + thesis.ID.String()}
+	return s.send(to, subject, "title_change_rejected.html", "title_change_rejected", data)
 }

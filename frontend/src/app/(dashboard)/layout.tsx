@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { RequireAuth } from '@/components/features/require-auth'
 import { Sidebar, TopBar } from '@/components/features/layout/sidebar'
+import { Toaster } from '@/components/ui/toaster'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -53,6 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
         </div>
       </div>
+      <Toaster />
     </RequireAuth>
   )
 }

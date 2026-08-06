@@ -282,6 +282,22 @@ func (r *recordingDefenseEmailService) SendArchiveCreated(context.Context, strin
 	return nil
 }
 
+func (r *recordingDefenseEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingDefenseEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingDefenseEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingDefenseEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
 // newTestDefenseUseCase wires a fresh defense use case with in-memory fakes.
 func newTestDefenseUseCase(t *testing.T) (*DefenseUseCase, *fakeDefenseRepo, *fakeSeminarRepo, *fakeDocumentRepo, *fakeThesisRepo, *fakeUserRepo, *recordingDefenseEmailService) {
 	t.Helper()

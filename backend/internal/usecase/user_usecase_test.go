@@ -183,6 +183,18 @@ func (f *fakeEmailService) SendGraduated(context.Context, string, *entity.Thesis
 func (f *fakeEmailService) SendArchiveCreated(context.Context, string, *entity.ThesisArchive) error {
 	return nil
 }
+func (f *fakeEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+func (f *fakeEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+func (f *fakeEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+func (f *fakeEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
 
 func newTestUserUseCase() (*UserUseCase, *fakeUserRepo) {
 	repo := newFakeUserRepo()

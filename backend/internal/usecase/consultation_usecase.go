@@ -74,6 +74,9 @@ type ConsultationDetail struct {
 type UserBrief struct {
 	ID       uuid.UUID `json:"id"`
 	FullName string    `json:"full_name"`
+	// NimNidn is populated only where the underlying query preloads the user
+	// (e.g. title change requests); omitted elsewhere.
+	NimNidn *string `json:"nim_nidn,omitempty"`
 }
 
 // ConsultationSummary aggregates consultation statistics for a thesis.

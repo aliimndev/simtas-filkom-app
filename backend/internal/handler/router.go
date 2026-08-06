@@ -32,6 +32,7 @@ type Router struct {
 	seminarHandler      *SeminarHandler
 	defenseHandler      *DefenseHandler
 	archiveHandler      *ArchiveHandler
+	titleChangeHandler  *TitleChangeRequestHandler
 	dashboardHandler    *DashboardHandler
 	auditHandler        *AuditHandler
 	auditSvc            *audit.AuditService
@@ -55,6 +56,7 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	seminarRepository := repository.NewSeminarRepository(db)
 	defenseRepository := repository.NewDefenseRepository(db)
 	archiveRepository := repository.NewArchiveRepository(db)
+	titleChangeRequestRepository := repository.NewTitleChangeRequestRepository(db)
 	dashboardRepository := repository.NewDashboardRepository(db)
 	auditRepository := repository.NewAuditRepository(db)
 
@@ -106,6 +108,7 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	seminarUseCase := usecase.NewSeminarUseCase(seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService)
 	defenseUseCase := usecase.NewDefenseUseCase(defenseRepository, seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService)
 	archiveUseCase := usecase.NewArchiveUseCase(archiveRepository, thesisRepository, storageService, emailService, auditService)
+	titleChangeUseCase := usecase.NewTitleChangeRequestUseCase(titleChangeRequestRepository, thesisRepository, emailService, auditService)
 	dashboardUseCase := usecase.NewDashboardUseCase(dashboardRepository)
 	auditUseCase := usecase.NewAuditUseCase(auditRepository)
 
@@ -118,6 +121,7 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	seminarHandler := NewSeminarHandler(seminarUseCase)
 	defenseHandler := NewDefenseHandler(defenseUseCase)
 	archiveHandler := NewArchiveHandler(archiveUseCase)
+	titleChangeHandler := NewTitleChangeRequestHandler(titleChangeUseCase)
 	dashboardHandler := NewDashboardHandler(dashboardUseCase)
 	auditHandler := NewAuditHandler(auditUseCase)
 	internalHandler := NewInternalHandler(emailService)
@@ -137,12 +141,13 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 		seminarHandler:      seminarHandler,
 		defenseHandler:      defenseHandler,
 		archiveHandler:      archiveHandler,
+		titleChangeHandler:  titleChangeHandler,
 		dashboardHandler:    dashboardHandler,
 		auditHandler:        auditHandler,
 		auditSvc:            auditService,
 		internalHandler:     internalHandler,
 		authMid:             authMiddleware,
-		}
+	}
 }
 
 // Shutdown gracefully drains the audit-service worker goroutine so that all
@@ -316,6 +321,35 @@ func (r *Router) Setup() {
 	documentReview := v1.Group("/documents", r.authMid.Authenticate())
 	{
 		documentReview.PATCH("/:id/review", r.documentHandler.Review)
+	}
+
+	// ── Title change requests ───────────────────────────────────────────
+	// POST create: Mahasiswa pemilik (thesis approved/in_progress + supervised)
+	// GET list: pemilik + pembimbing + Kaprodi + Admin (checked in use case)
+	// POST /:id/cancel: Mahasiswa pemilik, PENDING only (checked in use case)
+	// POST /:id/approve + /:id/reject: Dosen Pembimbing assigned, PENDING only
+	//   (approve updates theses.title atomically — checked in use case)
+	titleChanges := v1.Group("/theses/:thesis_id/title-change-requests", r.authMid.Authenticate())
+	{
+		titleChanges.POST("", r.titleChangeHandler.Create)
+		titleChanges.GET("", r.titleChangeHandler.List)
+	}
+
+	titleChangeActions := v1.Group("/title-change-requests", r.authMid.Authenticate())
+	{
+		titleChangeActions.POST("/:id/cancel", r.titleChangeHandler.Cancel)
+		titleChangeActions.POST("/:id/approve", r.titleChangeHandler.Approve)
+		titleChangeActions.POST("/:id/reject", r.titleChangeHandler.Reject)
+	}
+
+	// GET /title-change-requests — antrian PENDING untuk dosen pembimbing
+	// (role-scoped with RequireRole; membership verified inside the use case).
+	titleChangeQueue := v1.Group("/title-change-requests",
+		r.authMid.Authenticate(),
+		middleware.RequireRole(middleware.RoleDosenPembimbing),
+	)
+	{
+		titleChangeQueue.GET("", r.titleChangeHandler.ListPending)
 	}
 
 	// ── Seminars (Job 08) ───────────────────────────────────────────────
