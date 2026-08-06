@@ -50,6 +50,34 @@ type Config struct {
 	CORSAllowedOrigins string
 }
 
+// defaultSecrets lists JWT secrets that must NOT be used in production.
+var defaultSecrets = map[string]bool{
+	"your-super-secret-key": true,
+	"secret":                true,
+	"changeme":              true,
+}
+
+// Validate checks critical configuration values and panics on invalid
+// combinations that would leave the server in an insecure state.
+// Call this immediately after Load() in main().
+func (c *Config) Validate() {
+	if c.AppEnv == "production" {
+		if defaultSecrets[c.JWTSecret] {
+			panic("FATAL: JWT_SECRET must be set to a strong, unique value in production. " +
+				"The default value is insecure and would allow token forgery.")
+		}
+		if len(c.JWTSecret) < 32 {
+			panic("FATAL: JWT_SECRET must be at least 32 characters in production.")
+		}
+		if c.DBPassword == "postgres" {
+			panic("FATAL: DB_PASSWORD must be changed from the default 'postgres' in production.")
+		}
+		if c.CORSAllowedOrigins == "http://localhost:3000" {
+			panic("FATAL: CORS_ALLOWED_ORIGINS must be set to your production domain, not localhost.")
+		}
+	}
+}
+
 func Load() *Config {
 	return &Config{
 		AppPort: getEnv("APP_PORT", "8080"),

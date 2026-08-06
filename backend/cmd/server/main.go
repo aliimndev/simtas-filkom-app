@@ -59,6 +59,7 @@ func main() {
 	}
 
 	cfg := config.Load()
+	cfg.Validate() // Panic on insecure production configuration
 
 	// ── Structured logging (Job 13) ──────────────────────────────────────
 	logger.Init(cfg.AppEnv)

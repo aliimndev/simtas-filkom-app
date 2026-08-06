@@ -327,12 +327,18 @@ func (uc *DashboardUseCase) Student(ctx context.Context, studentID uuid.UUID) (*
 		return nil, ErrThesisNotFound
 	}
 
+	// Supervisors/Documents are initialized to empty (not nil) so they marshal
+	// as `[]` in JSON, never `null` — the frontend renders len()/map() on these
+	// fields. PendingActions is assigned below via studentPendingActions,
+	// which also guarantees a non-nil slice.
 	resp := &StudentProgressResponse{
 		ThesisID:           progress.ThesisID,
 		Title:              progress.Title,
 		Status:             progress.Status,
 		CurrentStage:       stageLabelFor(progress.Status),
 		ProgressPercentage: StageProgress[progress.Status],
+		Supervisors:        []UserSummaryView{},
+		Documents:          []DocStatusView{},
 		ConsultationCount:  progress.ConsultationCount,
 		LastConsultation:   datePtrToString(progress.LastConsultation),
 		UpcomingSeminar:    toScheduleInfoView(progress.UpcomingSeminar),
@@ -356,6 +362,7 @@ func (uc *DashboardUseCase) Supervisor(ctx context.Context, supervisorID uuid.UU
 	}
 	resp := &SupervisorDashboardResponse{
 		TotalStudents:          dash.TotalStudents,
+		Students:               []SupervisedStudentView{},
 		PendingDocumentReviews: dash.PendingDocumentReviews,
 		UpcomingSchedules:      toUpcomingSchedulesView(&dash.UpcomingSchedules),
 	}
@@ -381,7 +388,11 @@ func (uc *DashboardUseCase) Examiner(ctx context.Context, examinerID uuid.UUID) 
 	if err != nil {
 		return nil, err
 	}
-	resp := &ExaminerDashboardResponse{}
+	resp := &ExaminerDashboardResponse{
+		UpcomingAssignments: []ExaminerAssignmentView{},
+		PendingScores:       []ExaminerAssignmentView{},
+		ScoringHistory:      []ExaminerAssignmentView{},
+	}
 	for _, a := range dash.UpcomingAssignments {
 		resp.UpcomingAssignments = append(resp.UpcomingAssignments, toExaminerAssignmentView(a))
 	}
@@ -468,8 +479,9 @@ func toExaminerAssignmentView(a domainRepo.ExaminerAssignment) ExaminerAssignmen
 
 // studentPendingActions builds the list of actionable strings for a student
 // based on thesis status and the latest document states (Job 12).
+// It always returns a non-nil slice so the JSON field marshals as [] not null.
 func studentPendingActions(p *domainRepo.StudentProgress) []string {
-	var actions []string
+	actions := []string{}
 	switch p.Status {
 	case "submitted":
 		actions = append(actions, "Menunggu review judul oleh Kaprodi")
@@ -495,8 +507,9 @@ func studentPendingActions(p *domainRepo.StudentProgress) []string {
 }
 
 // pendingDocActions returns document-specific actions from latest states.
+// Returns a non-nil slice so callers never hand a nil slice onward.
 func pendingDocActions(docs []domainRepo.DocStatus) []string {
-	var actions []string
+	actions := []string{}
 	for _, d := range docs {
 		switch d.Status {
 		case "pending_review":

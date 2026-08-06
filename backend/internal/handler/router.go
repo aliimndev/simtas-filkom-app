@@ -165,6 +165,11 @@ func (r *Router) Setup() {
 	r.engine.Use(middleware.RequestLogger())
 	r.engine.Use(middleware.SecurityHeadersMiddleware())
 	r.engine.Use(middleware.CORSMiddleware(r.cfg.CORSAllowedOrigins))
+	r.engine.Use(middleware.SanitizeMiddleware())
+	r.engine.Use(middleware.CSRFMiddleware())
+	// Global rate limit: 100 requests per minute per IP (except health + auth).
+	globalRL := middleware.NewIPRateLimiter(100, 60*time.Second)
+	r.engine.Use(globalRL.Middleware())
 
 	// ── API v1 ────────────────────────────────────────────────────────────
 	v1 := r.engine.Group("/api/v1")

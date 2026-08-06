@@ -94,7 +94,10 @@ export default function StudentDashboardPage() {
     )
   }
 
-  const totalDocs = d.documents.length
+  // Backend always sends `[]`, but guard anyway so a `null` payload (older
+  // backend, or empty collections serialized as null) never crashes the page.
+  const totalDocs = (d.documents ?? []).length
+  const pendingActions = d.pending_actions ?? []
 
   return (
     <div className="space-y-6">
@@ -143,14 +146,14 @@ export default function StudentDashboardPage() {
         </CardContent>
       </Card>
 
-      {d.pending_actions.length > 0 && (
+      {pendingActions.length > 0 && (
         <Card className="border-warning/30 bg-warning-50">
           <CardContent className="p-4">
             <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-warning">
               <AlertCircle className="h-4 w-4" /> Yang perlu Anda lakukan
             </p>
             <ul className="space-y-1 text-sm">
-              {d.pending_actions.map((a, i) => (
+              {pendingActions.map((a, i) => (
                 <li key={i}>• {a}</li>
               ))}
             </ul>

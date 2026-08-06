@@ -3,6 +3,7 @@
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { RequireAuth } from '@/components/features/require-auth'
+import { ErrorBoundary } from '@/components/features/error-boundary'
 import { Sidebar, TopBar } from '@/components/features/layout/sidebar'
 import { Toaster } from '@/components/ui/toaster'
 
@@ -11,6 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <RequireAuth>
+      <ErrorBoundary>
       <div className="flex min-h-screen">
         {/* Desktop sidebar */}
         <div className="hidden lg:block">
@@ -55,6 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
       <Toaster />
+      </ErrorBoundary>
     </RequireAuth>
   )
 }
