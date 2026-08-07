@@ -91,10 +91,10 @@ func (r *titleChangeRequestRepository) Approve(ctx context.Context, id uuid.UUID
 		res := tx.Model(&entity.TitleChangeRequest{}).
 			Where("id = ? AND status = ?", id, "PENDING").
 			Updates(map[string]interface{}{
-				"status":       "APPROVED",
-				"reviewed_by":  reviewedByID,
-				"reviewed_at":  reviewedAt,
-				"review_notes": reviewNotes,
+				"status":         "APPROVED",
+				"reviewed_by_id": reviewedByID,
+				"reviewed_at":    reviewedAt,
+				"review_notes":   reviewNotes,
 			})
 		if res.Error != nil {
 			return res.Error
@@ -127,12 +127,12 @@ func (r *titleChangeRequestRepository) UpdateStatus(
 	res := r.db.WithContext(ctx).Model(&entity.TitleChangeRequest{}).
 		Where("id = ? AND status = ?", id, "PENDING").
 		Updates(map[string]interface{}{
-			"status":       status,
-			"reviewed_by":  reviewedByID,
-			"reviewed_at":  reviewedAt,
-			"review_notes": reviewNotes,
-			"cancelled_by": cancelledByID,
-			"cancelled_at": cancelledAt,
+			"status":          status,
+			"reviewed_by_id":  reviewedByID,
+			"reviewed_at":     reviewedAt,
+			"review_notes":    reviewNotes,
+			"cancelled_by_id": cancelledByID,
+			"cancelled_at":    cancelledAt,
 		})
 	if res.Error != nil {
 		return res.Error
