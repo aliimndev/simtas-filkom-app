@@ -29,7 +29,7 @@ Item yang belum ada di codebase dan perlu dibuat sebelum rilis:
 |---|-------|--------|----------|
 | 1 | **In-App Notification** | Bell icon + badge count di dashboard. Backend: tabel `notifications`, API list/read/unread. Email sudah jalan, ini pelengkap. | 3–4 hari |
 | 2 | **Email Retry Queue** | `email_logs` sudah ada tapi tanpa retry. Tambah buffered channel + worker pool + retry (3x) + dead letter untuk status gagal. | 2 hari |
-| 3 | **Skeleton Loading States** | Skeleton component (`ui/skeleton.tsx`) sudah ada tapi baru dipakai di dashboard. Terapkan di semua halaman list (theses, archives, seminars, defenses, documents, schedules, admin users). | 1 hari |
+| 3 | **Skeleton Loading States** | ✅ Done: `ListSkeleton` component dipakai di semua halaman list (theses, archives, seminars, defenses, schedules, documents, supervision, admin users, academic years, audit logs, title change reviews). | 1 hari |
 
 > Nota: **Form validation RHF+Zod** sudah dipakai di auth, profile, thesis, supervision — tinggal rapikan sisanya (opsional, bukan blocker).
 
@@ -41,11 +41,11 @@ Pekerjaan di VPS/infrastruktur, bukan kode aplikasi:
 
 | # | Item | Status | Detail |
 |---|------|--------|--------|
-| 1 | **Automated DB Backup** | Script ada (`deploy/scripts/backup.sh`), **cron belum aktif** | Pasang crontab daily 02.00 + upload off-site + test restore |
-| 2 | **SSL/TLS (Let's Encrypt)** | Hanya dokumentasi | Setup certbot di Nginx untuk `api.simtas.filkom.unida.ac.id` & `simtas.filkom.unida.ac.id` |
-| 3 | **N+1 Query Audit** | Belum diaudit | Review `Preload` di repository list endpoints; ganti yang N+1 dengan JOIN/batch |
-| 4 | **Sentry / Error Tracking** | Belum ada | Install Sentry di backend + frontend; atur alert ke email admin |
-| 5 | **Monitoring Dashboard** | `infrastructure/monitoring/` masih placeholder | Prometheus + Grafana (scrape `/metrics` backend) |
+| 1 | **Automated DB Backup** | ✅ Script ada + cron installer | `deploy/scripts/install-backup-cron.sh` (idempotent): backup harian 02.00 + alert error/disk; test restore via runbook |
+| 2 | **SSL/TLS (Let's Encrypt)** | ✅ `deploy/scripts/ssl-setup.sh` | certbot standalone + auto-renewal cron + nginx reload hook; jalankan sekali di VPS |
+| 3 | **N+1 Query Audit** | ✅ Done: audit 6 Agustus 2026 — tidak ada N+1. Semua list endpoints pakai GORM `Preload` (batch load, konstan per request) — theses, seminars, defenses, archives, title-change, consultations, audit logs, users. Loop yang ada murni mapping in-memory / batch insert. |
+| 4 | **Sentry / Error Tracking** | ✅ Backend `sentry-go` + frontend reporter | `SENTRY_DSN` (backend, panic+error) & `NEXT_PUBLIC_SENTRY_DSN` (frontend, ErrorBoundary); no-op tanpa DSN |
+| 5 | **Monitoring Dashboard** | ✅ Prometheus + Grafana | `/metrics` di backend (`pkg/metrics`), `infrastructure/monitoring/`, `deploy/docker-compose.monitoring.yml`, dashboard API overview auto-provisioned |
 
 ---
 
@@ -53,10 +53,10 @@ Pekerjaan di VPS/infrastruktur, bukan kode aplikasi:
 
 | # | Item | Detail |
 |---|------|--------|
-| 1 | **API Test Collection** | Postman/Insomnia collection atau k6 script untuk semua endpoint utama (auth, RBAC matrix, pagination, error shape) |
-| 2 | **Load Test** | k6: 50/100/200 VU baseline, target p95 < 500ms–1s; endpoit kunci: theses list, dashboard summary, upload, archive search |
+| 1 | **API Test Collection** | ✅ Done: `tests/k6/api-smoke.js` (auth, RBAC 401, pagination limit, error shape, list endpoints) |
+| 2 | **Load Test** | ✅ Done: `tests/k6/load.js` (50 VU ramp, mix theses/archives/dashboard/upload, p95 threshold) |
 | 3 | **Security Test** | OWASP ZAP scan + manual: SQLi, XSS, CSRF, auth bypass, file upload malicious |
-| 4 | **Full Lifecycle E2E** | Playwright: login → submit → approve → assign → upload → review → seminar → sidang → graduate (backend integration test sudah ada, frontend E2E belum) |
+| 4 | **Full Lifecycle E2E** | ✅ Backend integration (`TestFullThesisLifecycle`) + ✅ Playwright smoke (`frontend/e2e/`) — login & redirect flow; full flow di Playwright bila perlu |
 
 ---
 

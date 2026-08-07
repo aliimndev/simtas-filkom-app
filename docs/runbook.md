@@ -30,15 +30,52 @@ docker stats --no-stream
 ## Backup Database (Manual)
 
 ```bash
-/opt/simtas-filkom/backups/backup.sh
+/opt/simtas-filkom/deploy/scripts/backup.sh
 ```
+
+## Automated Backup (Cron)
+
+```bash
+# Sekali saja setelah deploy:
+/opt/simtas-filkom/deploy/scripts/install-backup-cron.sh
+```
+
+Installs: backup harian 02.00 (PostgreSQL + MinIO), alert error 5xx per jam,
+alert disk usage >80% per hari. Lihat `docs/runbook.md#alerting`.
 
 ## Restore Database dari Backup
 
 ```bash
-gunzip -c /opt/simtas-filkom/backups/db_20270115_020000.sql.gz | \
-  docker exec -i simtas-postgres psql -U simtas_prod simtas_filkom_prod
+# Dump format custom (pg_restore)
+docker exec -i simtas-postgres pg_restore -U postgres -d simtas_filkom \
+  --clean --if-exists /opt/simtas-filkom/backups/postgres/simtas_YYYYMMDD_HHMMSS.dump
 ```
+
+## SSL/TLS (Let's Encrypt)
+
+```bash
+# Sekali saja (root di VPS):
+/opt/simtas-filkom/deploy/scripts/ssl-setup.sh
+
+# Verifikasi
+curl -v https://api.simtas.filkom.unida.ac.id/api/v1/health
+# Auto-renewal: cron 2x/hari + nginx reload (didaftarkan otomatis oleh script)
+```
+
+## Monitoring (Prometheus + Grafana)
+
+```bash
+docker compose -f /opt/simtas-filkom/deploy/docker-compose.monitoring.yml up -d
+# Grafana UI: http://<vps-ip>:3001  (login: GRAFANA_ADMIN_USER / GRAFANA_ADMIN_PASSWORD)
+# Dashboard: SIMTAS FILKOM — API Overview (request rate, p95, error rate, up)
+# Backend metrics: http://backend:8080/metrics (internal, tidak dipublikasikan)
+```
+
+## Error Tracking (Sentry)
+
+- `SENTRY_DSN` di `.env.production` backend → panic/error dikirim otomatis.
+- `NEXT_PUBLIC_SENTRY_DSN` di frontend → ErrorBoundary & error ter-capture.
+- Tanpa DSN kedua-duanya no-op, aman untuk dev.
 
 ## Lihat Log
 

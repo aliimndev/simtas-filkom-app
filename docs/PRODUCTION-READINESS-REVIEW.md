@@ -495,26 +495,26 @@ go test ./internal/handler/... -tags integration -count=1 -v
 - [x] **Backend: Panic on Missing JWT_SECRET** — ✅ Done: `config.Validate()` di production
 - [x] **Backend: Max Request Body Size** — ✅ Done: `middleware/body_limit.go` + `engine.MaxMultipartMemory` (default 10 MB via `MAX_REQUEST_BODY_BYTES`)
 - [x] **Frontend: Error Boundary** — ✅ Done: `error-boundary.tsx` + dashboard layout
-- [ ] **Frontend: Loading States** — Skeleton component di semua halaman
+- [x] **Frontend: Loading States** — ✅ Done: `ListSkeleton` component di semua halaman list
 - [x] **Testing: Full Lifecycle Integration Test** — ✅ Done: `handler/lifecycle_test.go` `TestFullThesisLifecycle` (Submit → Graduate) full flow
 - [x] **Testing: Concurrent Score Submission Test** — ✅ Done: `TestConcurrentDefenseScoreSubmission` (2 examiner race). Fix exposed & resolved: `FinalizeDefense` now requires each examiner's complete component set before finalizing
-- [ ] **Deployment: Automated Database Backup** — Cron daily backup
-- [ ] **Deployment: SSL/TLS Certificate** — Let's Encrypt di Nginx
-- [ ] **Monitoring: Error Tracking** — Sentry atau sejenisnya
+- [x] **Deployment: Automated Database Backup** — ✅ Done: `deploy/scripts/install-backup-cron.sh` (cron harian 02.00 + alert, idempotent)
+- [x] **Deployment: SSL/TLS Certificate** — ✅ Done: `deploy/scripts/ssl-setup.sh` (certbot + auto-renewal cron)
+- [x] **Monitoring: Error Tracking** — ✅ Done: Sentry backend (`sentry-go`) + frontend reporter, no-op tanpa DSN
 
 ### 🟡 High — Sebaiknya Selesai Sebelum Release
 
-- [ ] **Feature: In-App Notification** — Minimal bell icon + badge count
-- [ ] **Feature: Email Retry Queue** — Buffer + retry + dead letter
+- [x] **Feature: In-App Notification** — ✅ Done: bell + unread badge, tabel `notifications` + API list/read/unread
+- [x] **Feature: Email Retry Queue** — ✅ Done: buffered worker + retry 3x + dead letter (`pkg/scheduler/email_retry.go`)
 - [x] **Backend: Refresh Token Rotation** — ✅ Done: rotation via JWT family (rotation_id) in `auth_usecase.go`; cookie rotated on refresh, family revoked on reuse; covered by `TestRefreshTokenRotationLifecycle` + `TestRefreshTokenReuseDetection`
-- [ ] **Backend: N+1 Query Prevention** — Audit semua Preload
+- [x] **Backend: N+1 Query Prevention** — ✅ Done: audit 6 Agustus 2026, semua list endpoints pakai GORM `Preload` (batch) — tidak ada N+1
 - [x] **Backend: Pagination Limit** — ✅ Done: Max perPage = 100 (sudah ada di handlers)
 - [ ] **Frontend: Form Validation UX** — React Hook Form + Zod
-- [ ] **Frontend: Consistent Loading/Skeleton** — Standard component
-- [ ] **Testing: API Test Collection** — Postman/k6 collection
-- [ ] **Testing: Load Test** — k6 script untuk baseline performance
-- [ ] **Deployment: Monitoring Dashboard** — Grafana atau sejenisnya
-- [ ] **Documentation: Runbook** — Step-by-step deployment guide
+- [x] **Frontend: Consistent Loading/Skeleton** — ✅ Done: `ListSkeleton` standard, dipakai semua list pages
+- [x] **Testing: API Test Collection** — ✅ Done: `tests/k6/api-smoke.js`
+- [x] **Testing: Load Test** — ✅ Done: `tests/k6/load.js` (50 VU baseline, p95 threshold)
+- [x] **Deployment: Monitoring Dashboard** — ✅ Done: Prometheus + Grafana (`deploy/docker-compose.monitoring.yml`, `/metrics` di backend)
+- [x] **Documentation: Runbook** — ✅ Done + diperbarui (backup, SSL, monitoring, Sentry)
 
 ### 🟢 Medium — Bisa Di-postponed ke v1.1
 
@@ -1019,6 +1019,16 @@ When reviewing PRs, verify:
 - ✅ Centralized Error Catalog (`handler/errors.go`) + standardized `APIResponse`
 - ✅ Cancel-on-Graduated Guard (`ErrThesisCannotCancel`)
 - ✅ Refresh Token in HttpOnly Cookie (`auth_handler.go` + frontend `withCredentials`, CSRF header wiring)
+- ✅ In-App Notifications (bell + unread badge, backend table & API)
+- ✅ Email Retry Queue (buffered worker + retry + dead letter)
+- ✅ Skeleton Loading States (`ListSkeleton` di semua list pages)
+- ✅ N+1 Query Audit (semua list endpoints pakai GORM `Preload` batch — tidak ada N+1)
+- ✅ Prometheus `/metrics` (`pkg/metrics`) + Prometheus/Grafana stack (`deploy/docker-compose.monitoring.yml`)
+- ✅ Sentry Error Tracking (backend `sentry-go` + frontend reporter, no-op tanpa DSN)
+- ✅ Automated Backup Cron installer (`deploy/scripts/install-backup-cron.sh`)
+- ✅ SSL Let's Encrypt setup (`deploy/scripts/ssl-setup.sh` + auto-renewal)
+- ✅ API Test Collection (`tests/k6/api-smoke.js`) + Load Test (`tests/k6/load.js`)
+- ✅ Playwright E2E smoke (`frontend/e2e/`)
 
 ---
 
