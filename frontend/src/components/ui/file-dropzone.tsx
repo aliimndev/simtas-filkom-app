@@ -72,7 +72,7 @@ export function FileDropzone({
           handleFile(e.dataTransfer.files[0])
         }}
         className={cn(
-          'flex min-h-[120px] w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed bg-background px-3 py-6 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'flex min-h-30 w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed bg-background px-3 py-6 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           dragOver ? 'border-primary bg-primary-50' : 'border-border',
           invalid || error ? 'border-danger focus-visible:ring-danger' : 'border-border',
           className,

@@ -34,14 +34,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Mobile sidebar */}
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
+            <div aria-hidden className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
             <div className="absolute left-0 top-0 h-full w-64">
               <Sidebar onNavigate={() => setMobileOpen(false)} />
             </div>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="absolute left-[16.25rem] top-3 rounded-full bg-card p-2 text-foreground"
+              className="absolute left-65 top-3 rounded-full bg-card p-2 text-foreground"
               aria-label="Tutup menu"
             >
               <X className="h-5 w-5" />
@@ -51,7 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar onOpenMenu={() => setMobileOpen(true)} />
-          <main className="mx-auto w-full max-w-[1400px] flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className="mx-auto w-full max-w-350 flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
         </div>
       </div>
       <Toaster />

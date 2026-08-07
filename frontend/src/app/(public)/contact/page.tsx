@@ -13,19 +13,19 @@ export const metadata = { title: 'Kontak — SIMTAS FILKOM' }
 export default function ContactPage() {
   return (
     <div>
-      <section className="border-b border-[var(--st-stroke)]">
+      <section className="border-b border-st-stroke">
         <div className="landing-container max-w-3xl pb-16 pt-36 md:pt-44">
           <Reveal><span className="landing-eyebrow">Kontak</span></Reveal>
           <Reveal delay={80}><h1 className="landing-display mt-5 text-4xl md:text-5xl">Hubungi kami</h1></Reveal>
           <Reveal delay={160}>
-            <p className="mt-5 text-base text-[var(--st-muted)] md:text-lg">
+            <p className="mt-5 text-base text-st-muted md:text-lg">
               Ada pertanyaan atau kendala teknis? Silakan hubungi kami melalui kanal berikut.
             </p>
           </Reveal>
         </div>
       </section>
 
-      <section className="landing-surface border-b border-[var(--st-stroke)]">
+      <section className="landing-surface border-b border-st-stroke">
         <div className="landing-container py-16">
           <div className="grid gap-4 sm:grid-cols-2">
             {INFO.map((c, i) => {
@@ -33,13 +33,13 @@ export default function ContactPage() {
               return (
                 <Reveal key={c.title} delay={i * 60} className="h-full">
                   <div className="st-card flex h-full gap-4 rounded-2xl p-6">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl accent-gradient text-[var(--st-bg)]">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl accent-gradient text-st-bg">
                       <Icon className="h-5 w-5" />
                     </span>
                     <div>
-                      <h3 className="font-medium text-[var(--st-text)]">{c.title}</h3>
+                      <h3 className="font-medium text-st-text">{c.title}</h3>
                       {c.lines.map((l) => (
-                        <p key={l} className="mt-1 text-sm text-[var(--st-muted)]">{l}</p>
+                        <p key={l} className="mt-1 text-sm text-st-muted">{l}</p>
                       ))}
                     </div>
                   </div>
@@ -48,11 +48,11 @@ export default function ContactPage() {
             })}
           </div>
 
-          <div className="mt-6 rounded-2xl border border-dashed border-[var(--st-stroke)] p-8 text-center text-sm text-[var(--st-muted)]">
+          <div className="mt-6 rounded-2xl border border-dashed border-st-stroke p-8 text-center text-sm text-st-muted">
             <p>
               Untuk layanan administratif Tugas Akhir, kunjungi sekretariat fakultas pada jam operasional di atas,
               atau sampaikan kendala teknis aplikasi melalui email{' '}
-              <a href="mailto:simtas@filkom.unida.ac.id" className="font-medium text-[var(--st-accent-from)] hover:underline">
+              <a href="mailto:simtas@filkom.unida.ac.id" className="font-medium text-(--st-accent-from) hover:underline">
                 simtas@filkom.unida.ac.id
               </a>
               .

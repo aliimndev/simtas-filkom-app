@@ -25,7 +25,7 @@ function NavLink({ href, label, icon: Icon, onNavigate }: { href: string; label:
           : 'text-muted-foreground hover:bg-surface-hi hover:text-foreground',
       )}
     >
-      <Icon className="h-[18px] w-[18px] shrink-0" />
+      <Icon className="h-4.5 w-4.5 shrink-0" />
       {label}
     </Link>
   )
@@ -40,7 +40,7 @@ function BrandMark() {
 }
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const { user } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
   const sections = navItemsForRoles(user ? [user.role] : [])
 
   return (
@@ -90,7 +90,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function TopBar({ onOpenMenu }: { onOpenMenu?: () => void }) {
-  const { user } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
   const logout = useLogoutMutation()
   const [menuOpen, setMenuOpen] = useState(false)
 

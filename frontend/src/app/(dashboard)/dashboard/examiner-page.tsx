@@ -34,7 +34,7 @@ function AssignmentRow({ a }: { a: ExaminerAssignment }) {
 }
 
 export default function ExaminerDashboardPage() {
-  const { user } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
   const dash = useQuery({
     queryKey: ['dashboard', 'examiner'],
     queryFn: dashboardApi.examiner,

@@ -17,7 +17,7 @@ import { formatDateTime } from '@/lib/utils/date'
 const ROW = 'flex items-center gap-3 rounded-md border border-border bg-muted/40 px-4 py-3'
 
 export default function SupervisorDashboardPage() {
-  const { user } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
   const dash = useQuery({
     queryKey: ['dashboard', 'supervisor'],
     queryFn: dashboardApi.supervisor,

@@ -28,7 +28,7 @@ function BrandPanel() {
     <div className="relative hidden overflow-hidden border-r border-border bg-background lg:flex lg:flex-col lg:justify-between lg:p-12">
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[-15%] h-[32rem] w-[32rem] -translate-x-1/2 rounded-full opacity-25 blur-[120px]"
+        className="pointer-events-none absolute left-1/2 top-[-15%] h-128 w-lg -translate-x-1/2 rounded-full opacity-25 blur-[120px]"
         style={{ background: 'radial-gradient(circle, var(--st-accent-to), transparent 60%)' }}
       />
       <div
