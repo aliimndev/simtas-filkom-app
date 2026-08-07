@@ -2,19 +2,17 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { Activity, Award, BookOpen, CalendarDays, ClipboardCheck, GraduationCap, Users } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatCard, ViewAllLink } from '@/components/features/dashboard/stat-card'
 import { DashboardHeader } from '@/components/features/dashboard/dashboard-header'
+import { StatusBadge } from '@/components/features/dashboard/status-badge'
 import { dashboardApi } from '@/lib/api/dashboard-api'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { roleLabel } from '@/constants/roles'
 import { cn } from '@/lib/utils/cn'
 import { flattenSchedules } from '@/types/dashboard'
 import { formatDateTime } from '@/lib/utils/date'
-
-const ROW = 'flex items-center justify-between gap-3 rounded-md border border-border bg-muted/40 px-4 py-3 text-sm'
 
 export default function AdminDashboardPage() {
   const user = useAuthStore((s) => s.user)
@@ -40,13 +38,23 @@ export default function AdminDashboardPage() {
       ? pending.pending_title_reviews + pending.pending_document_reviews + pending.pending_seminars + pending.pending_defenses
       : 0
 
+  const pendingRows = pending
+    ? [
+        { label: 'Review judul', count: pending.pending_title_reviews, href: '/theses' },
+        { label: 'Review dokumen', count: pending.pending_document_reviews, href: '/documents' },
+        { label: 'Seminar menunggu', count: pending.pending_seminars, href: '/seminars' },
+        { label: 'Sidang menunggu', count: pending.pending_defenses, href: '/defenses' },
+      ]
+    : []
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <DashboardHeader
         name={user?.full_name ?? 'Admin'}
         subtitle={`Ringkasan operasional fakultas · ${roleLabel(user?.role)}`}
       />
 
+      {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard title="Mahasiswa Aktif" value={s?.academic_summary.total_active ?? '—'} icon={Users} href="/admin/users?role=mahasiswa" />
         <StatCard title="Total Lulus" value={s?.academic_summary.total_graduated ?? '—'} icon={Award} href="/theses?status=graduated" />
@@ -54,16 +62,17 @@ export default function AdminDashboardPage() {
         <StatCard title="Login Hari Ini" value={op?.activity_stats.logins_today ?? '—'} icon={Activity} href="/admin/audit-logs" />
       </div>
 
+      {/* Funnel + Pending */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-            <div>
-              <CardTitle>Funnel Tahapan Skripsi</CardTitle>
-              <p className="mt-0.5 text-sm text-muted-foreground">Distribusi mahasiswa per tahap</p>
+          <CardContent className="p-5 sm:p-6">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg leading-none text-st-text">Funnel Tahapan Skripsi</h2>
+                <p className="mt-0.5 text-[13px] text-st-muted">Distribusi mahasiswa per tahap</p>
+              </div>
+              <ViewAllLink href="/theses" />
             </div>
-            <ViewAllLink href="/theses" />
-          </CardHeader>
-          <CardContent>
             {summary.isLoading ? (
               <Skeleton className="h-40 w-full" />
             ) : (
@@ -72,7 +81,7 @@ export default function AdminDashboardPage() {
                   const max = Math.max(1, ...byStatus.map((r) => r.count))
                   return (
                     <div key={row.status} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
-                      <span className="text-xs font-semibold tabular-nums">{row.count}</span>
+                      <span className="text-xs font-semibold tabular-nums text-st-text">{row.count}</span>
                       <div
                         className={cn(
                           'w-full rounded-t-sm transition-all',
@@ -80,7 +89,7 @@ export default function AdminDashboardPage() {
                         )}
                         style={{ height: `${Math.max(4, (row.count / max) * 62)}%` }}
                       />
-                      <span className="line-clamp-2 text-center text-[11px] leading-tight text-muted-foreground">{row.label}</span>
+                      <span className="line-clamp-2 text-center text-[11px] leading-tight text-st-muted">{row.label}</span>
                     </div>
                   )
                 })}
@@ -90,102 +99,99 @@ export default function AdminDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Pending Actions</CardTitle>
-            <p className="mt-0.5 text-sm text-muted-foreground">Tindakan yang menunggu Anda</p>
-          </CardHeader>
-          <CardContent className="space-y-2.5">
-            {operational.isLoading && <Skeleton className="h-32 w-full" />}
-            {pending && (
-              <>
-                <div className={ROW}>
-                  <span>Review judul</span>
-                  <Badge variant="warning">{pending.pending_title_reviews}</Badge>
+          <CardContent className="p-5 sm:p-6">
+            <h2 className="font-display text-lg leading-none text-st-text">Pending Actions</h2>
+            <p className="mt-0.5 text-[13px] text-st-muted">Tindakan yang menunggu Anda</p>
+            <div className="mt-4 space-y-2">
+              {operational.isLoading && <Skeleton className="h-32 w-full" />}
+              {pendingRows.map((row) => (
+                <div key={row.label} className="flex items-center justify-between gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                  <span className="text-sm text-st-text">{row.label}</span>
+                  {row.count > 0 ? (
+                    <StatusBadge variant="pending" label={`${row.count} menunggu`} />
+                  ) : (
+                    <span className="text-xs font-medium text-st-muted">Selesai</span>
+                  )}
                 </div>
-                <div className={ROW}>
-                  <span>Review dokumen</span>
-                  <Badge variant="warning">{pending.pending_document_reviews}</Badge>
-                </div>
-                <div className={ROW}>
-                  <span>Seminar menunggu</span>
-                  <Badge variant="warning">{pending.pending_seminars}</Badge>
-                </div>
-                <div className={ROW}>
-                  <span>Sidang menunggu</span>
-                  <Badge variant="warning">{pending.pending_defenses}</Badge>
-                </div>
-              </>
-            )}
-            {!operational.isLoading && pending && totalPending === 0 && (
-              <p className="py-2 text-sm text-muted-foreground">Tidak ada tindakan tertunda.</p>
-            )}
+              ))}
+              {!operational.isLoading && totalPending === 0 && (
+                <p className="py-2 text-sm text-st-muted">Tidak ada tindakan tertunda.</p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
 
+
+      {/* Upcoming + System activity */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-            <div>
-              <CardTitle>Jadwal Mendatang</CardTitle>
-              <p className="mt-0.5 text-sm text-muted-foreground">Seminar & sidang 14 hari ke depan</p>
-            </div>
-            <ViewAllLink href="/schedules" />
-          </CardHeader>
-          <CardContent className="space-y-2.5">
-            {operational.isLoading && <Skeleton className="h-20 w-full" />}
-            {schedules.slice(0, 5).map((item) => (
-              <div key={`${item.type}-${item.id}`} className="flex items-center gap-3 rounded-md border border-border bg-muted/40 px-4 py-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-50 text-primary">
-                  <CalendarDays className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{item.student_name ?? item.thesis_title}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {item.type === 'seminar' ? 'Seminar' : 'Sidang'} · {formatDateTime(item.scheduled_at)}
-                  </p>
-                </div>
-                {item.room && <Badge variant="muted">{item.room}</Badge>}
+          <CardContent className="p-5 sm:p-6">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg leading-none text-st-text">Jadwal Mendatang</h2>
+                <p className="mt-0.5 text-[13px] text-st-muted">Seminar & sidang 14 hari ke depan</p>
               </div>
-            ))}
-            {!operational.isLoading && schedules.length === 0 && (
-              <p className="py-2 text-sm text-muted-foreground">Tidak ada jadwal mendatang.</p>
-            )}
+              <ViewAllLink href="/schedules" />
+            </div>
+            <div className="space-y-2">
+              {operational.isLoading && <Skeleton className="h-20 w-full" />}
+              {schedules.slice(0, 5).map((item) => (
+                <div key={`${item.type}-${item.id}`} className="flex items-center gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-50 text-primary">
+                    <CalendarDays className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-st-text">{item.student_name ?? item.thesis_title}</p>
+                    <p className="truncate text-xs text-st-muted">
+                      {item.type === 'seminar' ? 'Seminar' : 'Sidang'} · {formatDateTime(item.scheduled_at)}
+                    </p>
+                  </div>
+                  {item.room && (
+                    <span className="shrink-0 rounded-md bg-surface-hi px-2 py-0.5 text-xs font-medium text-st-muted">{item.room}</span>
+                  )}
+                </div>
+              ))}
+              {!operational.isLoading && schedules.length === 0 && (
+                <p className="py-2 text-sm text-st-muted">Tidak ada jadwal mendatang.</p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Aktivitas Sistem</CardTitle>
-            <p className="mt-0.5 text-sm text-muted-foreground">Statistik minggu ini</p>
-          </CardHeader>
-          <CardContent className="space-y-2.5">
-            {operational.isLoading && <Skeleton className="h-24 w-full" />}
-            {op?.activity_stats && (
-              <>
-                <div className={ROW}>
-                  <span className="inline-flex items-center gap-2">
-                    <ClipboardCheck className="h-4 w-4 text-primary" /> Login hari ini
-                  </span>
-                  <span className="font-semibold tabular-nums">{op.activity_stats.logins_today}</span>
-                </div>
-                <div className={ROW}>
-                  <span className="inline-flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-primary" /> Dokumen minggu ini
-                  </span>
-                  <span className="font-semibold tabular-nums">{op.activity_stats.documents_uploaded_this_week}</span>
-                </div>
-                <div className={ROW}>
-                  <span className="inline-flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-primary" /> Bimbingan minggu ini
-                  </span>
-                  <span className="font-semibold tabular-nums">{op.activity_stats.consultations_this_week}</span>
-                </div>
-              </>
-            )}
+          <CardContent className="p-5 sm:p-6">
+            <h2 className="font-display text-lg leading-none text-st-text">Aktivitas Sistem</h2>
+            <p className="mt-0.5 text-[13px] text-st-muted">Statistik minggu ini</p>
+            <div className="mt-4 space-y-2">
+              {operational.isLoading && <Skeleton className="h-24 w-full" />}
+              {op?.activity_stats && (
+                <>
+                  <div className="flex items-center justify-between gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                    <span className="inline-flex items-center gap-2 text-sm text-st-text">
+                      <ClipboardCheck className="h-4 w-4 text-primary" /> Login hari ini
+                    </span>
+                    <span className="font-semibold tabular-nums text-st-text">{op.activity_stats.logins_today}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                    <span className="inline-flex items-center gap-2 text-sm text-st-text">
+                      <BookOpen className="h-4 w-4 text-primary" /> Dokumen minggu ini
+                    </span>
+                    <span className="font-semibold tabular-nums text-st-text">{op.activity_stats.documents_uploaded_this_week}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                    <span className="inline-flex items-center gap-2 text-sm text-st-text">
+                      <GraduationCap className="h-4 w-4 text-primary" /> Bimbingan minggu ini
+                    </span>
+                    <span className="font-semibold tabular-nums text-st-text">{op.activity_stats.consultations_this_week}</span>
+                  </div>
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
     </div>
   )
 }
+

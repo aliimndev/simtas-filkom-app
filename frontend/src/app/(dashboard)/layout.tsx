@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <RequireAuth>
       <ErrorBoundary>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen bg-st-bg">
         {/* Desktop sidebar */}
         <div className="hidden lg:block">
           <Sidebar />
@@ -35,13 +35,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div aria-hidden className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-            <div className="absolute left-0 top-0 h-full w-64">
+            <div className="absolute left-0 top-0 h-full w-60">
               <Sidebar onNavigate={() => setMobileOpen(false)} />
             </div>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="absolute left-65 top-3 rounded-full bg-card p-2 text-foreground"
+              className="absolute left-61 top-3 rounded-full bg-st-surface p-2 text-st-text"
               aria-label="Tutup menu"
             >
               <X className="h-5 w-5" />

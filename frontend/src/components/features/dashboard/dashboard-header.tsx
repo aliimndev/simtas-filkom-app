@@ -2,25 +2,29 @@ import { formatDate } from '@/lib/utils/date'
 
 function greeting(): string {
   const h = new Date().getHours()
-  if (h < 11) return 'Selamat pagi'
-  if (h < 15) return 'Selamat siang'
-  if (h < 18) return 'Selamat sore'
-  return 'Selamat malam'
+  if (h < 11) return 'selamat pagi'
+  if (h < 15) return 'selamat siang'
+  if (h < 18) return 'selamat sore'
+  return 'selamat malam'
 }
 
 export function DashboardHeader({ name, subtitle }: { name: string; subtitle?: string }) {
   const firstName = name.split(' ')[0]
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-          {greeting()}, {firstName}
+        <p className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-st-muted">
+          Sistem Manajemen Tugas Akhir
+        </p>
+        <h1 className="mt-2 font-display text-3xl leading-none tracking-tight text-st-text sm:text-4xl">
+          <span className="accent-text italic">{firstName}</span>, {greeting()}.
         </h1>
-        {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+        {subtitle && <p className="mt-2 text-sm text-st-muted">{subtitle}</p>}
       </div>
-      <p className="text-sm tabular-nums text-muted-foreground" aria-hidden>
+      <p className="font-mono text-[0.7rem] uppercase tracking-[0.25em] tabular-nums text-st-muted" aria-hidden>
         {formatDate(new Date())}
       </p>
     </div>
   )
 }
+

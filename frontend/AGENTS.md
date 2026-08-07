@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 <!-- BEGIN:frontend-standards -->
 # Frontend Standards (SIMTAS FILKOM)
-
+READ `CLAUDE.MD`
 Before writing or modifying any frontend code — especially Tailwind classes — read `FRONTEND_STANDARDS.md` and follow it. Core rules:
 
 - **Canonical Tailwind v4 utilities, never `*-[var(--x)]`** when a canonical form exists: `text-st-muted`, `border-st-stroke`, `bg-st-surface`, `hover:bg-st-surface-hi`, `divide-st-stroke`. For unregistered tokens (`--st-accent-from`, `--st-accent-to`) use the parens syntax: `text-(--st-accent-from)`, `hover:border-(--st-accent-from)/40`.
