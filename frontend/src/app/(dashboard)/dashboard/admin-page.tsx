@@ -1,24 +1,20 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { GraduationCap, Users, BookOpen, Award, ClipboardCheck, CalendarDays, Activity } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Activity, Award, BookOpen, CalendarDays, ClipboardCheck, GraduationCap, Users } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatCard, ViewAllLink } from '@/components/features/dashboard/stat-card'
+import { DashboardHeader } from '@/components/features/dashboard/dashboard-header'
 import { dashboardApi } from '@/lib/api/dashboard-api'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { roleLabel } from '@/constants/roles'
 import { cn } from '@/lib/utils/cn'
 import { flattenSchedules } from '@/types/dashboard'
+import { formatDateTime } from '@/lib/utils/date'
 
-function greeting(): string {
-  const h = new Date().getHours()
-  if (h < 11) return 'Selamat pagi'
-  if (h < 15) return 'Selamat siang'
-  if (h < 18) return 'Selamat sore'
-  return 'Selamat malam'
-}
+const ROW = 'flex items-center justify-between gap-3 rounded-md border border-border bg-muted/40 px-4 py-3 text-sm'
 
 export default function AdminDashboardPage() {
   const { user } = useAuthStore()
@@ -37,21 +33,25 @@ export default function AdminDashboardPage() {
   const op = operational.data
   const schedules = flattenSchedules(op?.upcoming_schedules)
   const pending = op?.pending_actions
+  const byStatus = s?.by_status ?? []
+
+  const totalPending =
+    pending
+      ? pending.pending_title_reviews + pending.pending_document_reviews + pending.pending_seminars + pending.pending_defenses
+      : 0
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{greeting()}, {user?.full_name ?? 'Admin'} 👋</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Ringkasan operasional fakultas — {roleLabel(user?.role)}
-        </p>
-      </div>
+      <DashboardHeader
+        name={user?.full_name ?? 'Admin'}
+        subtitle={`Ringkasan operasional fakultas · ${roleLabel(user?.role)}`}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Mahasiswa Aktif" value={s?.academic_summary.total_active ?? '—'} icon={Users} iconClass="bg-primary-50 text-primary" href="/admin/users?role=mahasiswa" />
-        <StatCard title="Total Lulus" value={s?.academic_summary.total_graduated ?? '—'} icon={Award} iconClass="bg-success-50 text-success" href="/theses?status=graduated" />
-        <StatCard title="Rata-rata Selesai" value={s?.academic_summary.avg_completion_months ?? '—'} suffix="bln" icon={BookOpen} iconClass="bg-secondary-50 text-secondary" href="/theses" />
-        <StatCard title="Aktivitas Hari Ini" value={op?.activity_stats.logins_today ?? '—'} icon={Activity} iconClass="bg-primary-50 text-primary" href="/admin/audit-logs" />
+        <StatCard title="Mahasiswa Aktif" value={s?.academic_summary.total_active ?? '—'} icon={Users} href="/admin/users?role=mahasiswa" />
+        <StatCard title="Total Lulus" value={s?.academic_summary.total_graduated ?? '—'} icon={Award} href="/theses?status=graduated" />
+        <StatCard title="Rata-rata Selesai" value={s?.academic_summary.avg_completion_months ?? '—'} suffix="bln" icon={BookOpen} href="/theses" />
+        <StatCard title="Login Hari Ini" value={op?.activity_stats.logins_today ?? '—'} icon={Activity} href="/admin/audit-logs" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -59,7 +59,7 @@ export default function AdminDashboardPage() {
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <div>
               <CardTitle>Funnel Tahapan Skripsi</CardTitle>
-              <CardDescription>Distribusi mahasiswa per tahap</CardDescription>
+              <p className="mt-0.5 text-sm text-muted-foreground">Distribusi mahasiswa per tahap</p>
             </div>
             <ViewAllLink href="/theses" />
           </CardHeader>
@@ -67,20 +67,20 @@ export default function AdminDashboardPage() {
             {summary.isLoading ? (
               <Skeleton className="h-40 w-full" />
             ) : (
-              <div className="flex h-44 items-end gap-3">
-                {(s?.by_status ?? []).map((row) => {
-                  const max = Math.max(1, ...(s?.by_status ?? []).map((r) => r.count))
+              <div className="flex h-40 items-end gap-2">
+                {byStatus.map((row) => {
+                  const max = Math.max(1, ...byStatus.map((r) => r.count))
                   return (
-                    <div key={row.status} className="flex flex-1 flex-col items-center gap-1.5">
-                      <span className="text-sm font-semibold">{row.count}</span>
+                    <div key={row.status} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+                      <span className="text-xs font-semibold tabular-nums">{row.count}</span>
                       <div
                         className={cn(
-                          'w-full rounded-t-md transition-all',
-                          row.status === 'graduated' ? 'bg-success' : 'bg-primary-600',
+                          'w-full rounded-t-sm transition-all',
+                          row.status === 'graduated' ? 'bg-success' : 'bg-primary',
                         )}
-                        style={{ height: `${Math.max(4, (row.count / max) * 100)}%` }}
+                        style={{ height: `${Math.max(4, (row.count / max) * 62)}%` }}
                       />
-                      <span className="text-center text-[10px] leading-tight text-muted-foreground">{row.label}</span>
+                      <span className="line-clamp-2 text-center text-[11px] leading-tight text-muted-foreground">{row.label}</span>
                     </div>
                   )
                 })}
@@ -92,32 +92,32 @@ export default function AdminDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Pending Actions</CardTitle>
-            <CardDescription>Tindakan yang menunggu Anda</CardDescription>
+            <p className="mt-0.5 text-sm text-muted-foreground">Tindakan yang menunggu Anda</p>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2.5">
             {operational.isLoading && <Skeleton className="h-32 w-full" />}
             {pending && (
               <>
-                <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning-50 px-3 py-2.5 text-sm">
+                <div className={ROW}>
                   <span>Review judul</span>
                   <Badge variant="warning">{pending.pending_title_reviews}</Badge>
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning-50 px-3 py-2.5 text-sm">
+                <div className={ROW}>
                   <span>Review dokumen</span>
                   <Badge variant="warning">{pending.pending_document_reviews}</Badge>
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning-50 px-3 py-2.5 text-sm">
+                <div className={ROW}>
                   <span>Seminar menunggu</span>
                   <Badge variant="warning">{pending.pending_seminars}</Badge>
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning-50 px-3 py-2.5 text-sm">
+                <div className={ROW}>
                   <span>Sidang menunggu</span>
                   <Badge variant="warning">{pending.pending_defenses}</Badge>
                 </div>
               </>
             )}
-            {!operational.isLoading && pending && (pending.pending_title_reviews + pending.pending_document_reviews + pending.pending_seminars + pending.pending_defenses) === 0 && (
-              <p className="text-sm text-muted-foreground">Tidak ada tindakan tertunda. 🎉</p>
+            {!operational.isLoading && pending && totalPending === 0 && (
+              <p className="py-2 text-sm text-muted-foreground">Tidak ada tindakan tertunda.</p>
             )}
           </CardContent>
         </Card>
@@ -128,28 +128,28 @@ export default function AdminDashboardPage() {
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <div>
               <CardTitle>Jadwal Mendatang</CardTitle>
-              <CardDescription>Seminar & sidang 14 hari ke depan</CardDescription>
+              <p className="mt-0.5 text-sm text-muted-foreground">Seminar & sidang 14 hari ke depan</p>
             </div>
             <ViewAllLink href="/schedules" />
           </CardHeader>
-          <CardContent className="space-y-3">
-            {operational.isLoading && <Skeleton className="h-24 w-full" />}
+          <CardContent className="space-y-2.5">
+            {operational.isLoading && <Skeleton className="h-20 w-full" />}
             {schedules.slice(0, 5).map((item) => (
-              <div key={`${item.type}-${item.id}`} className="flex items-center gap-3 rounded-lg border border-border p-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 text-primary">
+              <div key={`${item.type}-${item.id}`} className="flex items-center gap-3 rounded-md border border-border bg-muted/40 px-4 py-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-50 text-primary">
                   <CalendarDays className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{item.student_name ?? item.thesis_title}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {item.type === 'seminar' ? 'Seminar' : 'Sidang'} · {item.scheduled_at ? new Date(item.scheduled_at).toLocaleString('id-ID') : '—'}
+                    {item.type === 'seminar' ? 'Seminar' : 'Sidang'} · {formatDateTime(item.scheduled_at)}
                   </p>
                 </div>
                 {item.room && <Badge variant="muted">{item.room}</Badge>}
               </div>
             ))}
             {!operational.isLoading && schedules.length === 0 && (
-              <p className="text-sm text-muted-foreground">Tidak ada jadwal mendatang.</p>
+              <p className="py-2 text-sm text-muted-foreground">Tidak ada jadwal mendatang.</p>
             )}
           </CardContent>
         </Card>
@@ -157,23 +157,29 @@ export default function AdminDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Aktivitas Sistem</CardTitle>
-            <CardDescription>Statistik minggu ini</CardDescription>
+            <p className="mt-0.5 text-sm text-muted-foreground">Statistik minggu ini</p>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2.5">
             {operational.isLoading && <Skeleton className="h-24 w-full" />}
             {op?.activity_stats && (
               <>
-                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm">
-                  <span className="inline-flex items-center gap-2"><ClipboardCheck className="h-4 w-4 text-primary" /> Login hari ini</span>
-                  <span className="font-semibold">{op.activity_stats.logins_today}</span>
+                <div className={ROW}>
+                  <span className="inline-flex items-center gap-2">
+                    <ClipboardCheck className="h-4 w-4 text-primary" /> Login hari ini
+                  </span>
+                  <span className="font-semibold tabular-nums">{op.activity_stats.logins_today}</span>
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm">
-                  <span className="inline-flex items-center gap-2"><BookOpen className="h-4 w-4 text-primary" /> Dokumen minggu ini</span>
-                  <span className="font-semibold">{op.activity_stats.documents_uploaded_this_week}</span>
+                <div className={ROW}>
+                  <span className="inline-flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-primary" /> Dokumen minggu ini
+                  </span>
+                  <span className="font-semibold tabular-nums">{op.activity_stats.documents_uploaded_this_week}</span>
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm">
-                  <span className="inline-flex items-center gap-2"><GraduationCap className="h-4 w-4 text-primary" /> Bimbingan minggu ini</span>
-                  <span className="font-semibold">{op.activity_stats.consultations_this_week}</span>
+                <div className={ROW}>
+                  <span className="inline-flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4 text-primary" /> Bimbingan minggu ini
+                  </span>
+                  <span className="font-semibold tabular-nums">{op.activity_stats.consultations_this_week}</span>
                 </div>
               </>
             )}

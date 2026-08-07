@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
+	"mime/multipart"
 	"sort"
 	"strings"
 	"time"
@@ -12,10 +14,12 @@ import (
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
+	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/service"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/statemachine"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/utils"
 )
 
 // Role name constants (kept in sync with middleware.Role* and seed data).
@@ -35,6 +39,7 @@ var (
 	ErrTitleTooLong           = errors.New("judul maksimal 500 karakter")
 	ErrAbstractTooShort       = errors.New("abstrak minimal 100 kata")
 	ErrInvalidThesisType      = errors.New("thesis_type harus skripsi atau tugas_akhir")
+	ErrDraftRequired          = errors.New("draft proposal wajib diunggah")
 	ErrInvalidDecision        = errors.New("decision harus approved atau rejected")
 	ErrInvalidStateTransition = errors.New("transisi status tidak valid")
 	ErrInvalidSupervisorCount = errors.New("jumlah supervisor minimal 1 dan maksimal 2")
@@ -44,12 +49,18 @@ var (
 	ErrForbidden              = errors.New("akses ditolak")
 )
 
-// CreateThesisRequest is the payload for POST /theses (Job 05).
+// CreateThesisRequest is the multipart payload for POST /theses (Job 05).
+// Form fields: title, abstract, field_of_study, thesis_type + the proposal
+// PDF as multipart field "file".
 type CreateThesisRequest struct {
-	Title        string `json:"title" binding:"required"`
-	Abstract     string `json:"abstract" binding:"required"`
-	FieldOfStudy string `json:"field_of_study"`
-	ThesisType   string `json:"thesis_type" binding:"required"`
+	Title        string
+	Abstract     string
+	FieldOfStudy string
+	ThesisType   string
+
+	// Draft proposal (proposal document on the thesis, created atomically).
+	DraftFile   multipart.File
+	DraftHeader *multipart.FileHeader
 }
 
 // ReviewThesisRequest is the payload for PUT /theses/:id/review.
@@ -111,29 +122,35 @@ type LecturerLoad struct {
 
 // ThesisUseCase contains business logic for the thesis submission workflow.
 type ThesisUseCase struct {
-	thesisRepo domainRepo.ThesisRepository
-	userRepo   domainRepo.UserRepository
-	acadRepo   domainRepo.AcademicYearRepository
-	emailSvc   email.EmailService
-	auditSvc   *audit.AuditService
-	notifSvc   *notification.NotificationService
+	thesisRepo   domainRepo.ThesisRepository
+	userRepo     domainRepo.UserRepository
+	acadRepo     domainRepo.AcademicYearRepository
+	documentRepo domainRepo.DocumentRepository
+	storage      service.StorageService
+	emailSvc     email.EmailService
+	auditSvc     *audit.AuditService
+	notifSvc     *notification.NotificationService
 }
 
 func NewThesisUseCase(
 	thesisRepo domainRepo.ThesisRepository,
 	userRepo domainRepo.UserRepository,
 	acadRepo domainRepo.AcademicYearRepository,
+	documentRepo domainRepo.DocumentRepository,
+	storage service.StorageService,
 	emailSvc email.EmailService,
 	auditSvc *audit.AuditService,
 	notifSvc *notification.NotificationService,
 ) *ThesisUseCase {
 	return &ThesisUseCase{
-		thesisRepo: thesisRepo,
-		userRepo:   userRepo,
-		acadRepo:   acadRepo,
-		emailSvc:   emailSvc,
-		auditSvc:   auditSvc,
-		notifSvc:   notifSvc,
+		thesisRepo:   thesisRepo,
+		userRepo:     userRepo,
+		acadRepo:     acadRepo,
+		documentRepo: documentRepo,
+		storage:      storage,
+		emailSvc:     emailSvc,
+		auditSvc:     auditSvc,
+		notifSvc:     notifSvc,
 	}
 }
 
@@ -153,6 +170,13 @@ func (uc *ThesisUseCase) Submit(ctx context.Context, req CreateThesisRequest, st
 	}
 	if req.ThesisType != "skripsi" && req.ThesisType != "tugas_akhir" {
 		return nil, ErrInvalidThesisType
+	}
+	if req.DraftFile == nil || req.DraftHeader == nil {
+		return nil, ErrDraftRequired
+	}
+	// PDF-only, ≤ 10 MB (same rules as the document upload module).
+	if err := utils.ValidatePDF(req.DraftFile, req.DraftHeader, MaxDocumentSizeBytes); err != nil {
+		return nil, err
 	}
 
 	// A student may only have one active thesis (not cancelled/graduated).
@@ -180,6 +204,7 @@ func (uc *ThesisUseCase) Submit(ctx context.Context, req CreateThesisRequest, st
 	}
 
 	thesis := &entity.Thesis{
+		ID:             uuid.New(),
 		StudentID:      studentID,
 		AcademicYearID: year.ID,
 		Title:          req.Title,
@@ -189,9 +214,36 @@ func (uc *ThesisUseCase) Submit(ctx context.Context, req CreateThesisRequest, st
 		Status:         "submitted",
 		SubmittedAt:    time.Now(),
 	}
-	if err := uc.thesisRepo.Create(ctx, thesis); err != nil {
+
+	// Upload the draft first (no DB writes yet) so a storage failure leaves
+	// nothing behind; then create the thesis row and its proposal document.
+	baseName := sanitizeFileName(req.DraftHeader.Filename)
+	storagePath := fmt.Sprintf("theses/%s/%s/v1_%s", thesis.ID, entity.DocTypeProposal, baseName)
+	fileURL, err := uc.storage.Upload(ctx, storagePath, req.DraftFile, req.DraftHeader.Size, req.DraftHeader.Header.Get("Content-Type"))
+	if err != nil {
 		return nil, err
 	}
+
+	if err := uc.thesisRepo.Create(ctx, thesis); err != nil {
+		_ = uc.storage.Delete(ctx, fileURL)
+		return nil, err
+	}
+
+	doc := &entity.Document{
+		ThesisID:     thesis.ID,
+		UploadedBy:   studentID,
+		DocumentType: entity.DocTypeProposal,
+		Version:      1,
+		FileName:     baseName,
+		FileURL:      fileURL,
+		FileSize:     &req.DraftHeader.Size,
+		Status:       entity.DocStatusPendingReview,
+	}
+	if err := uc.documentRepo.Create(ctx, doc); err != nil {
+		_ = uc.storage.Delete(ctx, fileURL)
+		return nil, err
+	}
+
 	// Re-fetch so associations (student, academic year) are populated in the response.
 	thesis, err = uc.thesisRepo.FindByID(ctx, thesis.ID)
 	if err != nil {

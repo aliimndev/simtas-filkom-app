@@ -6,12 +6,10 @@ type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost' | 'outli
 type Size = 'sm' | 'md' | 'lg'
 
 const variantClasses: Record<Variant, string> = {
-  primary:
-    'bg-primary text-primary-foreground hover:bg-primary-700 shadow-sm focus-visible:ring-primary',
-  secondary:
-    'bg-secondary text-secondary-foreground hover:bg-secondary-700 shadow-sm focus-visible:ring-secondary',
-  danger: 'bg-danger text-danger-foreground hover:bg-danger-700 shadow-sm focus-visible:ring-danger',
-  success: 'bg-success text-success-foreground hover:bg-success/90 shadow-sm focus-visible:ring-success',
+  primary: 'bg-primary text-primary-foreground hover:bg-primary-700 focus-visible:ring-primary',
+  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary-700 focus-visible:ring-secondary',
+  danger: 'bg-danger text-danger-foreground hover:bg-danger-700 focus-visible:ring-danger',
+  success: 'bg-success text-success-foreground hover:bg-success/90 focus-visible:ring-success',
   ghost: 'bg-transparent hover:bg-muted text-foreground focus-visible:ring-ring',
   outline:
     'border border-border bg-transparent hover:bg-muted text-foreground focus-visible:ring-ring',
@@ -19,8 +17,8 @@ const variantClasses: Record<Variant, string> = {
 
 const sizeClasses: Record<Size, string> = {
   sm: 'min-h-[40px] sm:min-h-0 h-8 sm:h-9 px-3 text-xs rounded-md gap-1.5',
-  md: 'h-10 sm:h-11 px-4 text-sm rounded-lg gap-2',
-  lg: 'h-12 px-6 text-base rounded-lg gap-2',
+  md: 'h-10 sm:h-11 px-4 text-sm rounded-md gap-2',
+  lg: 'h-12 px-6 text-base rounded-md gap-2',
 }
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -33,7 +31,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const buttonBaseClasses =
-  'inline-flex items-center justify-center font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]'
+  'inline-flex items-center justify-center font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (

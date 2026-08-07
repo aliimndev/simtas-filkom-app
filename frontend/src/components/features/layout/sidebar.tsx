@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronDown, LogOut, UserRound } from 'lucide-react'
+import { ChevronDown, LogOut, Menu, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { navItemsForRoles, APP_NAME } from '@/constants/navigation'
 import { roleLabel } from '@/constants/roles'
@@ -19,13 +19,13 @@ function NavLink({ href, label, icon: Icon, onNavigate }: { href: string; label:
       href={href}
       onClick={onNavigate}
       className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150',
         active
-          ? 'bg-primary/15 text-primary'
-          : 'text-foreground/60 hover:bg-muted hover:text-foreground',
+          ? 'bg-primary-50 text-primary-800'
+          : 'text-muted-foreground hover:bg-surface-hi hover:text-foreground',
       )}
     >
-      <Icon className="h-4.5 w-4.5 shrink-0" />
+      <Icon className="h-[18px] w-[18px] shrink-0" />
       {label}
     </Link>
   )
@@ -33,11 +33,9 @@ function NavLink({ href, label, icon: Icon, onNavigate }: { href: string; label:
 
 function BrandMark() {
   return (
-    <span className="accent-ring relative flex h-8 w-8 items-center justify-center rounded-full">
-      <span className="flex h-[calc(100%-3px)] w-[calc(100%-3px)] items-center justify-center rounded-full bg-background">
-        <span className="font-display text-[13px] italic text-foreground">sf</span>
-      </span>
-    </span>
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
+      S
+    </div>
   )
 }
 
@@ -46,20 +44,20 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const sections = navItemsForRoles(user ? [user.role] : [])
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-border bg-background">
+    <aside className="flex h-full w-64 flex-col border-r border-border bg-card">
       <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
         <BrandMark />
         <div className="leading-tight">
           <p className="text-sm font-semibold tracking-tight text-foreground">{APP_NAME}</p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">FILKOM · Unida</p>
+          <p className="text-[11px] text-muted-foreground">Fakultas Ilmu Komputer Unida</p>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
         {sections.map((section, i) => (
           <div key={i}>
             {section.title && (
-              <p className="mb-1.5 px-3 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground/60">
+              <p className="mb-1.5 px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 {section.title}
               </p>
             )}
@@ -76,69 +74,84 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/profile"
           onClick={onNavigate}
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-muted"
+          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-surface-hi"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-800">
             {(user?.full_name ?? '?').slice(0, 1).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1 leading-tight">
             <p className="truncate text-sm font-medium text-foreground">{user?.full_name ?? 'User'}</p>
             <p className="truncate text-[11px] text-muted-foreground">{roleLabel(user?.role)}</p>
           </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </Link>
       </div>
     </aside>
   )
 }
 
-export function TopBar() {
+export function TopBar({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const { user } = useAuthStore()
   const logout = useLogoutMutation()
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-6">
-      <div>
-        <p className="text-sm font-medium text-foreground">Selamat datang,</p>
-        <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">{roleLabel(user?.role)}</p>
+    <header className="flex h-12 items-center justify-between gap-3 border-b border-border bg-card px-4 lg:px-6">
+      <div className="flex min-w-0 items-center gap-2">
+        {onOpenMenu && (
+          <button
+            type="button"
+            onClick={onOpenMenu}
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-surface-hi hover:text-foreground lg:hidden"
+            aria-label="Buka menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
+        <span className="truncate text-sm font-semibold text-foreground lg:hidden">{APP_NAME}</span>
       </div>
 
       <div className="flex items-center gap-1">
         <NotificationBell />
         <div className="relative">
-        <button
-          type="button"
-          onClick={() => setMenuOpen((v) => !v)}
-          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-        >
-          <span className="h-2 w-2 rounded-full bg-success shadow-[0_0_8px] shadow-success/60" />
-          <span className="hidden sm:inline">Menu</span>
-        </button>
-        {menuOpen && (
-          <div
-            className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-border bg-background shadow-xl"
-            onMouseLeave={() => setMenuOpen(false)}
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-hi"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
           >
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-muted"
-              onClick={() => setMenuOpen(false)}
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-50 text-xs font-semibold text-primary-800">
+              {(user?.full_name ?? '?').slice(0, 1).toUpperCase()}
+            </span>
+            <span className="hidden sm:inline">{user?.full_name?.split(' ')[0] ?? 'Menu'}</span>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+          {menuOpen && (
+            <div
+              className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-md border border-border bg-card py-1"
+              role="menu"
             >
-              <UserRound className="h-4 w-4" /> Profil Saya
-            </Link>
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false)
-                logout.mutate()
-              }}
-              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-danger-700 transition-colors hover:bg-danger/10"
-            >
-              <LogOut className="h-4 w-4" /> Keluar
-            </button>
-          </div>
-        )}
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-foreground transition-colors hover:bg-surface-hi"
+                onClick={() => setMenuOpen(false)}
+                role="menuitem"
+              >
+                <UserRound className="h-4 w-4" /> Profil Saya
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  logout.mutate()
+                }}
+                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-danger-700 transition-colors hover:bg-danger/10"
+                role="menuitem"
+              >
+                <LogOut className="h-4 w-4" /> Keluar
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
