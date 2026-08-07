@@ -15,6 +15,7 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/config"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/jwt"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/metrics"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/storage"
 )
@@ -186,16 +187,28 @@ func (r *Router) Shutdown() {
 func (r *Router) Setup() {
 	// ── Global middleware ─────────────────────────────────────────────────
 	r.engine.Use(middleware.ErrorHandler())
+	r.engine.Use(metrics.Middleware())
 	r.engine.Use(middleware.RequestLogger())
 	r.engine.Use(middleware.SecurityHeadersMiddleware())
 	r.engine.Use(middleware.CORSMiddleware(r.cfg.CORSAllowedOrigins))
 	r.engine.Use(middleware.SanitizeMiddleware())
-	r.engine.Use(middleware.CSRFMiddleware())
+	// C1: login + password flows are exempt from CSRF — they are reachable
+	// before any GET has seeded the CSRF cookie (fresh browser, emailed
+	// reset-password deep link). Remaining POST routes keep the check.
+	r.engine.Use(middleware.CSRFMiddleware(
+		"/api/v1/auth/login",
+		"/api/v1/auth/refresh",
+		"/api/v1/auth/forgot-password",
+		"/api/v1/auth/reset-password",
+	))
 	// Cap request body size to prevent unbounded payloads from exhausting memory.
 	r.engine.Use(middleware.MaxBodySize(int64(r.cfg.MaxRequestBodyBytes)))
 	// Global rate limit: 100 requests per minute per IP (except health + auth).
 	globalRL := middleware.NewIPRateLimiter(100, 60*time.Second)
 	r.engine.Use(globalRL.Middleware())
+
+	// ── Prometheus metrics (internal scrape, not behind /api/v1) ────────
+	r.engine.GET("/metrics", metrics.Handler())
 
 	// ── API v1 ────────────────────────────────────────────────────────────
 	v1 := r.engine.Group("/api/v1")

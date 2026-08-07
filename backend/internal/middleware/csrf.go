@@ -34,9 +34,24 @@ const (
 // Safe methods (GET, HEAD, OPTIONS) are exempt from CSRF checks because they
 // are idempotent and cannot cause state changes.
 //
+// exemptPaths lists state-changing routes that skip the check. These are the
+// public, unauthenticated auth endpoints (login, refresh, forgot/reset
+// password): a fresh browser — or an emailed reset-password deep link — POSTs
+// to them before any GET has seeded the CSRF cookie, so the Double Submit
+// pattern cannot be established in advance. They remain CSRF-safe: the
+// SameSite=Lax cookies are never sent on cross-site requests, and reset
+// password is additionally guarded by the emailed reset token in the body.
+//
 // This approach works without server-side token storage and is compatible with
 // SPA architectures.
-func CSRFMiddleware() gin.HandlerFunc {
+func CSRFMiddleware(exemptPaths ...string) gin.HandlerFunc {
+	// ponytail: exact registered route match (c.FullPath), so an unmatched path
+	// can never be spoofed into the exempt list. Add new unauthenticated POST
+	// routes here; keep the list as small as possible.
+	exempt := make(map[string]struct{}, len(exemptPaths))
+	for _, p := range exemptPaths {
+		exempt[p] = struct{}{}
+	}
 	return func(c *gin.Context) {
 		// Safe methods are exempt from CSRF checks.
 		method := c.Request.Method
@@ -55,6 +70,12 @@ func CSRFMiddleware() gin.HandlerFunc {
 					false, // HttpOnly: false so frontend JS can read it
 				)
 			}
+			c.Next()
+			return
+		}
+
+		// State-changing methods on an exempt route skip the check.
+		if _, ok := exempt[c.FullPath()]; ok {
 			c.Next()
 			return
 		}
