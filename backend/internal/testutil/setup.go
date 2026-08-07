@@ -49,6 +49,8 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 	if os.Getenv("DB_NAME") == "" {
 		_ = os.Setenv("DB_NAME", "simtas_filkom_test")
 	}
+	// config.Load() fails fast on a missing APP_ENV; tests run in development.
+	_ = os.Setenv("APP_ENV", "development")
 
 	cfg := config.Load()
 	db, err := database.Connect(cfg)
@@ -78,6 +80,8 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 func SetupTestRouter(t *testing.T, db *gorm.DB) *gin.Engine {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
+	// config.Load() fails fast on a missing APP_ENV; tests run in development.
+	_ = os.Setenv("APP_ENV", "development")
 	cfg := config.Load()
 	cfg.JWTSecret = "integration-test-secret"
 	engine := gin.New()

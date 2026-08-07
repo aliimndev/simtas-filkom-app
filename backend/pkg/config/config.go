@@ -54,6 +54,9 @@ type Config struct {
 	MaxRequestBodyBytes int
 
 	CORSAllowedOrigins string
+
+	// SentryDSN enables error tracking. Empty = feature disabled (no-op).
+	SentryDSN string
 }
 
 // defaultSecrets lists JWT secrets that must NOT be used in production.
@@ -67,6 +70,14 @@ var defaultSecrets = map[string]bool{
 // combinations that would leave the server in an insecure state.
 // Call this immediately after Load() in main().
 func (c *Config) Validate() {
+	// Whitelist the value: a typo (e.g. "produkction") would fail every
+	// `== "production"` branch below and silently run in development mode.
+	switch c.AppEnv {
+	case "development", "production":
+	default:
+		panic("FATAL: APP_ENV must be one of development|production (got " + c.AppEnv + "). " +
+			"A wrong value silently disables production security behavior.")
+	}
 	if c.AppEnv == "production" {
 		if defaultSecrets[c.JWTSecret] {
 			panic("FATAL: JWT_SECRET must be set to a strong, unique value in production. " +
@@ -87,7 +98,7 @@ func (c *Config) Validate() {
 func Load() *Config {
 	return &Config{
 		AppPort: getEnv("APP_PORT", "8080"),
-		AppEnv:  getEnv("APP_ENV", "development"),
+		AppEnv:  requireEnv("APP_ENV"),
 
 		DBHost:            getEnv("DB_HOST", "localhost"),
 		DBPort:            getEnv("DB_PORT", "5432"),
@@ -128,6 +139,8 @@ func Load() *Config {
 		MaxRequestBodyBytes: getInt("MAX_REQUEST_BODY_BYTES", 10<<20), // 10 MB
 
 		CORSAllowedOrigins: getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:3000"),
+
+		SentryDSN: getEnv("SENTRY_DSN", ""),
 	}
 }
 
@@ -136,6 +149,19 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// requireEnv reads a required environment variable and panics when it is unset.
+// APP_ENV must never default silently: a server booting in development mode in
+// production is a security misconfiguration (non-Secure refresh cookie,
+// exposed swagger + test-email routes, debug logging, auto-migrate).
+func requireEnv(key string) string {
+	v := os.Getenv(key)
+	if v == "" {
+		panic("FATAL: " + key + " must be set explicitly (development|production). " +
+			"Silently defaulting to development mode is insecure.")
+	}
+	return v
 }
 
 func getDuration(key string, fallback time.Duration) time.Duration {
