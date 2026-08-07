@@ -210,6 +210,35 @@ func TestDashboardStudentNoThesis(t *testing.T) {
 	}
 }
 
+// TestDashboardStudentEmptyCollections guards against Go marshaling nil slices
+// as `null`: the response must carry empty (non-nil) slices so the frontend
+// can call len()/map() without crashing (regression: dashboard page threw
+// "Cannot read properties of null (reading 'length')").
+func TestDashboardStudentEmptyCollections(t *testing.T) {
+	uc := newTestDashboardUseCase(&fakeDashboardRepo{
+		// graduated → no pending_actions; no supervisors/documents attached.
+		student: &domainRepo.StudentProgress{
+			ThesisID: uuid.New(),
+			Title:    "Judul",
+			Status:   "graduated",
+		},
+	})
+
+	resp, err := uc.Student(context.Background(), uuid.New())
+	if err != nil {
+		t.Fatalf("Student: %v", err)
+	}
+	if resp.Documents == nil {
+		t.Error("documents must be an empty slice ([]), not null")
+	}
+	if resp.Supervisors == nil {
+		t.Error("supervisors must be an empty slice ([]), not null")
+	}
+	if resp.PendingActions == nil {
+		t.Error("pending_actions must be an empty slice ([]), not null")
+	}
+}
+
 func TestDashboardSupervisor(t *testing.T) {
 	lastCons := time.Now().AddDate(0, 0, -12)
 	uc := newTestDashboardUseCase(&fakeDashboardRepo{

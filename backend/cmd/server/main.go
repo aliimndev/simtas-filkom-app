@@ -3,7 +3,7 @@ package main
 // SIMTAS FILKOM API (Job 22)
 //
 //	@title           SIMTAS FILKOM API
-//	@version         1.0
+//	@version         1.1.0
 //	@description     API untuk Sistem Manajemen Tugas Akhir dan Skripsi Fakultas Ilmu Komputer Universitas Djuanda.
 //	@termsOfService  https://filkom.unida.ac.id
 //
@@ -43,9 +43,13 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/database"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/logger"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/scheduler"
+	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
+
+// version is injected at build time via -ldflags "-X main.version=...".
+var version = "dev"
 
 func main() {
 	// ── CLI flags ─────────────────────────────────────────────────────────
@@ -59,9 +63,24 @@ func main() {
 	}
 
 	cfg := config.Load()
+	cfg.Validate() // Panic on insecure production configuration
 
 	// ── Structured logging (Job 13) ──────────────────────────────────────
 	logger.Init(cfg.AppEnv)
+
+	// ── Sentry error tracking (Job 30) — no-op when SENTRY_DSN is unset ─
+	if cfg.SentryDSN != "" {
+		if err := sentry.Init(sentry.ClientOptions{
+			Dsn:              cfg.SentryDSN,
+			Environment:      cfg.AppEnv,
+			Release:          version,
+			TracesSampleRate: 0.1,
+		}); err != nil {
+			log.Printf("warn: sentry init failed: %v", err)
+		} else {
+			defer sentry.Flush(2 * time.Second)
+		}
+	}
 
 	// ── Database ──────────────────────────────────────────────────────────
 	db, err := database.Connect(cfg)
@@ -111,6 +130,10 @@ func main() {
 
 	engine := gin.Default()
 
+	// Cap multipart form memory to the configured request body limit. File
+	// uploads are additionally bounded by the document layer's own 10 MB check.
+	engine.MaxMultipartMemory = int64(cfg.MaxRequestBodyBytes)
+
 	// Register all routes (auth + middleware)
 	r := handler.NewRouter(engine, db, cfg)
 	r.Setup()
@@ -123,6 +146,12 @@ func main() {
 	// ── Token blacklist cleanup (Job 13) ─────────────────────────────────
 	stopCleanup := scheduler.StartTokenCleanup(db)
 	defer stopCleanup()
+
+	// ── Durable email retry (Job 24) ─────────────────────────────────────
+	// Re-enqueues email_logs rows stuck as "queued" (crashed mid-delivery) or
+	// "failed" so sends survive restarts and transient provider outages.
+	stopEmailRetry := scheduler.StartEmailRetry(db, r.EmailService())
+	defer stopEmailRetry()
 
 	// ── Start server (production-ready with timeouts + graceful shutdown) ─
 	addr := fmt.Sprintf(":%s", cfg.AppPort)

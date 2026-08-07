@@ -11,8 +11,10 @@ export const authApi = {
     await apiClient.post('/auth/logout')
   },
 
-  async refresh(refreshToken: string): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
-    const res = await apiClient.post('/auth/refresh', { refresh_token: refreshToken })
+  // The refresh token is sent automatically via the HttpOnly cookie set at
+  // login, so no token needs to be passed in the request body.
+  async refresh(): Promise<{ access_token: string; expires_in: number }> {
+    const res = await apiClient.post('/auth/refresh')
     return res.data.data
   },
 

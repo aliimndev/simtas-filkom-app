@@ -1,0 +1,13 @@
+# SIMTAS FILKOM — Prometheus scrape config
+# Run via: docker compose -f deploy/docker-compose.monitoring.yml up -d
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: simtas-backend
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["backend:8080"]
+        labels:
+          service: simtas-api

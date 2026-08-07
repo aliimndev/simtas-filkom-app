@@ -9,6 +9,7 @@ import { roleLabel } from '@/constants/roles'
 import { cn } from '@/lib/utils/cn'
 import { useLogoutMutation } from '@/lib/hooks/use-auth'
 import { useAuthStore } from '@/lib/stores/auth-store'
+import { NotificationBell } from '@/components/features/notification-bell'
 
 function NavLink({ href, label, icon: Icon, onNavigate }: { href: string; label: string; icon: React.ElementType; onNavigate?: () => void }) {
   const pathname = usePathname()
@@ -103,7 +104,9 @@ export function TopBar() {
         <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-muted-foreground">{roleLabel(user?.role)}</p>
       </div>
 
-      <div className="relative">
+      <div className="flex items-center gap-1">
+        <NotificationBell />
+        <div className="relative">
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
@@ -136,6 +139,7 @@ export function TopBar() {
             </button>
           </div>
         )}
+        </div>
       </div>
     </header>
   )

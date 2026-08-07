@@ -278,6 +278,22 @@ func (r *recordingSeminarEmailService) SendArchiveCreated(context.Context, strin
 	return nil
 }
 
+func (r *recordingSeminarEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingSeminarEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingSeminarEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingSeminarEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
 // newTestSeminarUseCase wires a fresh seminar use case with in-memory fakes.
 func newTestSeminarUseCase(t *testing.T) (*SeminarUseCase, *fakeSeminarRepo, *fakeDocumentRepo, *fakeThesisRepo, *fakeUserRepo, *recordingSeminarEmailService) {
 	t.Helper()
@@ -293,8 +309,8 @@ func newTestSeminarUseCase(t *testing.T) (*SeminarUseCase, *fakeSeminarRepo, *fa
 	userRepo.roles["kaprodi"] = &entity.Role{ID: 2, Name: "kaprodi"}
 
 	auditSvc := audit.NewAuditService(nil)
-	documentUC := NewDocumentUseCase(docRepo, thesisRepo, nil, email, auditSvc)
-	uc := NewSeminarUseCase(semRepo, thesisRepo, userRepo, documentUC, email, auditSvc)
+	documentUC := NewDocumentUseCase(docRepo, thesisRepo, nil, email, auditSvc, nil)
+	uc := NewSeminarUseCase(semRepo, thesisRepo, userRepo, documentUC, email, auditSvc, nil)
 	return uc, semRepo, docRepo, thesisRepo, userRepo, email
 }
 

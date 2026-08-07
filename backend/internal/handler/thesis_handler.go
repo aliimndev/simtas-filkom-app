@@ -318,27 +318,7 @@ func repositoryThesisFilter(
 	}
 }
 
-// respondThesisError maps use case errors to HTTP responses.
+// respondThesisError delegates to the central error catalog (see errors.go).
 func (h *ThesisHandler) respondThesisError(c *gin.Context, err error) {
-	switch {
-	case errors.Is(err, usecase.ErrThesisNotFound):
-		response.NotFound(c, "Thesis tidak ditemukan")
-	case errors.Is(err, usecase.ErrForbidden):
-		response.Forbidden(c, "Akses ditolak")
-	case errors.Is(err, usecase.ErrActiveThesisExists),
-		errors.Is(err, usecase.ErrTitleTooShort),
-		errors.Is(err, usecase.ErrTitleTooLong),
-		errors.Is(err, usecase.ErrAbstractTooShort),
-		errors.Is(err, usecase.ErrInvalidThesisType),
-		errors.Is(err, usecase.ErrInvalidDecision),
-		errors.Is(err, usecase.ErrInvalidSupervisorCount),
-		errors.Is(err, usecase.ErrSupervisorNotEligible),
-		errors.Is(err, usecase.ErrThesisAlreadyCancelled),
-		errors.Is(err, usecase.ErrNoActiveAcademicYear):
-		response.BadRequest(c, err.Error())
-	case errors.Is(err, usecase.ErrInvalidStateTransition):
-		response.Error(c, http.StatusUnprocessableEntity, err.Error(), err)
-	default:
-		response.InternalError(c, "Terjadi kesalahan server")
-	}
+	respondError(c, err)
 }

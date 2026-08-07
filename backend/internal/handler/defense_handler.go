@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -310,33 +309,7 @@ func (h *DefenseHandler) Upcoming(c *gin.Context) {
 	response.Success(c, http.StatusOK, schedules)
 }
 
-// respondDefenseError maps defense use case errors to HTTP responses.
+// respondDefenseError delegates to the central error catalog (see errors.go).
 func (h *DefenseHandler) respondDefenseError(c *gin.Context, err error) {
-	switch {
-	case errors.Is(err, usecase.ErrDefenseNotFound):
-		response.NotFound(c, "Sidang tidak ditemukan")
-	case errors.Is(err, usecase.ErrThesisNotFound):
-		response.NotFound(c, "Thesis tidak ditemukan")
-	case errors.Is(err, usecase.ErrForbidden),
-		errors.Is(err, usecase.ErrDefenseNotExaminer):
-		response.Forbidden(c, "Akses ditolak")
-	case errors.Is(err, usecase.ErrDefenseScheduleLeadTime),
-		errors.Is(err, usecase.ErrDefenseMinExaminers),
-		errors.Is(err, usecase.ErrDefenseInvalidExaminer),
-		errors.Is(err, usecase.ErrDefenseIncompleteScore),
-		errors.Is(err, usecase.ErrDefenseInvalidScore):
-		response.BadRequest(c, err.Error())
-	case errors.Is(err, usecase.ErrDefenseActiveExists),
-		errors.Is(err, usecase.ErrDefenseRoomConflict),
-		errors.Is(err, usecase.ErrDefenseAlreadyScored):
-		response.Error(c, http.StatusConflict, err.Error(), err)
-	// Gate failures are state violations → 422 per docs/phase-2-core-backend/09-defense-module.md.
-	case errors.Is(err, usecase.ErrDefenseGateNotMet),
-		errors.Is(err, usecase.ErrGraduationGateNotMet),
-		errors.Is(err, usecase.ErrDefenseNotScheduled),
-		errors.Is(err, usecase.ErrDefenseNotFinalized):
-		response.Error(c, http.StatusUnprocessableEntity, err.Error(), err)
-	default:
-		response.InternalError(c, "Terjadi kesalahan server")
-	}
+	respondError(c, err)
 }

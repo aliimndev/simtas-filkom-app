@@ -14,6 +14,7 @@ import (
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 )
 
 // Consultation status values (kept in sync with the DB check constraint).
@@ -74,6 +75,9 @@ type ConsultationDetail struct {
 type UserBrief struct {
 	ID       uuid.UUID `json:"id"`
 	FullName string    `json:"full_name"`
+	// NimNidn is populated only where the underlying query preloads the user
+	// (e.g. title change requests); omitted elsewhere.
+	NimNidn *string `json:"nim_nidn,omitempty"`
 }
 
 // ConsultationSummary aggregates consultation statistics for a thesis.
@@ -99,6 +103,7 @@ type ConsultationUseCase struct {
 	access           *ThesisAccess
 	emailSvc         email.EmailService
 	auditSvc         *audit.AuditService
+	notifSvc         *notification.NotificationService
 }
 
 func NewConsultationUseCase(
@@ -106,6 +111,7 @@ func NewConsultationUseCase(
 	thesisRepo domainRepo.ThesisRepository,
 	emailSvc email.EmailService,
 	auditSvc *audit.AuditService,
+	notifSvc *notification.NotificationService,
 ) *ConsultationUseCase {
 	return &ConsultationUseCase{
 		consultationRepo: consultationRepo,
@@ -113,6 +119,7 @@ func NewConsultationUseCase(
 		access:           NewThesisAccess(thesisRepo),
 		emailSvc:         emailSvc,
 		auditSvc:         auditSvc,
+		notifSvc:         notifSvc,
 	}
 }
 
@@ -165,10 +172,26 @@ func (uc *ConsultationUseCase) Create(ctx context.Context, thesisID uuid.UUID, r
 	// Email notification (stub): student → supervisors, supervisor → student.
 	if owner {
 		emails := supervisorEmails(thesis)
-		go func() { _ = uc.emailSvc.SendConsultationCreated(context.Background(), emails, log) }()
+		go func() {
+			_ = uc.emailSvc.SendConsultationCreated(context.Background(), emails, log)
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: userIDs(thesis.Supervisors),
+				Title:   "Log Konsultasi Baru",
+				Message: "Mahasiswa " + thesis.Student.FullName + " mencatat log konsultasi baru.",
+				Type:    "consultation",
+				Link:    notification.Path("/theses/%s/consultations", thesisID),
+			})
+		}()
 	} else {
 		go func() {
 			_ = uc.emailSvc.SendConsultationCreated(context.Background(), []string{thesis.Student.Email}, log)
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: []uuid.UUID{thesis.Student.ID},
+				Title:   "Log Konsultasi Baru",
+				Message: "Dosen pembimbing mencatat log konsultasi untuk skripsi Anda.",
+				Type:    "consultation",
+				Link:    notification.Path("/theses/%s/consultations", thesisID),
+			})
 		}()
 	}
 
@@ -323,7 +346,16 @@ func (uc *ConsultationUseCase) Approve(ctx context.Context, thesisID, id, actor 
 	thesis, err := uc.thesisRepo.FindByID(ctx, thesisID)
 	if err == nil {
 		studentEmail := thesis.Student.Email
-		go func() { _ = uc.emailSvc.SendConsultationApproved(context.Background(), studentEmail, log) }()
+		go func() {
+			_ = uc.emailSvc.SendConsultationApproved(context.Background(), studentEmail, log)
+			uc.notifSvc.Notify(notification.Params{
+				UserIDs: []uuid.UUID{thesis.Student.ID},
+				Title:   "Log Konsultasi Disetujui",
+				Message: "Log konsultasi Anda telah disetujui oleh dosen pembimbing.",
+				Type:    "consultation",
+				Link:    notification.Path("/theses/%s/consultations", thesisID),
+			})
+		}()
 	}
 
 	uc.auditSvc.Log(ctx, audit.AuditParams{

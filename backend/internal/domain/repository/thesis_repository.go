@@ -33,6 +33,11 @@ type ThesisRepository interface {
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string, notes string) error
 	Update(ctx context.Context, thesis *entity.Thesis) error
 	AssignSupervisor(ctx context.Context, thesisID, supervisorID, assignedBy uuid.UUID) error
+	// AssignSupervisors atomically assigns 1–2 supervisors and moves the thesis
+	// to in_progress within a single database transaction, so a partial failure
+	// (e.g. one insert succeeds then UpdateStatus fails) can never leave an
+	// inconsistent state.
+	AssignSupervisors(ctx context.Context, thesisID uuid.UUID, supervisorIDs []uuid.UUID, assignedBy uuid.UUID) error
 	GetSupervisors(ctx context.Context, thesisID uuid.UUID) ([]*entity.User, error)
 	FindActiveByStudentID(ctx context.Context, studentID uuid.UUID) (*entity.Thesis, error)
 	// CountActiveSupervisions returns the number of non-finished theses a lecturer supervises.

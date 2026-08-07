@@ -26,3 +26,18 @@ type TokenBlacklist struct {
 }
 
 func (TokenBlacklist) TableName() string { return "token_blacklist" }
+
+// RefreshTokenFamily tracks a family of refresh tokens for a user. Exactly one
+// token JTI per family is "current" at a time (token_jti); rotating on every
+// refresh lets us detect replay of a stolen token and revoke the whole family.
+type RefreshTokenFamily struct {
+	ID        uuid.UUID  `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	UserID    uuid.UUID  `gorm:"type:uuid;not null;index" json:"user_id"`
+	FamilyID  uuid.UUID  `gorm:"type:uuid;not null;index" json:"family_id"`
+	TokenJTI  string     `gorm:"type:varchar(255);uniqueIndex;not null" json:"-"`
+	ExpiresAt time.Time  `gorm:"not null;index" json:"expires_at"`
+	RotatedAt *time.Time `json:"rotated_at,omitempty"`
+	CreatedAt time.Time  `gorm:"not null;default:now()" json:"created_at"`
+}
+
+func (RefreshTokenFamily) TableName() string { return "refresh_token_families" }

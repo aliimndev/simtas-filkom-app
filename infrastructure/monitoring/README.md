@@ -1,12 +1,16 @@
-# Infrastructure — Monitoring (Job 27)
+# Infrastructure — Monitoring
 
-Folder ini berisi konfigurasi monitoring & logging untuk deployment production
-(akan diisi saat Job 27 — Monitoring & Logging dikerjakan).
+Stack Prometheus + Grafana untuk deployment production.
 
-Referensi: `docs/phase-6-deployment/27-monitoring-logging.md`
+- `prometheus.yml` — scrape config untuk backend API (`backend:8080/metrics`)
+- `grafana/provisioning/` — datasource & dashboard auto-provisioning
+- `grafana/dashboards/simtas-api-overview.json` — metrik & uptime
 
-Rencana isi folder ini:
-- `prometheus.yml` — scrape config untuk backend API
-- `grafana/dashboards/` — dashboard metrik & uptime
-- `loki/` — aggregasi log backend (opsional)
-- Alert rules untuk notifikasi (email/Slack)
+Deploy (setelah stack utama up):
+
+```bash
+docker compose -f deploy/docker-compose.monitoring.yml up -d
+```
+
+Backend `/metrics` (Prometheus text format) di-serve langsung oleh Gin,
+internal di docker network (tidak dipublikasikan via nginx).

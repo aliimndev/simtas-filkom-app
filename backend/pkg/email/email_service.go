@@ -60,4 +60,18 @@ type EmailService interface {
 	// ── Archive notifications (Job 10) ──────────────────────────────────
 	// SendArchiveCreated notifies the student that their thesis archive is available.
 	SendArchiveCreated(ctx context.Context, to string, archive *entity.ThesisArchive) error
+
+	// ── Title change request notifications ─────────────────────────────
+	// SendTitleChangeRequested notifies the student (confirmation) and the
+	// assigned supervisors (review prompt) about a new title change request.
+	SendTitleChangeRequested(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error
+	// SendTitleChangeCancelled notifies the assigned supervisors that a student
+	// retracted a pending title change request.
+	SendTitleChangeCancelled(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error
+	// SendTitleChangeApproved notifies the student that their requested title
+	// change was approved and the thesis title updated.
+	SendTitleChangeApproved(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error
+	// SendTitleChangeRejected notifies the student that their requested title
+	// change was rejected by the supervisor.
+	SendTitleChangeRejected(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error
 }

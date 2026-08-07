@@ -10,6 +10,7 @@ import {
   BookOpen,
   ClipboardCheck,
   ShieldCheck,
+  FilePen,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -36,6 +37,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: '/theses', label: 'Daftar Tugas Akhir Skripsi', icon: BookOpen, roles: ['admin_fakultas', 'kaprodi'] },
       { href: '/supervision', label: 'Bimbingan', icon: MessagesSquare, roles: ['mahasiswa', 'dosen_pembimbing'] },
       { href: '/documents', label: 'Dokumen', icon: FolderOpen, roles: ['mahasiswa', 'dosen_pembimbing'] },
+      { href: '/title-change-reviews', label: 'Review Perubahan Judul', icon: FilePen, roles: ['dosen_pembimbing'] },
     ],
   },
   {

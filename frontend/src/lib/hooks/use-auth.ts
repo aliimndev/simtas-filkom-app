@@ -44,7 +44,7 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (res) => {
-      setAuth(res.user, res.access_token, res.refresh_token)
+      setAuth(res.user, res.access_token)
       queryClient.invalidateQueries({ queryKey: meKey })
       if (res.user.must_change_password) {
         router.push('/profile?force=change-password')

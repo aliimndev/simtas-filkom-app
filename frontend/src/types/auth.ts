@@ -25,7 +25,6 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   access_token: string
-  refresh_token: string
   expires_in: number
   user: User
 }
@@ -43,7 +42,6 @@ export interface ResetPasswordRequest {
 export interface AuthState {
   user: User | null
   accessToken: string | null
-  refreshToken: string | null
   isAuthenticated: boolean
   isLoading: boolean
 }

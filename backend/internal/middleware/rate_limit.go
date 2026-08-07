@@ -22,7 +22,9 @@ type ipRateLimiter struct {
 	window  time.Duration
 }
 
-func newIPRateLimiter(limit int, window time.Duration) *ipRateLimiter {
+// NewIPRateLimiter creates a new rate limiter that can be used as a reusable
+// middleware instance. Exported so the router can create a global instance.
+func NewIPRateLimiter(limit int, window time.Duration) *ipRateLimiter {
 	rl := &ipRateLimiter{
 		entries: make(map[string]*rateLimitEntry),
 		limit:   limit,
@@ -30,6 +32,10 @@ func newIPRateLimiter(limit int, window time.Duration) *ipRateLimiter {
 	}
 	go rl.cleanup()
 	return rl
+}
+
+func newIPRateLimiter(limit int, window time.Duration) *ipRateLimiter {
+	return NewIPRateLimiter(limit, window)
 }
 
 func (rl *ipRateLimiter) cleanup() {
@@ -66,11 +72,22 @@ func (rl *ipRateLimiter) allow(ip string) bool {
 // RateLimitMiddleware limits requests per IP within a sliding window
 func RateLimitMiddleware(limit int, window time.Duration) gin.HandlerFunc {
 	limiter := newIPRateLimiter(limit, window)
+	return limiter.Middleware()
+}
 
+// Middleware returns a Gin middleware that enforces the rate limit.
+// Used by the global rate limiter in the router.
+func (rl *ipRateLimiter) Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !limiter.allow(c.ClientIP()) {
+		// Skip rate limiting for health checks and OPTIONS (preflight).
+		if c.Request.URL.Path == "/api/v1/health" || c.Request.Method == "OPTIONS" {
+			c.Next()
+			return
+		}
+
+		if !rl.allow(c.ClientIP()) {
 			response.Error(c, http.StatusTooManyRequests,
-				"Terlalu banyak percobaan login. Coba lagi dalam beberapa menit.", nil)
+				"Terlalu banyak permintaan. Coba lagi dalam beberapa menit.", nil)
 			c.Abort()
 			return
 		}

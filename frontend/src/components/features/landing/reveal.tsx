@@ -20,13 +20,17 @@ export function Reveal({
   as?: React.ElementType
 }) {
   const ref = useRef<HTMLElement>(null)
-  const [visible, setVisible] = useState(() => typeof IntersectionObserver === 'undefined')
+  // SSR-safe: `visible` starts false on both server and client so hydration
+  // matches. Elements are revealed by the observer below once in view.
+  const [visible, setVisible] = useState(false)
 
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
     if (typeof IntersectionObserver === 'undefined') {
-      return
+      // Ancient browser without IntersectionObserver: just show the content.
+      const raf = requestAnimationFrame(() => setVisible(true))
+      return () => cancelAnimationFrame(raf)
     }
     const io = new IntersectionObserver(
       ([entry]) => {

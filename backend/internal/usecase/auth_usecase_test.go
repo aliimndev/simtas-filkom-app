@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
@@ -75,6 +76,18 @@ func (f *fakeAuthRepo) ClearMustChangePassword(_ context.Context, _ uuid.UUID) e
 func (f *fakeAuthRepo) GetUserTokenVersion(_ context.Context, _ string) (int, error) {
 	return 0, nil
 }
+func (f *fakeAuthRepo) CreateRefreshTokenFamily(_ context.Context, _ *entity.RefreshTokenFamily) error {
+	return nil
+}
+func (f *fakeAuthRepo) FindRefreshTokenFamilyByJTI(_ context.Context, _ string) (*entity.RefreshTokenFamily, error) {
+	return nil, nil
+}
+func (f *fakeAuthRepo) RotateRefreshTokenFamily(_ context.Context, _, _ string, _ time.Time) (bool, error) {
+	return false, nil
+}
+func (f *fakeAuthRepo) RevokeRefreshTokenFamiliesByUser(_ context.Context, _ uuid.UUID) error {
+	return nil
+}
 
 // chanAuditRepo records the actions written by AuditService.Log (which runs in
 // a goroutine) so tests can assert the auth audit trail deterministically.
@@ -137,6 +150,18 @@ func (f *authUserRepo) ClearMustChangePassword(_ context.Context, _ uuid.UUID) e
 }
 func (f *authUserRepo) GetUserTokenVersion(_ context.Context, _ string) (int, error) {
 	return 0, nil
+}
+func (f *authUserRepo) CreateRefreshTokenFamily(_ context.Context, _ *entity.RefreshTokenFamily) error {
+	return nil
+}
+func (f *authUserRepo) FindRefreshTokenFamilyByJTI(_ context.Context, _ string) (*entity.RefreshTokenFamily, error) {
+	return nil, gorm.ErrRecordNotFound
+}
+func (f *authUserRepo) RotateRefreshTokenFamily(_ context.Context, _, _ string, _ time.Time) (bool, error) {
+	return false, nil
+}
+func (f *authUserRepo) RevokeRefreshTokenFamiliesByUser(_ context.Context, _ uuid.UUID) error {
+	return nil
 }
 
 func newTestUser(password string) *entity.User {

@@ -271,7 +271,7 @@ func (h *SeminarHandler) respondSeminarError(c *gin.Context, err error) {
 		errors.Is(err, usecase.ErrSeminarRoomConflict),
 		errors.Is(err, usecase.ErrSeminarAlreadyScored):
 		response.Error(c, http.StatusConflict, err.Error(), err)
-	// Gate failure is a state violation → 422 per docs/phase-2-core-backend/08-seminar-module.md.
+	// Gate failure is a state violation → 422.
 	case errors.Is(err, usecase.ErrSeminarGateNotMet),
 		errors.Is(err, usecase.ErrSeminarNotScheduled),
 		errors.Is(err, usecase.ErrSeminarNotPassed):

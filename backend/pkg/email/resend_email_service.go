@@ -9,9 +9,11 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
+	"github.com/google/uuid"
 	"github.com/resend/resend-go/v2"
 	"gorm.io/gorm"
 )
@@ -57,11 +59,44 @@ type ResendEmailService struct {
 	db          *gorm.DB
 	devMode     bool
 	templates   map[string]*template.Template
+
+	// queue + workers implement the durable email retry queue: send() renders
+	// synchronously then enqueues a job; a small worker pool drains the queue
+	// with in-process retries and records the outcome in email_logs. A periodic
+	// scheduler re-enqueues rows left "queued"/"failed" so sends survive crashes.
+	queue        chan deliverJob
+	wg           sync.WaitGroup
+	shutdownOnce sync.Once
+}
+
+// Queue tuning. The queue only ever buffers while every worker is busy on a
+// provider request (each bounded by a timeout), so it never grows unbounded.
+const (
+	emailQueueSize   = 1024
+	emailWorkerCount = 4
+	emailMaxRetries  = 3
+)
+
+// emailRetryBackoff is the sleep between consecutive delivery attempts. Index 0
+// applies between attempt 1 and 2, and so on. It has exactly emailMaxRetries
+// entries.
+var emailRetryBackoff = []time.Duration{500 * time.Millisecond, 1500 * time.Millisecond, 5 * time.Second}
+
+// deliverJob is a single unit of work for the email worker pool. logIDs lists
+// the email_logs rows already recorded for these recipients (when re-enqueued
+// by the retry scheduler); when empty, the worker records queued rows itself.
+type deliverJob struct {
+	recipients []string
+	subject    string
+	htmlBody   string
+	eventType  string
+	logIDs     []uuid.UUID
 }
 
 // NewResendEmailService builds a Resend-backed service. Pass an empty apiKey
 // together with devMode=true to run in console-only mode without a client.
-// Templates are parsed once at construction and cached for subsequent sends.
+// Templates are parsed once at construction and cached for subsequent sends,
+// and the worker pool is started.
 func NewResendEmailService(apiKey, fromEmail, fromName, frontendURL string, db *gorm.DB, devMode bool) *ResendEmailService {
 	s := &ResendEmailService{
 		fromEmail:   fromEmail,
@@ -70,9 +105,14 @@ func NewResendEmailService(apiKey, fromEmail, fromName, frontendURL string, db *
 		db:          db,
 		devMode:     devMode,
 		templates:   loadTemplates(),
+		queue:       make(chan deliverJob, emailQueueSize),
 	}
 	if !devMode && apiKey != "" {
 		s.client = resend.NewClient(apiKey)
+	}
+	for i := 0; i < emailWorkerCount; i++ {
+		s.wg.Add(1)
+		go s.worker()
 	}
 	return s
 }
@@ -404,9 +444,9 @@ func (s *ResendEmailService) baseData(title string) TemplateData {
 }
 
 // send renders the template synchronously (so template errors surface), then
-// delivers asynchronously so the HTTP response never waits for the email.
-// The sender uses its own background context during delivery, so no request
-// context is threaded through here.
+// enqueues delivery so the HTTP response never waits for the email. The sender
+// uses its own background context during delivery, so no request context is
+// threaded through here.
 func (s *ResendEmailService) send(to []string, subject, templateName, eventType string, data TemplateData) error {
 	if len(to) == 0 {
 		return nil
@@ -415,8 +455,52 @@ func (s *ResendEmailService) send(to []string, subject, templateName, eventType 
 	if err != nil {
 		return fmt.Errorf("render email template %s: %w", templateName, err)
 	}
-	go s.deliver(to, subject, htmlBody, eventType)
+	s.enqueue(deliverJob{
+		recipients: to,
+		subject:    subject,
+		htmlBody:   htmlBody,
+		eventType:  eventType,
+	})
 	return nil
+}
+
+// enqueue adds a delivery job to the bounded queue. If the queue is full every
+// worker is busy; the job is dropped and logged rather than blocking the
+// request (the retry scheduler can still pick it up from email_logs).
+func (s *ResendEmailService) enqueue(job deliverJob) {
+	select {
+	case s.queue <- job:
+	default:
+		log.Printf("[email-resend][%s] queue full, dropping send to %v", job.eventType, job.recipients)
+	}
+}
+
+// Retry re-enqueues a previously queued or failed email_logs row for another
+// delivery cycle. Used by the durable retry scheduler after a restart or a
+// failed delivery cycle. The referenced row already exists, so the worker must
+// not record a duplicate.
+func (s *ResendEmailService) Retry(logID uuid.UUID, recipient, subject, htmlBody, eventType string) {
+	s.enqueue(deliverJob{
+		recipients: []string{recipient},
+		subject:    subject,
+		htmlBody:   htmlBody,
+		eventType:  eventType,
+		logIDs:     []uuid.UUID{logID},
+	})
+}
+
+// Shutdown drains the worker pool. It is safe to call more than once; after the
+// first call the queue is closed and in-flight jobs finish their current attempt.
+func (s *ResendEmailService) Shutdown() {
+	s.shutdownOnce.Do(func() { close(s.queue) })
+	s.wg.Wait()
+}
+
+func (s *ResendEmailService) worker() {
+	defer s.wg.Done()
+	for job := range s.queue {
+		s.deliver(job)
+	}
 }
 
 func (s *ResendEmailService) render(name string, data TemplateData) (string, error) {
@@ -431,47 +515,112 @@ func (s *ResendEmailService) render(name string, data TemplateData) (string, err
 	return buf.String(), nil
 }
 
-// deliver performs the actual send (or console log in dev mode) and records
-// the outcome in email_logs. It uses a fresh background context because the
-// request context may be cancelled by the time the goroutine runs. A panic
-// inside the client is recovered so a send failure never crashes the process.
-func (s *ResendEmailService) deliver(to []string, subject, htmlBody, eventType string) {
+// deliver performs the actual send (or console log in dev mode) and records the
+// outcome in email_logs. It retries transient provider failures with backoff,
+// and only marks a row "failed" once every attempt is exhausted. A panic inside
+// the client is recovered so a send failure never crashes the process.
+func (s *ResendEmailService) deliver(job deliverJob) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("[email-resend][%s] panic while sending to %v: %v", eventType, to, r)
+			log.Printf("[email-resend][%s] panic while sending to %v: %v", job.eventType, job.recipients, r)
 		}
 	}()
 
-	sendCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	sendCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	if s.devMode {
-		log.Printf("[email-dev][%s] to=%v subject=%q (template rendered, not sent)", eventType, to, subject)
-		for _, recipient := range to {
-			s.record(sendCtx, recipient, eventType, subject, "sent", "")
+		log.Printf("[email-dev][%s] to=%v subject=%q (template rendered, not sent)", job.eventType, job.recipients, job.subject)
+		for _, recipient := range job.recipients {
+			s.record(sendCtx, recipient, job.eventType, job.subject, "sent", "")
 		}
 		return
 	}
 	if s.client == nil {
-		log.Printf("[email-resend][%s] client is nil, skipping send to %v", eventType, to)
+		log.Printf("[email-resend][%s] client is nil, skipping send to %v", job.eventType, job.recipients)
 		return
+	}
+
+	// Durable queued rows: if the process dies mid-delivery, the retry scheduler
+	// finds these "queued" rows (with the persisted body) and re-enqueues them.
+	logIDs := job.logIDs
+	if len(logIDs) == 0 {
+		logIDs = s.recordQueued(sendCtx, job.recipients, job.eventType, job.subject, job.htmlBody)
 	}
 
 	params := &resend.SendEmailRequest{
 		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail),
-		To:      to,
-		Subject: subject,
-		Html:    htmlBody,
+		To:      job.recipients,
+		Subject: job.subject,
+		Html:    job.htmlBody,
 	}
-	if _, err := s.client.Emails.Send(params); err != nil {
-		log.Printf("[email-resend][%s] send failed to %v: %v", eventType, to, err)
-		for _, recipient := range to {
-			s.record(sendCtx, recipient, eventType, subject, "failed", err.Error())
+
+	var lastErr error
+	for attempt := 1; attempt <= emailMaxRetries+1; attempt++ {
+		if attempt > 1 {
+			select {
+			case <-time.After(emailRetryBackoff[attempt-2]):
+			case <-sendCtx.Done():
+				return
+			}
 		}
+		if _, err := s.client.Emails.Send(params); err != nil {
+			lastErr = err
+			log.Printf("[email-resend][%s] send failed to %v (attempt %d/%d): %v", job.eventType, job.recipients, attempt, emailMaxRetries+1, err)
+			continue
+		}
+		s.updateStatus(sendCtx, logIDs, "sent", "")
 		return
 	}
-	for _, recipient := range to {
-		s.record(sendCtx, recipient, eventType, subject, "sent", "")
+
+	// All in-process attempts exhausted — mark failed so the scheduler can retry
+	// in a later cycle (up to its own attempt cap) instead of losing the email.
+	s.updateStatus(sendCtx, logIDs, "failed", lastErr.Error())
+}
+
+// recordQueued writes one durable "queued" email_logs row per recipient with the
+// rendered body persisted for crash recovery. Returns the created row IDs.
+func (s *ResendEmailService) recordQueued(ctx context.Context, recipients []string, eventType, subject, htmlBody string) []uuid.UUID {
+	if s.db == nil {
+		return nil
+	}
+	ids := make([]uuid.UUID, 0, len(recipients))
+	for _, to := range recipients {
+		entry := &entity.EmailLog{
+			RecipientEmail: to,
+			EventType:      eventType,
+			Subject:        &subject,
+			Status:         "queued",
+			Provider:       "resend",
+			Body:           &htmlBody,
+		}
+		if err := s.db.WithContext(ctx).Create(entry).Error; err != nil {
+			// Never fail the request because logging failed.
+			log.Printf("[email-resend] failed to record queued email_logs entry: %v", err)
+			continue
+		}
+		ids = append(ids, entry.ID)
+	}
+	return ids
+}
+
+// updateStatus moves the given email_logs rows to a terminal outcome, bumping
+// the failure counter when the delivery cycle ended in "failed".
+func (s *ResendEmailService) updateStatus(ctx context.Context, ids []uuid.UUID, status, errMsg string) {
+	if s.db == nil || len(ids) == 0 {
+		return
+	}
+	updates := map[string]interface{}{"status": status}
+	if errMsg != "" {
+		updates["error_message"] = errMsg
+	} else {
+		updates["error_message"] = nil
+	}
+	if status == "failed" {
+		updates["attempts"] = gorm.Expr("attempts + 1")
+	}
+	if err := s.db.WithContext(ctx).Model(&entity.EmailLog{}).Where("id IN ?", ids).Updates(updates).Error; err != nil {
+		log.Printf("[email-resend] failed to update email_logs status: %v", err)
 	}
 }
 
@@ -571,7 +720,13 @@ func loadTemplates() map[string]*template.Template {
 		"supervisor_assigned.html",
 		"seminar_scheduled.html",
 		"seminar_result.html",
+		"title_change_requested.html",
+		"title_change_approved.html",
+		"title_change_rejected.html",
+		"title_change_cancelled.html",
+
 		"defense_scheduled.html",
+
 		"defense_result.html",
 		"graduation.html",
 	}
@@ -587,4 +742,75 @@ func loadTemplates() map[string]*template.Template {
 		out[name] = tmpl
 	}
 	return out
+}
+
+// SendTitleChangeRequested notifies the student (confirmation) and the assigned
+// supervisors (review prompt) about a new title change request.
+func (s *ResendEmailService) SendTitleChangeRequested(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error {
+	subject := "[SIMTAS] Pengajuan Perubahan Judul Skripsi"
+	data := s.baseData("Pengajuan Perubahan Judul")
+	data.Message = "Sebuah pengajuan perubahan judul telah dibuat dan menunggu persetujuan Dosen Pembimbing."
+	data.Details = []Detail{
+		{Label: "Judul Saat Ini", Value: req.PreviousTitle},
+		{Label: "Judul Baru", Value: req.RequestedTitle},
+	}
+	if req.Reason != nil && *req.Reason != "" {
+		data.Notes = *req.Reason
+	}
+	data.CTA = &CTA{Label: "Lihat Detail", URL: s.frontendURL + "/theses/" + thesis.ID.String()}
+	return s.send(to, subject, "title_change_requested.html", "title_change_requested", data)
+}
+
+// SendTitleChangeCancelled notifies the assigned supervisors that a student
+// retracted a pending title change request.
+func (s *ResendEmailService) SendTitleChangeCancelled(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error {
+	subject := "[SIMTAS] Perubahan Judul Dibatalkan"
+	data := s.baseData("Perubahan Judul Dibatalkan")
+	data.Message = "Mahasiswa telah membatalkan permintaan perubahan judul skripsi yang sedang diproses."
+	data.Details = []Detail{
+		{Label: "Judul Saat Ini", Value: req.PreviousTitle},
+		{Label: "Judul Baru (dibatalkan)", Value: req.RequestedTitle},
+	}
+	data.CTA = &CTA{Label: "Lihat Detail", URL: s.frontendURL + "/theses/" + thesis.ID.String()}
+	return s.send(to, subject, "title_change_cancelled.html", "title_change_cancelled", data)
+}
+
+// SendTitleChangeApproved notifies the student that their requested title
+// change was approved and the thesis title was updated.
+func (s *ResendEmailService) SendTitleChangeApproved(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error {
+	subject := "[SIMTAS] Perubahan Judul Disetujui"
+	data := s.baseData("Perubahan Judul Disetujui")
+	data.Greeting = "Halo " + thesis.Student.FullName + ","
+	data.Status = "DISETUJUI"
+	data.StatusGood = true
+	data.Message = "Permintaan perubahan judul skripsi Anda telah disetujui oleh Dosen Pembimbing."
+	data.Details = []Detail{
+		{Label: "Judul Sebelumnya", Value: req.PreviousTitle},
+		{Label: "Judul Baru", Value: req.RequestedTitle},
+	}
+	if req.ReviewNotes != nil && *req.ReviewNotes != "" {
+		data.Notes = *req.ReviewNotes
+	}
+	data.CTA = &CTA{Label: "Lihat Detail", URL: s.frontendURL + "/theses/" + thesis.ID.String()}
+	return s.send(to, subject, "title_change_approved.html", "title_change_approved", data)
+}
+
+// SendTitleChangeRejected notifies the student that their requested title
+// change was rejected by the supervisor.
+func (s *ResendEmailService) SendTitleChangeRejected(ctx context.Context, to []string, thesis *entity.Thesis, req *entity.TitleChangeRequest) error {
+	subject := "[SIMTAS] Perubahan Judul Ditolak"
+	data := s.baseData("Perubahan Judul Ditolak")
+	data.Greeting = "Halo " + thesis.Student.FullName + ","
+	data.Status = "DITOLAK"
+	data.StatusGood = false
+	data.Message = "Permintaan perubahan judul skripsi Anda ditolak oleh Dosen Pembimbing."
+	data.Details = []Detail{
+		{Label: "Judul Sebelumnya", Value: req.PreviousTitle},
+		{Label: "Judul yang Diajukan", Value: req.RequestedTitle},
+	}
+	if req.ReviewNotes != nil && *req.ReviewNotes != "" {
+		data.Notes = *req.ReviewNotes
+	}
+	data.CTA = &CTA{Label: "Lihat Detail", URL: s.frontendURL + "/theses/" + thesis.ID.String()}
+	return s.send(to, subject, "title_change_rejected.html", "title_change_rejected", data)
 }

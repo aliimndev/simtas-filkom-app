@@ -36,8 +36,9 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Standalone output for production (smaller Docker image)
-  output: process.env.NODE_ENV === "production" ? "standalone" : undefined,
+  // ponytail: standalone output was for the Docker image, but it breaks Vercel's
+  // build (Vercel generates its own serverless output). Keep it off for Vercel;
+  // the backend Dockerfile doesn't use the Next.js standalone build.
   // Root redirect handled by the app router (src/app/page.tsx) instead of
   // next.config redirects so it can react to the auth state at runtime.
 };

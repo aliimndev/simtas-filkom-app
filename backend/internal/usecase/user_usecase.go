@@ -14,6 +14,7 @@ import (
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/utils"
 )
 
@@ -49,17 +50,20 @@ type UserUseCase struct {
 	userRepo domainRepo.UserRepository
 	emailSvc email.EmailService
 	auditSvc *audit.AuditService
+	notifSvc *notification.NotificationService
 }
 
 func NewUserUseCase(
 	userRepo domainRepo.UserRepository,
 	emailSvc email.EmailService,
 	auditSvc *audit.AuditService,
+	notifSvc *notification.NotificationService,
 ) *UserUseCase {
 	return &UserUseCase{
 		userRepo: userRepo,
 		emailSvc: emailSvc,
 		auditSvc: auditSvc,
+		notifSvc: notifSvc,
 	}
 }
 
@@ -143,6 +147,13 @@ func (uc *UserUseCase) Create(ctx context.Context, req CreateUserRequest, actor 
 	// Welcome email (async, non-fatal)
 	go func() {
 		_ = uc.emailSvc.SendWelcomeEmail(context.Background(), user.Email, user.FullName, tempPassword)
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: []uuid.UUID{user.ID},
+			Title:   "Akun SIMTAS Dibuat",
+			Message: "Akun SIMTAS Anda telah dibuat. Silakan periksa email untuk password sementara.",
+			Type:    "account",
+			Link:    notification.Path("/profile"),
+		})
 	}()
 
 	uc.auditSvc.Log(ctx, audit.AuditParams{
@@ -313,6 +324,13 @@ func (uc *UserUseCase) ResetPassword(ctx context.Context, id uuid.UUID, actor Ac
 
 	go func() {
 		_ = uc.emailSvc.SendPasswordReset(context.Background(), user.Email, user.FullName, newPassword)
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: []uuid.UUID{user.ID},
+			Title:   "Password Direset",
+			Message: "Password akun SIMTAS Anda telah direset. Silakan periksa email.",
+			Type:    "account",
+			Link:    notification.Path("/profile"),
+		})
 	}()
 
 	uc.auditSvc.Log(ctx, audit.AuditParams{

@@ -16,6 +16,7 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/service"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/utils"
 )
 
@@ -83,6 +84,7 @@ type ArchiveUseCase struct {
 	access      *ThesisAccess
 	emailSvc    email.EmailService
 	auditSvc    *audit.AuditService
+	notifSvc    *notification.NotificationService
 }
 
 func NewArchiveUseCase(
@@ -91,6 +93,7 @@ func NewArchiveUseCase(
 	storage service.StorageService,
 	emailSvc email.EmailService,
 	auditSvc *audit.AuditService,
+	notifSvc *notification.NotificationService,
 ) *ArchiveUseCase {
 	return &ArchiveUseCase{
 		archiveRepo: archiveRepo,
@@ -99,6 +102,7 @@ func NewArchiveUseCase(
 		access:      NewThesisAccess(thesisRepo),
 		emailSvc:    emailSvc,
 		auditSvc:    auditSvc,
+		notifSvc:    notifSvc,
 	}
 }
 
@@ -180,7 +184,16 @@ func (uc *ArchiveUseCase) Create(
 	// Notify the student (async, non-fatal). Capture a local copy — `archive` is
 	// reassigned below and goroutines capture by reference.
 	created := archive
-	go func() { _ = uc.emailSvc.SendArchiveCreated(context.Background(), t.Student.Email, created) }()
+	go func() {
+		_ = uc.emailSvc.SendArchiveCreated(context.Background(), t.Student.Email, created)
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: []uuid.UUID{t.Student.ID},
+			Title:   "Arsip Skripsi Tersedia",
+			Message: "Skripsi Anda telah diarsipkan di perpustakaan digital SIMTAS.",
+			Type:    "archive",
+			Link:    notification.Path("/archives/%s", created.ID),
+		})
+	}()
 
 	uc.auditSvc.Log(ctx, audit.AuditParams{
 		UserID:     &actor.UserID,

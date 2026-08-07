@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { seminarApi } from '@/lib/api/seminar-api'
 import { formatDateTime } from '@/lib/utils/date'
 
@@ -56,7 +56,7 @@ export default function SeminarsPage() {
       </div>
 
       {seminars.isLoading ? (
-        <Spinner />
+        <ListSkeleton count={5} label="Memuat seminar…" />
       ) : (
         <div className="space-y-3">
           {list.map((sem) => (

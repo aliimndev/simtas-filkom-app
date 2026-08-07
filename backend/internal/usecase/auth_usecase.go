@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
@@ -42,7 +43,7 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	AccessToken  string  `json:"access_token"`
-	RefreshToken string  `json:"refresh_token"`
+	RefreshToken string  `json:"refresh_token,omitempty"`
 	ExpiresIn    int     `json:"expires_in"`
 	User         UserDTO `json:"user"`
 }
@@ -70,8 +71,9 @@ type RefreshTokenRequest struct {
 }
 
 type RefreshTokenResponse struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int    `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	ExpiresIn    int    `json:"expires_in"`
 }
 
 type AuthUseCase struct {
@@ -140,8 +142,20 @@ func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest, actor Actor)
 		return nil, err
 	}
 
-	refreshToken, err := uc.jwtManager.GenerateRefreshToken(user.ID)
+	refreshToken, refreshJTI, err := uc.jwtManager.GenerateRefreshToken(user.ID)
 	if err != nil {
+		return nil, err
+	}
+
+	// Store the new refresh-token family (rotation baseline). A failure here
+	// must fail the login: without a family row the token could never be
+	// refreshed, stranding the user.
+	if err := uc.authRepo.CreateRefreshTokenFamily(ctx, &entity.RefreshTokenFamily{
+		UserID:    user.ID,
+		FamilyID:  uuid.New(),
+		TokenJTI:  refreshJTI,
+		ExpiresAt: time.Now().Add(uc.jwtManager.RefreshTokenExpiry()),
+	}); err != nil {
 		return nil, err
 	}
 
@@ -187,6 +201,9 @@ func (uc *AuthUseCase) Logout(ctx context.Context, accessToken string, actor Act
 
 	// Audit: logout (Job 13)
 	if userID, err := uuid.Parse(claims.UserID); err == nil {
+		// Revoke all refresh-token families so a stolen refresh token can no
+		// longer mint new access tokens after logout.
+		_ = uc.authRepo.RevokeRefreshTokenFamiliesByUser(ctx, userID)
 		uc.logAuthAudit(ctx, userID, audit.ActionUserLogout, actor)
 	}
 	return nil
@@ -205,10 +222,35 @@ func (uc *AuthUseCase) logAuthAudit(ctx context.Context, userID uuid.UUID, actio
 	})
 }
 
-// RefreshToken validates refresh token and issues new access token
+// RefreshToken validates the refresh token, rotates the refresh-token family,
+// and issues a new access token. Rotation bounds the token-theft window: the
+// presented JTI becomes the *old* one, and replaying it (or any family
+// member) revokes the entire family.
 func (uc *AuthUseCase) RefreshToken(ctx context.Context, refreshToken string) (*RefreshTokenResponse, error) {
 	claims, err := uc.jwtManager.ValidateToken(refreshToken)
 	if err != nil {
+		return nil, ErrRefreshTokenInvalid
+	}
+
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		return nil, ErrRefreshTokenInvalid
+	}
+
+	// The presented token must be the family's *current* JTI. If it is not,
+	// it was already rotated (or never issued) → treat as token reuse/theft
+	// and revoke the whole family.
+	family, err := uc.authRepo.FindRefreshTokenFamilyByJTI(ctx, claims.JTI)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Reuse detection: kill every refresh session for this user.
+			_ = uc.authRepo.RevokeRefreshTokenFamiliesByUser(ctx, userID)
+			return nil, ErrRefreshTokenInvalid
+		}
+		return nil, err
+	}
+	if family.UserID != userID {
+		_ = uc.authRepo.RevokeRefreshTokenFamiliesByUser(ctx, userID)
 		return nil, ErrRefreshTokenInvalid
 	}
 
@@ -218,11 +260,6 @@ func (uc *AuthUseCase) RefreshToken(ctx context.Context, refreshToken string) (*
 	}
 	if blacklisted {
 		return nil, ErrTokenBlacklisted
-	}
-
-	userID, err := uuid.Parse(claims.UserID)
-	if err != nil {
-		return nil, ErrRefreshTokenInvalid
 	}
 
 	user, err := uc.authRepo.FindUserByID(ctx, userID)
@@ -239,9 +276,33 @@ func (uc *AuthUseCase) RefreshToken(ctx context.Context, refreshToken string) (*
 		return nil, err
 	}
 
+	// Rotate: mint a new refresh token and atomically swap the family's
+	// current JTI. RotateRefreshTokenFamily is a compare-and-swap: it returns
+	// false when another request already rotated the same token, which means
+	// the presented token was replayed concurrently — revoke the family.
+	newRefreshToken, newJTI, err := uc.jwtManager.GenerateRefreshToken(user.ID)
+	if err != nil {
+		return nil, err
+	}
+	rotated, err := uc.authRepo.RotateRefreshTokenFamily(ctx, claims.JTI, newJTI, time.Now().Add(uc.jwtManager.RefreshTokenExpiry()))
+	if err != nil {
+		return nil, err
+	}
+	if !rotated {
+		_ = uc.authRepo.RevokeRefreshTokenFamiliesByUser(ctx, userID)
+		return nil, ErrRefreshTokenInvalid
+	}
+
+	// The old JTI must not be accepted again; blacklist it until it naturally
+	// expires (non-fatal — the family row is already the source of truth).
+	if exp := claims.ExpiresAt.Time; !exp.IsZero() {
+		_ = uc.authRepo.BlacklistToken(ctx, claims.JTI, exp)
+	}
+
 	return &RefreshTokenResponse{
-		AccessToken: accessToken,
-		ExpiresIn:   int(uc.jwtManager.AccessTokenExpiry().Seconds()),
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken,
+		ExpiresIn:    int(uc.jwtManager.AccessTokenExpiry().Seconds()),
 	}, nil
 }
 

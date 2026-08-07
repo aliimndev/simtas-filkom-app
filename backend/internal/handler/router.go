@@ -15,6 +15,8 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/config"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/jwt"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/metrics"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/storage"
 )
 
@@ -32,10 +34,14 @@ type Router struct {
 	seminarHandler      *SeminarHandler
 	defenseHandler      *DefenseHandler
 	archiveHandler      *ArchiveHandler
+	titleChangeHandler  *TitleChangeRequestHandler
 	dashboardHandler    *DashboardHandler
 	auditHandler        *AuditHandler
 	auditSvc            *audit.AuditService
 	internalHandler     *InternalHandler
+	notificationHandler *NotificationHandler
+	notifSvc            *notification.NotificationService
+	emailSvc            *email.ResendEmailService
 	authMid             *middleware.AuthMiddleware
 }
 
@@ -55,10 +61,13 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	seminarRepository := repository.NewSeminarRepository(db)
 	defenseRepository := repository.NewDefenseRepository(db)
 	archiveRepository := repository.NewArchiveRepository(db)
+	titleChangeRequestRepository := repository.NewTitleChangeRequestRepository(db)
 	dashboardRepository := repository.NewDashboardRepository(db)
 	auditRepository := repository.NewAuditRepository(db)
 
 	auditService := audit.NewAuditService(auditRepository)
+	notificationRepository := repository.NewNotificationRepository(db)
+	notificationService := notification.NewNotificationService(notificationRepository)
 	// Email: real Resend implementation in production; console-logging dev mode
 	// when EMAIL_DEV_MODE=true or when no API key is configured.
 	emailService := email.NewResendEmailService(cfg.ResendAPIKey, cfg.EmailFrom, cfg.EmailFromName, cfg.FrontendURL, db, cfg.EmailDevMode || cfg.ResendAPIKey == "")
@@ -98,18 +107,20 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	}
 
 	authUseCase := usecase.NewAuthUseCase(authRepository, jwtManager, auditService)
-	userUseCase := usecase.NewUserUseCase(userRepository, emailService, auditService)
+	userUseCase := usecase.NewUserUseCase(userRepository, emailService, auditService, notificationService)
 	academicYearUseCase := usecase.NewAcademicYearUseCase(academicYearRepository)
-	thesisUseCase := usecase.NewThesisUseCase(thesisRepository, userRepository, academicYearRepository, emailService, auditService)
-	consultationUseCase := usecase.NewConsultationUseCase(consultationRepository, thesisRepository, emailService, auditService)
-	documentUseCase := usecase.NewDocumentUseCase(documentRepository, thesisRepository, storageService, emailService, auditService)
-	seminarUseCase := usecase.NewSeminarUseCase(seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService)
-	defenseUseCase := usecase.NewDefenseUseCase(defenseRepository, seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService)
-	archiveUseCase := usecase.NewArchiveUseCase(archiveRepository, thesisRepository, storageService, emailService, auditService)
+	thesisUseCase := usecase.NewThesisUseCase(thesisRepository, userRepository, academicYearRepository, emailService, auditService, notificationService)
+	consultationUseCase := usecase.NewConsultationUseCase(consultationRepository, thesisRepository, emailService, auditService, notificationService)
+	documentUseCase := usecase.NewDocumentUseCase(documentRepository, thesisRepository, storageService, emailService, auditService, notificationService)
+	seminarUseCase := usecase.NewSeminarUseCase(seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService, notificationService)
+	defenseUseCase := usecase.NewDefenseUseCase(defenseRepository, seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService, notificationService)
+	archiveUseCase := usecase.NewArchiveUseCase(archiveRepository, thesisRepository, storageService, emailService, auditService, notificationService)
+	titleChangeUseCase := usecase.NewTitleChangeRequestUseCase(titleChangeRequestRepository, thesisRepository, emailService, auditService, notificationService)
 	dashboardUseCase := usecase.NewDashboardUseCase(dashboardRepository)
 	auditUseCase := usecase.NewAuditUseCase(auditRepository)
+	notificationUseCase := usecase.NewNotificationUseCase(notificationRepository)
 
-	authHandler := NewAuthHandler(authUseCase)
+	authHandler := NewAuthHandler(authUseCase, cfg)
 	userHandler := NewUserHandler(userUseCase)
 	academicYearHandler := NewAcademicYearHandler(academicYearUseCase)
 	thesisHandler := NewThesisHandler(thesisUseCase)
@@ -118,9 +129,11 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	seminarHandler := NewSeminarHandler(seminarUseCase)
 	defenseHandler := NewDefenseHandler(defenseUseCase)
 	archiveHandler := NewArchiveHandler(archiveUseCase)
+	titleChangeHandler := NewTitleChangeRequestHandler(titleChangeUseCase)
 	dashboardHandler := NewDashboardHandler(dashboardUseCase)
 	auditHandler := NewAuditHandler(auditUseCase)
 	internalHandler := NewInternalHandler(emailService)
+	notificationHandler := NewNotificationHandler(notificationUseCase)
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager, authRepository, authRepository)
 
@@ -137,29 +150,65 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 		seminarHandler:      seminarHandler,
 		defenseHandler:      defenseHandler,
 		archiveHandler:      archiveHandler,
+		titleChangeHandler:  titleChangeHandler,
 		dashboardHandler:    dashboardHandler,
 		auditHandler:        auditHandler,
 		auditSvc:            auditService,
 		internalHandler:     internalHandler,
+		notificationHandler: notificationHandler,
+		notifSvc:            notificationService,
+		emailSvc:            emailService,
 		authMid:             authMiddleware,
-		}
+	}
 }
 
-// Shutdown gracefully drains the audit-service worker goroutine so that all
-// queued audit entries are persisted before the caller (e.g. the test harness)
-// truncates tables or closes the database connection.
+// EmailService returns the wired email service so the durable email retry
+// scheduler can re-enqueue undelivered rows.
+func (r *Router) EmailService() *email.ResendEmailService {
+	return r.emailSvc
+}
+
+// Shutdown gracefully drains the audit-service and notification worker
+// goroutines and the email worker pool so that all queued entries are persisted
+// before the caller (e.g. the test harness) truncates tables or closes the
+// database connection.
 func (r *Router) Shutdown() {
 	if r.auditSvc != nil {
 		r.auditSvc.Shutdown()
+	}
+	if r.notifSvc != nil {
+		r.notifSvc.Shutdown()
+	}
+	if r.emailSvc != nil {
+		r.emailSvc.Shutdown()
 	}
 }
 
 func (r *Router) Setup() {
 	// ── Global middleware ─────────────────────────────────────────────────
 	r.engine.Use(middleware.ErrorHandler())
+	r.engine.Use(metrics.Middleware())
 	r.engine.Use(middleware.RequestLogger())
 	r.engine.Use(middleware.SecurityHeadersMiddleware())
 	r.engine.Use(middleware.CORSMiddleware(r.cfg.CORSAllowedOrigins))
+	r.engine.Use(middleware.SanitizeMiddleware())
+	// C1: login + password flows are exempt from CSRF — they are reachable
+	// before any GET has seeded the CSRF cookie (fresh browser, emailed
+	// reset-password deep link). Remaining POST routes keep the check.
+	r.engine.Use(middleware.CSRFMiddleware(
+		"/api/v1/auth/login",
+		"/api/v1/auth/refresh",
+		"/api/v1/auth/forgot-password",
+		"/api/v1/auth/reset-password",
+	))
+	// Cap request body size to prevent unbounded payloads from exhausting memory.
+	r.engine.Use(middleware.MaxBodySize(int64(r.cfg.MaxRequestBodyBytes)))
+	// Global rate limit: 100 requests per minute per IP (except health + auth).
+	globalRL := middleware.NewIPRateLimiter(100, 60*time.Second)
+	r.engine.Use(globalRL.Middleware())
+
+	// ── Prometheus metrics (internal scrape, not behind /api/v1) ────────
+	r.engine.GET("/metrics", metrics.Handler())
 
 	// ── API v1 ────────────────────────────────────────────────────────────
 	v1 := r.engine.Group("/api/v1")
@@ -251,6 +300,15 @@ func (r *Router) Setup() {
 		auditEntity.GET("/:entity_type/:entity_id", r.auditHandler.ByEntity)
 	}
 
+	// ── In-app notifications (all authenticated users) ──────────────────
+	notifications := v1.Group("/notifications", r.authMid.Authenticate())
+	{
+		notifications.GET("", r.notificationHandler.List)
+		notifications.GET("/unread-count", r.notificationHandler.UnreadCount)
+		notifications.PATCH("/:id/read", r.notificationHandler.MarkRead)
+		notifications.PATCH("/read-all", r.notificationHandler.MarkAllRead)
+	}
+
 	// ── Theses ────────────────────────────────────────────────────────────
 	// POST /theses is mahasiswa-only; GET is available to all authenticated
 	// users (scoped by role inside the use case).
@@ -316,6 +374,35 @@ func (r *Router) Setup() {
 	documentReview := v1.Group("/documents", r.authMid.Authenticate())
 	{
 		documentReview.PATCH("/:id/review", r.documentHandler.Review)
+	}
+
+	// ── Title change requests ───────────────────────────────────────────
+	// POST create: Mahasiswa pemilik (thesis approved/in_progress + supervised)
+	// GET list: pemilik + pembimbing + Kaprodi + Admin (checked in use case)
+	// POST /:id/cancel: Mahasiswa pemilik, PENDING only (checked in use case)
+	// POST /:id/approve + /:id/reject: Dosen Pembimbing assigned, PENDING only
+	//   (approve updates theses.title atomically — checked in use case)
+	titleChanges := v1.Group("/theses/:thesis_id/title-change-requests", r.authMid.Authenticate())
+	{
+		titleChanges.POST("", r.titleChangeHandler.Create)
+		titleChanges.GET("", r.titleChangeHandler.List)
+	}
+
+	titleChangeActions := v1.Group("/title-change-requests", r.authMid.Authenticate())
+	{
+		titleChangeActions.POST("/:id/cancel", r.titleChangeHandler.Cancel)
+		titleChangeActions.POST("/:id/approve", r.titleChangeHandler.Approve)
+		titleChangeActions.POST("/:id/reject", r.titleChangeHandler.Reject)
+	}
+
+	// GET /title-change-requests — antrian PENDING untuk dosen pembimbing
+	// (role-scoped with RequireRole; membership verified inside the use case).
+	titleChangeQueue := v1.Group("/title-change-requests",
+		r.authMid.Authenticate(),
+		middleware.RequireRole(middleware.RoleDosenPembimbing),
+	)
+	{
+		titleChangeQueue.GET("", r.titleChangeHandler.ListPending)
 	}
 
 	// ── Seminars (Job 08) ───────────────────────────────────────────────

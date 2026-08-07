@@ -5,9 +5,8 @@ import type { User } from '@/types/auth'
 interface AuthStore {
   user: User | null
   accessToken: string | null
-  refreshToken: string | null
   isHydrated: boolean
-  setAuth: (user: User, accessToken: string, refreshToken: string) => void
+  setAuth: (user: User, accessToken: string) => void
   setUser: (user: User) => void
   clearAuth: () => void
   setHydrated: (v: boolean) => void
@@ -18,12 +17,11 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       user: null,
       accessToken: null,
-      refreshToken: null,
       isHydrated: false,
-      setAuth: (user, accessToken, refreshToken) =>
-        set({ user, accessToken, refreshToken, isHydrated: true }),
+      setAuth: (user, accessToken) =>
+        set({ user, accessToken, isHydrated: true }),
       setUser: (user) => set({ user }),
-      clearAuth: () => set({ user: null, accessToken: null, refreshToken: null }),
+      clearAuth: () => set({ user: null, accessToken: null }),
       setHydrated: (v) => set({ isHydrated: v }),
     }),
     {
@@ -31,7 +29,6 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true)

@@ -244,6 +244,15 @@ definitions:
     - thesis_type
     - title
     type: object
+  usecase.CreateTitleChangeRequest:
+    properties:
+      reason:
+        type: string
+      requested_title:
+        type: string
+    required:
+    - requested_title
+    type: object
   usecase.CreateUserRequest:
     properties:
       email:
@@ -539,19 +548,14 @@ definitions:
       pending_title_reviews:
         type: integer
     type: object
-  usecase.RefreshTokenRequest:
-    properties:
-      refresh_token:
-        type: string
-    required:
-    - refresh_token
-    type: object
   usecase.RefreshTokenResponse:
     properties:
       access_token:
         type: string
       expires_in:
         type: integer
+      refresh_token:
+        type: string
     type: object
   usecase.ResetPasswordRequest:
     properties:
@@ -575,6 +579,11 @@ definitions:
         type: string
     required:
     - decision
+    type: object
+  usecase.ReviewTitleChangeRequest:
+    properties:
+      review_notes:
+        type: string
     type: object
   usecase.ScheduleDefenseRequest:
     properties:
@@ -849,6 +858,35 @@ definitions:
       id:
         type: string
     type: object
+  usecase.TitleChangeRequestDetail:
+    properties:
+      cancelled_at:
+        type: string
+      cancelled_by:
+        $ref: '#/definitions/usecase.UserBrief'
+      created_at:
+        type: string
+      id:
+        type: string
+      previous_title:
+        type: string
+      reason:
+        type: string
+      requested_by:
+        $ref: '#/definitions/usecase.UserBrief'
+      requested_title:
+        type: string
+      review_notes:
+        type: string
+      reviewed_by:
+        $ref: '#/definitions/usecase.UserBrief'
+      status:
+        type: string
+      thesis_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
   usecase.UpcomingSchedulesView:
     properties:
       defenses:
@@ -889,6 +927,11 @@ definitions:
       full_name:
         type: string
       id:
+        type: string
+      nim_nidn:
+        description: |-
+          NimNidn is populated only where the underlying query preloads the user
+          (e.g. title change requests); omitted elsewhere.
         type: string
     type: object
   usecase.UserDTO:
@@ -938,7 +981,7 @@ info:
     url: https://opensource.org/licenses/MIT
   termsOfService: https://filkom.unida.ac.id
   title: SIMTAS FILKOM API
-  version: "1.0"
+  version: 1.1.0
 paths:
   /academic-years:
     get:
@@ -1664,14 +1707,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Menukar refresh token dengan access token baru
-      parameters:
-      - description: Refresh token
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/usecase.RefreshTokenRequest'
+      description: Menukar refresh token (HttpOnly cookie) dengan access token baru
       produces:
       - application/json
       responses:
@@ -2201,6 +2237,97 @@ paths:
       summary: Daftar dosen pembimbing
       tags:
       - Thesis Submission
+  /notifications:
+    get:
+      description: Mengambil notifikasi pengguna yang sedang login (terbaru dahulu)
+      parameters:
+      - description: Maksimal item (default 20, max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar notifikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Belum autentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Daftar notifikasi
+      tags:
+      - Notifikasi
+  /notifications/{id}/read:
+    patch:
+      description: Menandai satu notifikasi milik pengguna sebagai sudah dibaca
+      parameters:
+      - description: ID notifikasi
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Berhasil ditandai
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Belum autentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Notifikasi tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Tandai notifikasi sudah dibaca
+      tags:
+      - Notifikasi
+  /notifications/read-all:
+    patch:
+      description: Menandai semua notifikasi belum dibaca pengguna sebagai sudah dibaca
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Berhasil ditandai
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Belum autentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Tandai semua notifikasi sudah dibaca
+      tags:
+      - Notifikasi
+  /notifications/unread-count:
+    get:
+      description: Mengambil jumlah notifikasi yang belum dibaca pengguna
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Jumlah notifikasi belum dibaca
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "401":
+          description: Belum autentikasi
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Jumlah notifikasi belum dibaca
+      tags:
+      - Notifikasi
   /schedules/upcoming:
     get:
       description: Mengambil seminar dan sidang terjadwal dalam N hari ke depan (Admin
@@ -3301,6 +3428,238 @@ paths:
       summary: Ajukan seminar proposal
       tags:
       - Seminar Proposal
+  /theses/{thesis_id}/title-change-requests:
+    get:
+      description: Mengambil daftar permintaan perubahan judul sebuah thesis (pemilik,
+        pembimbing, Kaprodi, Admin)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar permintaan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Akses ditolak
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Thesis tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Riwayat perubahan judul
+      tags:
+      - Title Change Request
+    post:
+      consumes:
+      - application/json
+      description: Mengajukan perubahan judul skripsi (Mahasiswa pemilik, thesis approved/in_progress
+        dengan pembimbing)
+      parameters:
+      - description: Thesis ID (UUID)
+        in: path
+        name: thesis_id
+        required: true
+        type: string
+      - description: Data perubahan judul
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.CreateTitleChangeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Permintaan dibuat
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.TitleChangeRequestDetail'
+              type: object
+        "400":
+          description: Validasi gagal
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Bukan pemilik thesis
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Thesis tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "409":
+          description: Sudah ada permintaan pending
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Ajukan perubahan judul
+      tags:
+      - Title Change Request
+  /title-change-requests:
+    get:
+      description: Daftar permintaan perubahan judul PENDING untuk mahasiswa bimbingan
+        (Dosen Pembimbing)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Antrian review
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Hanya Dosen Pembimbing
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Antrian review perubahan judul
+      tags:
+      - Title Change Request
+  /title-change-requests/{id}/approve:
+    post:
+      consumes:
+      - application/json
+      description: Menyetujui permintaan perubahan judul (Dosen Pembimbing assigned;
+        PENDING only) dan meng-update judul thesis secara atomik
+      parameters:
+      - description: Title change request ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Catatan persetujuan (opsional)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/usecase.ReviewTitleChangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Permintaan disetujui
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.TitleChangeRequestDetail'
+              type: object
+        "400":
+          description: Bukan status pending
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Bukan dosen pembimbing thesis ini
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Permintaan tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Setujui perubahan judul
+      tags:
+      - Title Change Request
+  /title-change-requests/{id}/cancel:
+    post:
+      description: Membatalkan permintaan perubahan judul yang masih PENDING (Mahasiswa
+        pemilik)
+      parameters:
+      - description: Title change request ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Permintaan dibatalkan
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.TitleChangeRequestDetail'
+              type: object
+        "400":
+          description: Bukan status pending
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Bukan pemilik permintaan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Permintaan tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Batalkan permintaan perubahan judul
+      tags:
+      - Title Change Request
+  /title-change-requests/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Menolak permintaan perubahan judul (Dosen Pembimbing assigned;
+        PENDING only) dengan catatan wajib
+      parameters:
+      - description: Title change request ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Alasan penolakan (wajib)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.ReviewTitleChangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Permintaan ditolak
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/usecase.TitleChangeRequestDetail'
+              type: object
+        "400":
+          description: Bukan status pending / catatan kosong
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "403":
+          description: Bukan dosen pembimbing thesis ini
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+        "404":
+          description: Permintaan tidak ditemukan
+          schema:
+            $ref: '#/definitions/response.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Tolak perubahan judul
+      tags:
+      - Title Change Request
   /users/me/password:
     put:
       consumes:

@@ -237,6 +237,22 @@ func (r *recordingDocEmailService) SendArchiveCreated(context.Context, string, *
 	return nil
 }
 
+func (r *recordingDocEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingDocEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingDocEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingDocEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
 func (r *recordingDocEmailService) waitUploaded(t *testing.T) []string {
 	t.Helper()
 	select {
@@ -273,7 +289,7 @@ func newTestDocumentUseCase(t *testing.T) (*DocumentUseCase, *fakeDocumentRepo, 
 
 	auditSvc := audit.NewAuditService(nil)
 	storageSvc := storage.NewStubStorageService(t.TempDir(), "http://test.local")
-	uc := NewDocumentUseCase(docRepo, thesisRepo, storageSvc, email, auditSvc)
+	uc := NewDocumentUseCase(docRepo, thesisRepo, storageSvc, email, auditSvc, nil)
 	return uc, docRepo, thesisRepo, userRepo, email
 }
 

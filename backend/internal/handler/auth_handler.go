@@ -8,15 +8,72 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/usecase"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/config"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/response"
 )
 
+// RefreshCookieName is the httpOnly cookie that carries the refresh token.
+// Storing it in an HttpOnly cookie (instead of localStorage) keeps the
+// long-lived token out of JavaScript's reach, mitigating XSS token theft.
+const RefreshCookieName = "simtas_refresh_token"
+
 type AuthHandler struct {
 	authUseCase *usecase.AuthUseCase
+	cfg         *config.Config
 }
 
-func NewAuthHandler(authUseCase *usecase.AuthUseCase) *AuthHandler {
-	return &AuthHandler{authUseCase: authUseCase}
+func NewAuthHandler(authUseCase *usecase.AuthUseCase, cfg *config.Config) *AuthHandler {
+	return &AuthHandler{authUseCase: authUseCase, cfg: cfg}
+}
+
+// refreshCookieAttrs returns the cookie attributes for the refresh token. The
+// cookie is always HttpOnly; it is marked Secure and SameSite=Strict in
+// production, and SameSite=Lax in development (where it is served over HTTP).
+func refreshCookieAttrs(cfg *config.Config) (secure bool, sameSite string) {
+	if cfg.AppEnv == "production" {
+		return true, "Strict"
+	}
+	return false, "Lax"
+}
+
+// setRefreshCookie writes the refresh token as an HttpOnly cookie.
+func setRefreshCookie(c *gin.Context, cfg *config.Config, token string) {
+	secure, sameSite := refreshCookieAttrs(cfg)
+	c.SetCookie(
+		RefreshCookieName,
+		token,
+		int(cfg.JWTRefreshExpiry.Seconds()),
+		"/",
+		"",      // domain: defaults to the API host
+		secure, // Secure only over HTTPS (production)
+		true,   // HttpOnly — not readable by JavaScript
+	)
+	switch sameSite {
+	case "Strict":
+		c.SetSameSite(http.SameSiteStrictMode)
+	case "Lax":
+		c.SetSameSite(http.SameSiteLaxMode)
+	}
+}
+
+// clearRefreshCookie expires the refresh token cookie on logout.
+func clearRefreshCookie(c *gin.Context, cfg *config.Config) {
+	secure, sameSite := refreshCookieAttrs(cfg)
+	c.SetCookie(
+		RefreshCookieName,
+		"",
+		-1,
+		"/",
+		"",
+		secure,
+		true,
+	)
+	switch sameSite {
+	case "Strict":
+		c.SetSameSite(http.SameSiteStrictMode)
+	case "Lax":
+		c.SetSameSite(http.SameSiteLaxMode)
+	}
 }
 
 // Login godoc
@@ -56,6 +113,12 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// Issue the refresh token as an HttpOnly cookie so it never reaches
+	// JavaScript (mitigates XSS token theft). The JSON body therefore no
+	// longer carries the refresh token — only the short-lived access token.
+	setRefreshCookie(c, h.cfg, resp.RefreshToken)
+	resp.RefreshToken = ""
+
 	response.Success(c, http.StatusOK, resp)
 }
 
@@ -81,31 +144,38 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		return
 	}
 
+	// Expire the refresh token cookie so a logged-out session cannot refresh.
+	clearRefreshCookie(c, h.cfg)
+
 	response.Success(c, http.StatusOK, gin.H{"message": "Berhasil logout"})
 }
 
 // RefreshToken godoc
 // @Summary      Refresh access token
-// @Description  Menukar refresh token dengan access token baru
+// @Description  Menukar refresh token (HttpOnly cookie) dengan access token baru
 // @Tags         Authentication
 // @Accept       json
 // @Produce      json
-// @Param        body body usecase.RefreshTokenRequest true "Refresh token"
 // @Success      200  {object}  response.APIResponse{data=usecase.RefreshTokenResponse} "Access token baru"
 // @Failure      401  {object}  response.APIResponse "Refresh token tidak valid"
 // @Router       /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
-	var req usecase.RefreshTokenRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, "Request tidak valid", err)
+	// The refresh token is read from the HttpOnly cookie set at login, not
+	// from the request body — this keeps it out of JavaScript's reach.
+	refreshToken, err := c.Cookie(RefreshCookieName)
+	if err != nil || refreshToken == "" {
+		response.Error(c, http.StatusUnauthorized, "Refresh token tidak ditemukan", nil)
 		return
 	}
 
-	resp, err := h.authUseCase.RefreshToken(c.Request.Context(), req.RefreshToken)
+	resp, err := h.authUseCase.RefreshToken(c.Request.Context(), refreshToken)
 	if err != nil {
 		switch {
 		case errors.Is(err, usecase.ErrRefreshTokenInvalid),
 			errors.Is(err, usecase.ErrTokenBlacklisted):
+			// On reuse/theft detection the family was revoked: expire the
+			// cookie so the client cannot keep hammering the endpoint.
+			clearRefreshCookie(c, h.cfg)
 			response.Error(c, http.StatusUnauthorized, "Refresh token tidak valid", err)
 		case errors.Is(err, usecase.ErrUserNotFound):
 			response.Error(c, http.StatusUnauthorized, "User tidak ditemukan", err)
@@ -114,6 +184,13 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		}
 		return
 	}
+
+	// Rotation produced a fresh refresh token: rotate the HttpOnly cookie so
+	// the client always holds the current family member.
+	if resp.RefreshToken != "" {
+		setRefreshCookie(c, h.cfg, resp.RefreshToken)
+	}
+	resp.RefreshToken = ""
 
 	response.Success(c, http.StatusOK, resp)
 }

@@ -49,6 +49,8 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 	if os.Getenv("DB_NAME") == "" {
 		_ = os.Setenv("DB_NAME", "simtas_filkom_test")
 	}
+	// config.Load() fails fast on a missing APP_ENV; tests run in development.
+	_ = os.Setenv("APP_ENV", "development")
 
 	cfg := config.Load()
 	db, err := database.Connect(cfg)
@@ -78,6 +80,8 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 func SetupTestRouter(t *testing.T, db *gorm.DB) *gin.Engine {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
+	// config.Load() fails fast on a missing APP_ENV; tests run in development.
+	_ = os.Setenv("APP_ENV", "development")
 	cfg := config.Load()
 	cfg.JWTSecret = "integration-test-secret"
 	engine := gin.New()
@@ -222,6 +226,140 @@ func joinTables(tables []string) string {
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────
 
+// csrfCookieName mirrors middleware.CSRFMiddleware's cookie/header names so the
+// test client can drive the Double Submit Cookie pattern the way the frontend
+// does (GET seeds the cookie, state-changing requests echo it as a header).
+const (
+	csrfTestCookieName = "XSRF-TOKEN"
+	csrfTestHeaderName = "X-XSRF-TOKEN"
+)
+
+// seedCSRFCookie performs a GET on a public route so CSRFMiddleware sets the
+// XSRF-TOKEN cookie, and returns it. state-changing requests then echo it.
+func seedCSRFCookie(router http.Handler) *http.Cookie {
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	for _, ck := range w.Result().Cookies() {
+		if ck.Name == csrfTestCookieName {
+			return ck
+		}
+	}
+	return &http.Cookie{Name: csrfTestCookieName, Value: "test-csrf-fallback"}
+}
+
+// applyCSRF attaches the CSRF cookie + header to a state-changing request,
+// mirroring the frontend (which reads XSRF-TOKEN from document.cookie and
+// echoes it as X-XSRF-TOKEN). Safe methods are exempt from CSRF checks.
+func applyCSRF(router http.Handler, req *http.Request) {
+	method := req.Method
+	if method == http.MethodGet || method == http.MethodHead || method == http.MethodOptions {
+		return
+	}
+	ck := seedCSRFCookie(router)
+	req.AddCookie(ck)
+	req.Header.Set(csrfTestHeaderName, ck.Value)
+}
+
+// Client is a cookie-aware HTTP client for integration tests. It mirrors the
+// frontend: it drives the Double Submit Cookie CSRF pattern (GET seeds the
+// XSRF-TOKEN cookie; state-changing requests echo it as a header) and persists
+// cookies across requests so the HttpOnly refresh-token cookie survives login
+// and rotation. Use it for flows that depend on cookie state.
+type Client struct {
+	router  http.Handler
+	cookies map[string]*http.Cookie
+}
+
+// NewClient wraps a router in a cookie-persistent test client.
+func NewClient(router http.Handler) *Client {
+	return &Client{router: router, cookies: map[string]*http.Cookie{}}
+}
+
+// Router exposes the underlying handler so callers can mix the stateless
+// helpers (DoJSON/DoMultipart) with the cookie-aware client when needed.
+func (c *Client) Router() http.Handler {
+	return c.router
+}
+
+// seedCSRF ensures the client holds an XSRF-TOKEN cookie (fetched via a GET,
+// exactly as a first page load would).
+func (c *Client) seedCSRF() {
+	if _, ok := c.cookies[csrfTestCookieName]; ok {
+		return
+	}
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
+	w := httptest.NewRecorder()
+	c.router.ServeHTTP(w, req)
+	for _, ck := range w.Result().Cookies() {
+		c.cookies[ck.Name] = ck
+	}
+	if _, ok := c.cookies[csrfTestCookieName]; !ok {
+		c.cookies[csrfTestCookieName] = &http.Cookie{Name: csrfTestCookieName, Value: "test-csrf-fallback"}
+	}
+}
+
+// attachCookies copies every stored cookie onto the outgoing request.
+func (c *Client) attachCookies(req *http.Request) {
+	for _, ck := range c.cookies {
+		req.AddCookie(ck)
+	}
+}
+
+// captureCookies stores any Set-Cookie from the response (refresh rotation,
+// logout clearing, CSRF refresh).
+func (c *Client) captureCookies(w *httptest.ResponseRecorder) {
+	for _, ck := range w.Result().Cookies() {
+		// A cleared cookie (MaxAge < 0) removes the stored value so the client
+		// truly stops sending it, matching a browser that expires the cookie.
+		if ck.MaxAge < 0 {
+			delete(c.cookies, ck.Name)
+			continue
+		}
+		c.cookies[ck.Name] = ck
+	}
+}
+
+// Do performs a JSON request carrying the client's cookies and CSRF header and
+// returns the recorder. State-changing methods get the CSRF token echoed.
+func (c *Client) Do(method, path string, body any, token string) *httptest.ResponseRecorder {
+	c.seedCSRF()
+	var reader io.Reader
+	if body != nil {
+		b, _ := json.Marshal(body)
+		reader = bytes.NewReader(b)
+	}
+	req := httptest.NewRequest(method, path, reader)
+	req.Header.Set("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	c.attachCookies(req)
+	if method != http.MethodGet && method != http.MethodHead && method != http.MethodOptions {
+		if ck := c.cookies[csrfTestCookieName]; ck != nil {
+			req.Header.Set(csrfTestHeaderName, ck.Value)
+		}
+	}
+	w := httptest.NewRecorder()
+	c.router.ServeHTTP(w, req)
+	c.captureCookies(w)
+	return w
+}
+
+// CookieValue returns the current value of a stored cookie (or "" if absent).
+func (c *Client) CookieValue(name string) string {
+	if ck := c.cookies[name]; ck != nil {
+		return ck.Value
+	}
+	return ""
+}
+
+// SetCookie seeds a cookie into the client's jar (used to replay a captured
+// token, e.g. a stale refresh token, as a separate browser session would).
+func (c *Client) SetCookie(name, value string) {
+	c.cookies[name] = &http.Cookie{Name: name, Value: value, Path: "/"}
+}
+
 // DoJSON performs a JSON request against the router and returns the recorder.
 func DoJSON(router http.Handler, method, path string, body any, token string) *httptest.ResponseRecorder {
 	var reader io.Reader
@@ -234,6 +372,7 @@ func DoJSON(router http.Handler, method, path string, body any, token string) *h
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
+	applyCSRF(router, req)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	return w
@@ -267,6 +406,7 @@ func DoMultipart(router http.Handler, method, path string, fields map[string]str
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
+	applyCSRF(router, req)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	return w

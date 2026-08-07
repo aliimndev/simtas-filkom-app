@@ -12,6 +12,7 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/grading"
 )
 
 // fakeDefenseRepo is a minimal in-memory DefenseRepository for usecase tests.
@@ -177,6 +178,51 @@ func (f *fakeDefenseRepo) CountDistinctScoredExaminers(_ context.Context, defens
 	return len(seen), nil
 }
 
+// FinalizeDefense mirrors the repository's atomic finalize in-memory so use case
+// tests can exercise the score-submission → finalize flow.
+func (f *fakeDefenseRepo) FinalizeDefense(_ context.Context, defenseID uuid.UUID) (float64, string, uuid.UUID, error) {
+	d, ok := f.defenses[defenseID]
+	if !ok {
+		return 0, "", uuid.Nil, gorm.ErrRecordNotFound
+	}
+	if d.Status != DefenseStatusScheduled {
+		return 0, "", uuid.Nil, nil
+	}
+	examiners := f.examiners[defenseID]
+	scored := map[uuid.UUID]bool{}
+	for _, s := range f.scores[defenseID] {
+		scored[s.ExaminerID] = true
+	}
+	if len(scored) < len(examiners) {
+		return 0, "", uuid.Nil, nil
+	}
+	order := []string{}
+	perExaminer := map[string]float64{}
+	for _, s := range f.scores[defenseID] {
+		key := s.ExaminerID.String()
+		if _, ok := perExaminer[key]; !ok {
+			order = append(order, key)
+		}
+		perExaminer[key] += s.Score * s.ComponentWeight / 100.0
+	}
+	examinerScores := make([]float64, 0, len(order))
+	for _, key := range order {
+		examinerScores = append(examinerScores, perExaminer[key])
+	}
+	fs := grading.CalculateFinalScore(examinerScores)
+	status := DefenseStatusPassed
+	switch {
+	case fs < DefenseFailThreshold:
+		status = DefenseStatusFailed
+	case fs < DefenseRevisionThreshold:
+		status = DefenseStatusRevisionRequired
+	}
+	fsCopy := fs
+	d.FinalScore = &fsCopy
+	d.Status = status
+	return fs, status, d.ThesisID, nil
+}
+
 func (f *fakeDefenseRepo) CheckScheduleConflict(_ context.Context, room string, _ time.Time, examinerIDs []uuid.UUID, excludeID *uuid.UUID) (bool, error) {
 	for _, d := range f.scheduled {
 		if excludeID != nil && d.ID == *excludeID {
@@ -282,6 +328,22 @@ func (r *recordingDefenseEmailService) SendArchiveCreated(context.Context, strin
 	return nil
 }
 
+func (r *recordingDefenseEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingDefenseEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingDefenseEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingDefenseEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
 // newTestDefenseUseCase wires a fresh defense use case with in-memory fakes.
 func newTestDefenseUseCase(t *testing.T) (*DefenseUseCase, *fakeDefenseRepo, *fakeSeminarRepo, *fakeDocumentRepo, *fakeThesisRepo, *fakeUserRepo, *recordingDefenseEmailService) {
 	t.Helper()
@@ -311,8 +373,8 @@ func newTestDefenseUseCase(t *testing.T) (*DefenseUseCase, *fakeDefenseRepo, *fa
 	}
 
 	auditSvc := audit.NewAuditService(nil)
-	documentUC := NewDocumentUseCase(docRepo, thesisRepo, nil, email, auditSvc)
-	uc := NewDefenseUseCase(defRepo, semRepo, thesisRepo, userRepo, documentUC, email, auditSvc)
+	documentUC := NewDocumentUseCase(docRepo, thesisRepo, nil, email, auditSvc, nil)
+	uc := NewDefenseUseCase(defRepo, semRepo, thesisRepo, userRepo, documentUC, email, auditSvc, nil)
 	return uc, defRepo, semRepo, docRepo, thesisRepo, userRepo, email
 }
 
@@ -580,6 +642,56 @@ func TestSubmitScoresAndFinalizeDefense(t *testing.T) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("timed out waiting for finalized email")
+	}
+}
+
+// TestFinalizeDefenseIdempotent guards against the production-review race: a
+// defense that is already finalized (status != "scheduled") must not be
+// finalized a second time, so concurrent score submissions cannot both finalize.
+func TestFinalizeDefenseIdempotent(t *testing.T) {
+	uc, defRepo, _, docRepo, thesisRepo, userRepo, email := newTestDefenseUseCase(t)
+	thesisID, studentID, _ := seedDefenseReadyThesis(t, defRepo, docRepo, thesisRepo, userRepo)
+	if _, err := uc.Submit(context.Background(), thesisID, Actor{UserID: studentID}); err != nil {
+		t.Fatalf("submit: %v", err)
+	}
+	defenseID := defRepo.byThesis[thesisID]
+	examiners := seedDefenseExaminers(t, userRepo, defRepo, 2)
+	if _, err := uc.Schedule(context.Background(), defenseID, ScheduleDefenseRequest{
+		ScheduledAt: futureDays(10),
+		Room:        "Ruang A",
+		ExaminerIDs: examiners,
+	}, Actor{UserID: uuid.New()}); err != nil {
+		t.Fatalf("schedule: %v", err)
+	}
+	for _, ex := range examiners {
+		if _, err := uc.SubmitScores(context.Background(), defenseID, SubmitDefenseScoreRequest{
+			Scores: fullScoreInput(entity.DefenseGradingComponents, 80),
+		}, Actor{UserID: ex}); err != nil {
+			t.Fatalf("submit scores for %s: %v", ex, err)
+		}
+	}
+
+	// Defense is now finalized (one finalized email is queued from SubmitScores).
+	// Drain it, then attempt a second finalize which must be a no-op.
+	select {
+	case <-email.finalizedTo:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for first finalized email")
+	}
+
+	if err := uc.TryFinalizeDefense(context.Background(), defenseID); err != nil {
+		t.Fatalf("second finalize returned error: %v", err)
+	}
+	th := thesisRepo.theses[thesisID]
+	if th.Status != "defense_done" {
+		t.Errorf("thesis status = %q, want defense_done", th.Status)
+	}
+	// No second finalized email should have been emitted.
+	select {
+	case to := <-email.finalizedTo:
+		t.Errorf("unexpected second finalized email to %q", to)
+	case <-time.After(200 * time.Millisecond):
+		// expected: no email
 	}
 }
 

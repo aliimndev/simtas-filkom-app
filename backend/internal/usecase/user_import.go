@@ -10,12 +10,14 @@ import (
 	"strings"
 
 	"github.com/gocarina/gocsv"
+	"github.com/google/uuid"
 	"github.com/xuri/excelize/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/notification"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/utils"
 )
 
@@ -156,12 +158,21 @@ func (uc *UserUseCase) ImportUsers(ctx context.Context, filename string, data []
 			return nil, err
 		}
 		// Welcome emails (async, non-fatal)
+		importedIDs := make([]uuid.UUID, 0, len(validUsers))
 		for _, u := range validUsers {
 			u := u
+			importedIDs = append(importedIDs, u.ID)
 			go func() {
 				_ = uc.emailSvc.SendWelcomeEmail(context.Background(), u.Email, u.FullName, emailToPassword[u.Email])
 			}()
 		}
+		uc.notifSvc.Notify(notification.Params{
+			UserIDs: importedIDs,
+			Title:   "Akun SIMTAS Dibuat",
+			Message: "Akun SIMTAS Anda telah dibuat melalui impor massal. Silakan periksa email untuk password sementara.",
+			Type:    "account",
+			Link:    notification.Path("/profile"),
+		})
 	}
 
 	uc.auditSvc.Log(ctx, audit.AuditParams{

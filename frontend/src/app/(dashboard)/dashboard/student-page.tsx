@@ -94,7 +94,10 @@ export default function StudentDashboardPage() {
     )
   }
 
-  const totalDocs = d.documents.length
+  // Backend always sends `[]`, but guard anyway so a `null` payload (older
+  // backend, or empty collections serialized as null) never crashes the page.
+  const totalDocs = (d.documents ?? []).length
+  const pendingActions = d.pending_actions ?? []
 
   return (
     <div className="space-y-6">
@@ -115,39 +118,42 @@ export default function StudentDashboardPage() {
               <Badge variant="muted">{d.progress_percentage}%</Badge>
             </div>
           </div>
-          <div className="flex items-center">
-            {STAGE_ORDER.map((stage, i) => {
-              const done = i <= stageIndex
-              return (
-                <div key={stage} className="flex flex-1 items-center last:flex-none">
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div
-                      className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                        done ? 'bg-success text-white' : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {i + 1}
+          {/* Mobile: horizontal snap scroll | Desktop: flex row */}
+          <div className="-mx-1 overflow-x-auto pb-2 sm:mx-0 sm:overflow-visible sm:pb-0">
+            <div className="flex min-w-[640px] items-center sm:min-w-0">
+              {STAGE_ORDER.map((stage, i) => {
+                const done = i <= stageIndex
+                return (
+                  <div key={stage} className="flex flex-1 items-center last:flex-none">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                          done ? 'bg-success text-white' : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {i + 1}
+                      </div>
+                      <span className="whitespace-nowrap text-[10px] text-muted-foreground">{STAGE_LABELS[stage]}</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">{STAGE_LABELS[stage]}</span>
+                    {i < STAGE_ORDER.length - 1 && (
+                      <div className={`mx-2 h-0.5 flex-1 rounded ${done ? 'bg-success' : 'bg-muted'}`} />
+                    )}
                   </div>
-                  {i < STAGE_ORDER.length - 1 && (
-                    <div className={`mx-2 h-0.5 flex-1 rounded ${done ? 'bg-success' : 'bg-muted'}`} />
-                  )}
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {d.pending_actions.length > 0 && (
+      {pendingActions.length > 0 && (
         <Card className="border-warning/30 bg-warning-50">
           <CardContent className="p-4">
             <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-warning">
               <AlertCircle className="h-4 w-4" /> Yang perlu Anda lakukan
             </p>
             <ul className="space-y-1 text-sm">
-              {d.pending_actions.map((a, i) => (
+              {pendingActions.map((a, i) => (
                 <li key={i}>• {a}</li>
               ))}
             </ul>

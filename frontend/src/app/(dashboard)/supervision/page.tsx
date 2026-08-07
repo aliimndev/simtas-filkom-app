@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { consultationApi } from '@/lib/api/consultation-api'
 import { getErrorMessage } from '@/lib/utils/error'
 import { formatDate } from '@/lib/utils/date'
@@ -91,7 +92,7 @@ export default function SupervisionPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['consultations'] }),
   })
 
-  if (thesesLoading) return <Spinner label="Memuat data…" />
+  if (thesesLoading) return <ListSkeleton count={4} label="Memuat data…" />
 
   if (!myThesis) {
     return (

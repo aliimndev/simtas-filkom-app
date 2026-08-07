@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: SIMTAS
+    orgId: 1
+    folder: SIMTAS
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

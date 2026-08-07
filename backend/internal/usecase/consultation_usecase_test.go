@@ -216,6 +216,22 @@ func (r *recordingEmailService) SendArchiveCreated(context.Context, string, *ent
 	return nil
 }
 
+func (r *recordingEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
+func (r *recordingEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+
 // waitCreated blocks until one consultation-created email arrives (with timeout).
 func (r *recordingEmailService) waitCreated(t *testing.T) []string {
 	t.Helper()
@@ -252,7 +268,7 @@ func newTestConsultationUseCase() (*ConsultationUseCase, *fakeConsultationRepo, 
 	userRepo.roles["dosen_penguji"] = &entity.Role{ID: 5, Name: "dosen_penguji"}
 
 	auditSvc := audit.NewAuditService(nil)
-	uc := NewConsultationUseCase(consultRepo, thesisRepo, email, auditSvc)
+	uc := NewConsultationUseCase(consultRepo, thesisRepo, email, auditSvc, nil)
 	return uc, consultRepo, thesisRepo, userRepo, email
 }
 

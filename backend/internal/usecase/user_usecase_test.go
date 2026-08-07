@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/google/uuid"
@@ -14,8 +15,11 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
 )
 
-// fakeUserRepo is a minimal in-memory UserRepository for usecase tests.
+// fakeUserRepo is a minimal in-memory UserRepository for usecase tests. Its
+// maps are guarded by a mutex because background notification goroutines may
+// still be reading the store after a test asserts on its state.
 type fakeUserRepo struct {
+	mu          sync.RWMutex
 	users       map[uuid.UUID]*entity.User
 	emails      map[string]uuid.UUID
 	roles       map[string]*entity.Role
@@ -37,6 +41,8 @@ func newFakeUserRepo() *fakeUserRepo {
 }
 
 func (f *fakeUserRepo) FindAll(_ context.Context, _ domainRepo.UserFilter) ([]*entity.User, int64, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
 	users := make([]*entity.User, 0, len(f.users))
 	for _, u := range f.users {
 		users = append(users, u)
@@ -45,6 +51,8 @@ func (f *fakeUserRepo) FindAll(_ context.Context, _ domainRepo.UserFilter) ([]*e
 }
 
 func (f *fakeUserRepo) FindByID(_ context.Context, id uuid.UUID) (*entity.User, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
 	u, ok := f.users[id]
 	if !ok || f.softDeleted[id] {
 		return nil, gorm.ErrRecordNotFound
@@ -53,6 +61,8 @@ func (f *fakeUserRepo) FindByID(_ context.Context, id uuid.UUID) (*entity.User, 
 }
 
 func (f *fakeUserRepo) FindByEmail(_ context.Context, email string) (*entity.User, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
 	id, ok := f.emails[email]
 	if !ok {
 		return nil, gorm.ErrRecordNotFound
@@ -61,6 +71,8 @@ func (f *fakeUserRepo) FindByEmail(_ context.Context, email string) (*entity.Use
 }
 
 func (f *fakeUserRepo) FindByRole(_ context.Context, role string) ([]*entity.User, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
 	var users []*entity.User
 	for _, u := range f.users {
 		if u.Role.Name == role && !f.softDeleted[u.ID] {
@@ -71,6 +83,8 @@ func (f *fakeUserRepo) FindByRole(_ context.Context, role string) ([]*entity.Use
 }
 
 func (f *fakeUserRepo) FindRoleByName(_ context.Context, name string) (*entity.Role, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
 	r, ok := f.roles[name]
 	if !ok {
 		return nil, gorm.ErrRecordNotFound
@@ -79,6 +93,8 @@ func (f *fakeUserRepo) FindRoleByName(_ context.Context, name string) (*entity.R
 }
 
 func (f *fakeUserRepo) Create(_ context.Context, user *entity.User) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	if _, exists := f.emails[user.Email]; exists {
 		return errors.New("duplicate email")
 	}
@@ -90,11 +106,15 @@ func (f *fakeUserRepo) Create(_ context.Context, user *entity.User) error {
 }
 
 func (f *fakeUserRepo) Update(_ context.Context, user *entity.User) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.users[user.ID] = user
 	return nil
 }
 
 func (f *fakeUserRepo) SoftDelete(_ context.Context, id uuid.UUID) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.softDeleted[id] = true
 	f.deleted = append(f.deleted, id)
 	return nil
@@ -108,21 +128,29 @@ func (f *fakeUserRepo) BulkCreate(_ context.Context, users []*entity.User) error
 }
 
 func (f *fakeUserRepo) SetActiveStatus(_ context.Context, id uuid.UUID, isActive bool) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.activeMap[id] = isActive
 	return nil
 }
 
 func (f *fakeUserRepo) ResetPassword(_ context.Context, id uuid.UUID, _ string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.resetPw = append(f.resetPw, id)
 	return nil
 }
 
 func (f *fakeUserRepo) ChangePassword(_ context.Context, id uuid.UUID, _ string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.resetPw = append(f.resetPw, id)
 	return nil
 }
 
 func (f *fakeUserRepo) InvalidateUserSessions(_ context.Context, id uuid.UUID) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.invalidated = append(f.invalidated, id)
 	return nil
 }
@@ -183,6 +211,18 @@ func (f *fakeEmailService) SendGraduated(context.Context, string, *entity.Thesis
 func (f *fakeEmailService) SendArchiveCreated(context.Context, string, *entity.ThesisArchive) error {
 	return nil
 }
+func (f *fakeEmailService) SendTitleChangeRequested(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+func (f *fakeEmailService) SendTitleChangeCancelled(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+func (f *fakeEmailService) SendTitleChangeApproved(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
+func (f *fakeEmailService) SendTitleChangeRejected(context.Context, []string, *entity.Thesis, *entity.TitleChangeRequest) error {
+	return nil
+}
 
 func newTestUserUseCase() (*UserUseCase, *fakeUserRepo) {
 	repo := newFakeUserRepo()
@@ -190,7 +230,7 @@ func newTestUserUseCase() (*UserUseCase, *fakeUserRepo) {
 	repo.roles["admin_fakultas"] = &entity.Role{ID: 1, Name: "admin_fakultas"}
 
 	auditSvc := audit.NewAuditService(nil) // nil repo → no-op, safe
-	uc := NewUserUseCase(repo, &fakeEmailService{}, auditSvc)
+	uc := NewUserUseCase(repo, &fakeEmailService{}, auditSvc, nil)
 	return uc, repo
 }
 
