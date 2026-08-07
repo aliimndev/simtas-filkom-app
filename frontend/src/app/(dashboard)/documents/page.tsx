@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { documentApi } from '@/lib/api/document-api'
 import { documentTypeLabel, DOCUMENT_STATUS_LABELS, type DocumentType } from '@/types/document'
 import { formatDate } from '@/lib/utils/date'
@@ -117,7 +118,7 @@ export default function DocumentsPage() {
     }
   }
 
-  if (thesesLoading) return <Spinner label="Memuat dokumen…" />
+  if (thesesLoading) return <ListSkeleton count={4} label="Memuat dokumen…" />
 
   if (!myThesis) {
     return (

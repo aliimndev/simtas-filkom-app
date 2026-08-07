@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { archiveApi } from '@/lib/api/archive-api'
 import { formatDate } from '@/lib/utils/date'
 import { getErrorMessage } from '@/lib/utils/error'
@@ -62,7 +62,7 @@ export default function ArchivesPage() {
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {archives.isLoading ? (
-        <Spinner />
+        <ListSkeleton count={6} label="Memuat arsip…" />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { academicYearApi } from '@/lib/api/user-api'
 import { formatDate } from '@/lib/utils/date'
@@ -81,7 +81,7 @@ export default function AcademicYearsPage() {
       )}
 
       {years.isLoading ? (
-        <Spinner />
+        <ListSkeleton count={4} label="Memuat tahun akademik…" />
       ) : (
         <>
           {/* Desktop table */}

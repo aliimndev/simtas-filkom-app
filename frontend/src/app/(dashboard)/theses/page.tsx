@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
-import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { thesisApi } from '@/lib/api/thesis-api'
 import { formatDate } from '@/lib/utils/date'
 import type { ThesisStatus } from '@/types/thesis'
@@ -72,7 +72,7 @@ export default function ThesesPage() {
       </div>
 
       {theses.isLoading ? (
-        <Spinner />
+        <ListSkeleton count={5} label="Memuat daftar skripsi…" />
       ) : (
         <div className="space-y-3">
           {list.map((t) => (

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
-import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { userApi } from '@/lib/api/user-api'
 import { roleLabel, ROLE_OPTIONS } from '@/constants/roles'
@@ -121,7 +121,7 @@ export default function AdminUsersPage() {
       {actionError && <Alert variant="danger">{actionError}</Alert>}
 
       {users.isLoading ? (
-        <Spinner />
+        <ListSkeleton count={5} label="Memuat pengguna…" />
       ) : (
         <>
           {/* Desktop table */}

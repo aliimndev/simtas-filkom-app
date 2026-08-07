@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { CalendarDays, GraduationCap, ClipboardCheck, MapPin } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { defenseApi } from '@/lib/api/defense-api'
 import { formatDateTime } from '@/lib/utils/date'
 import { flattenSchedules, type UpcomingSchedules } from '@/types/dashboard'
@@ -40,7 +40,7 @@ export default function SchedulesPage() {
       </div>
 
       {upcoming.isLoading ? (
-        <Spinner />
+        <ListSkeleton count={5} label="Memuat jadwal…" />
       ) : items.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">Tidak ada jadwal mendatang.</p>
       ) : (

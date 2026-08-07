@@ -5,7 +5,7 @@ import { ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
-import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -70,7 +70,7 @@ export default function AuditLogsPage() {
       </div>
 
       {logs.isLoading ? (
-        <Spinner />
+        <ListSkeleton count={6} label="Memuat audit log…" />
       ) : (
         <>
           {/* Desktop table */}

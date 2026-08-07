@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { RequireAuth } from '@/components/features/require-auth'
-import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { titleChangeApi } from '@/lib/api/title-change-api'
 import { toast } from '@/components/ui/toaster'
@@ -96,7 +96,7 @@ function TitleChangeReviewsInner() {
       {pending.isError ? (
         <Alert variant="danger">{getErrorMessage(pending.error, 'Gagal memuat antrian review.')}</Alert>
       ) : pending.isLoading ? (
-        <Spinner label="Memuat permintaan…" />
+        <ListSkeleton count={3} label="Memuat permintaan…" />
       ) : list.length === 0 ? (
         <Card>
           <CardContent className="py-14 text-center">

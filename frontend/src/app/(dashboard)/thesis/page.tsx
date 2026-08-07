@@ -15,6 +15,7 @@ import { Dialog } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
+import { ListSkeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { thesisApi } from '@/lib/api/thesis-api'
 import { titleChangeApi } from '@/lib/api/title-change-api'
@@ -136,7 +137,7 @@ export default function MyThesisPage() {
     }
   })
 
-  if (theses.isLoading) return <Spinner label="Memuat skripsi…" />
+  if (theses.isLoading) return <ListSkeleton count={4} label="Memuat skripsi…" />
 
   if (!thesis) {
     return (

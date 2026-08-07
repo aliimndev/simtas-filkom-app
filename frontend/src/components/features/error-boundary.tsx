@@ -3,6 +3,7 @@
 import React, { Component, type ReactNode } from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import Link from 'next/link'
+import { reportError } from '@/lib/utils/report-error'
 
 interface Props {
   children: ReactNode
@@ -43,7 +44,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error to monitoring service (Sentry, etc.)
+    // Report to monitoring service (Sentry via NEXT_PUBLIC_SENTRY_DSN, no-op if unset)
+    reportError(error, { componentStack: errorInfo.componentStack })
     console.error('ErrorBoundary caught:', error, errorInfo)
   }
 
