@@ -28,7 +28,7 @@ export const metadata = { title: 'Tentang — SIMTAS FILKOM' }
 export default function AboutPage() {
   return (
     <div>
-      <section className="border-b border-[var(--st-stroke)]">
+      <section className="border-b border-st-stroke">
         <div className="landing-container max-w-3xl pb-16 pt-36 md:pt-44">
           <Reveal>
             <span className="landing-eyebrow">Tentang Sistem</span>
@@ -37,8 +37,8 @@ export default function AboutPage() {
             <h1 className="landing-display mt-5 text-4xl md:text-5xl">Apa itu SIMTAS FILKOM?</h1>
           </Reveal>
           <Reveal delay={160}>
-            <p className="mt-6 text-base leading-relaxed text-[var(--st-muted)] md:text-lg">
-              <span className="text-[var(--st-text)]">SIMTAS FILKOM</span> (Sistem Manajemen Tugas Akhir
+            <p className="mt-6 text-base leading-relaxed text-st-muted md:text-lg">
+              <span className="text-st-text">SIMTAS FILKOM</span> (Sistem Manajemen Tugas Akhir
               Skripsi) adalah platform digital milik Fakultas Ilmu Komputer Universitas Djuanda yang
               mengelola seluruh proses Tugas Akhir Skripsi mahasiswa dalam satu ekosistem yang
               terpadu, transparan, dan aman.
@@ -47,29 +47,29 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--st-stroke)]">
+      <section className="border-b border-st-stroke">
         <div className="landing-container grid gap-12 py-16 lg:grid-cols-2">
           <Reveal>
-            <h2 className="flex items-center gap-2 text-lg font-medium text-[var(--st-text)]">
-              <Target className="h-5 w-5 text-[var(--st-accent-from)]" /> Tujuan
+            <h2 className="flex items-center gap-2 text-lg font-medium text-st-text">
+              <Target className="h-5 w-5 text-(--st-accent-from)" /> Tujuan
             </h2>
             <ul className="mt-5 space-y-3">
               {TUJUAN.map((t) => (
-                <li key={t} className="flex gap-3 text-[var(--st-muted)]">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[var(--st-accent-from)]" />
+                <li key={t} className="flex gap-3 text-st-muted">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-(--st-accent-from)" />
                   <span>{t}</span>
                 </li>
               ))}
             </ul>
           </Reveal>
           <Reveal delay={80}>
-            <h2 className="flex items-center gap-2 text-lg font-medium text-[var(--st-text)]">
-              <GraduationCap className="h-5 w-5 text-[var(--st-accent-from)]" /> Manfaat
+            <h2 className="flex items-center gap-2 text-lg font-medium text-st-text">
+              <GraduationCap className="h-5 w-5 text-(--st-accent-from)" /> Manfaat
             </h2>
             <ul className="mt-5 space-y-3">
               {MANFAAT.map((m) => (
-                <li key={m} className="flex gap-3 text-[var(--st-muted)]">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[var(--st-accent-from)]" />
+                <li key={m} className="flex gap-3 text-st-muted">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-(--st-accent-from)" />
                   <span>{m}</span>
                 </li>
               ))}
@@ -78,11 +78,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="landing-surface border-b border-[var(--st-stroke)]">
+      <section className="landing-surface border-b border-st-stroke">
         <div className="landing-container py-16">
           <Reveal>
-            <h2 className="flex items-center gap-2 text-lg font-medium text-[var(--st-text)]">
-              <Users className="h-5 w-5 text-[var(--st-accent-from)]" /> Siapa yang menggunakan?
+            <h2 className="flex items-center gap-2 text-lg font-medium text-st-text">
+              <Users className="h-5 w-5 text-(--st-accent-from)" /> Siapa yang menggunakan?
             </h2>
           </Reveal>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -91,12 +91,12 @@ export default function AboutPage() {
               return (
                 <Reveal key={p.role} delay={i * 60} className="h-full">
                   <div className="st-card flex h-full items-start gap-4 rounded-2xl p-6">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--st-stroke)] bg-[var(--st-bg)] text-[var(--st-accent-from)]">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-st-stroke bg-st-bg text-(--st-accent-from)">
                       <Icon className="h-5 w-5" />
                     </span>
                     <div>
-                      <h3 className="font-medium text-[var(--st-text)]">{p.role}</h3>
-                      <p className="mt-1.5 text-sm text-[var(--st-muted)]">{p.desc}</p>
+                      <h3 className="font-medium text-st-text">{p.role}</h3>
+                      <p className="mt-1.5 text-sm text-st-muted">{p.desc}</p>
                     </div>
                   </div>
                 </Reveal>
@@ -106,16 +106,16 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--st-stroke)]">
+      <section className="border-b border-st-stroke">
         <div className="landing-container py-16">
           <Reveal>
-            <h2 className="flex items-center gap-2 text-lg font-medium text-[var(--st-text)]">
-              <Cpu className="h-5 w-5 text-[var(--st-accent-from)]" /> Teknologi yang digunakan
+            <h2 className="flex items-center gap-2 text-lg font-medium text-st-text">
+              <Cpu className="h-5 w-5 text-(--st-accent-from)" /> Teknologi yang digunakan
             </h2>
           </Reveal>
           <div className="mt-8 flex flex-wrap gap-3">
             {TEKNOLOGI.map((t) => (
-              <span key={t} className="rounded-full border border-[var(--st-stroke)] bg-[var(--st-surface)] px-4 py-1.5 text-sm text-[var(--st-text)]">
+              <span key={t} className="rounded-full border border-st-stroke bg-st-surface px-4 py-1.5 text-sm text-st-text">
                 {t}
               </span>
             ))}

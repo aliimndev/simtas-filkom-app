@@ -8,6 +8,7 @@ import (
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/usecase"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/response"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/utils"
 )
 
 // respondError is the single source of truth mapping use case sentinel errors to
@@ -52,6 +53,10 @@ func respondError(c *gin.Context, err error) {
 		errors.Is(err, usecase.ErrTitleTooLong),
 		errors.Is(err, usecase.ErrAbstractTooShort),
 		errors.Is(err, usecase.ErrInvalidThesisType),
+		errors.Is(err, usecase.ErrDraftRequired),
+		errors.Is(err, utils.ErrNotPDF),
+		errors.Is(err, utils.ErrFileTooLarge),
+		errors.Is(err, utils.ErrFileEmpty),
 		errors.Is(err, usecase.ErrInvalidDecision),
 		errors.Is(err, usecase.ErrInvalidSupervisorCount),
 		errors.Is(err, usecase.ErrSupervisorNotEligible),

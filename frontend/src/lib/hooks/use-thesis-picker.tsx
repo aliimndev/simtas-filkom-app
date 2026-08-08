@@ -14,7 +14,7 @@ import type { Thesis } from '@/types/thesis'
  *   menampilkan <Select> agar bisa memilih mahasiswa bimbingan mana yang dilihat.
  */
 export function useThesisPicker() {
-  const { user } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
   const isStudent = user?.role === 'mahasiswa'
   const [selectedId, setSelectedId] = useState<string | null>(null)
 

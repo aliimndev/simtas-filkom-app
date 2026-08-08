@@ -6,6 +6,10 @@
   --background: #f7f8fa;
   --foreground: #1a1c20;
 
+  /* Dashboard surface ladder: white cards on the neutral canvas. */
+  --card: #ffffff;
+  --surface-hi: #f3f5f8;
+
   /* Brand — FILKOM Unida (biru institusi) — tetap, dipakai sebagai aksen */
   --primary: #4e85bf;
   --primary-foreground: #ffffff;
@@ -77,6 +81,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-surface-hi: var(--surface-hi);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-50: var(--primary-50);
@@ -187,6 +193,14 @@ body {
 .accent-gradient:focus-visible {
   outline: 2px solid var(--st-accent-to);
   outline-offset: 2px;
+}
+
+/* Keyboard focus ring for the dashboard surface. Components already declare
+   their own ring (buttons, inputs); this catches the links/rows that don't. */
+main :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
 }
 
 /* Accent gradient (FILKOM institutional blue) */
@@ -369,3 +383,5 @@ button, a, [role="button"] {
 .overflow-x-auto > * {
   scroll-snap-align: start;
 }
+
+/* ── Rich text (Tiptap editor + read-only renderer) ──────────── */

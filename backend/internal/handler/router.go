@@ -109,7 +109,7 @@ func NewRouter(engine *gin.Engine, db *gorm.DB, cfg *config.Config) *Router {
 	authUseCase := usecase.NewAuthUseCase(authRepository, jwtManager, auditService)
 	userUseCase := usecase.NewUserUseCase(userRepository, emailService, auditService, notificationService)
 	academicYearUseCase := usecase.NewAcademicYearUseCase(academicYearRepository)
-	thesisUseCase := usecase.NewThesisUseCase(thesisRepository, userRepository, academicYearRepository, emailService, auditService, notificationService)
+	thesisUseCase := usecase.NewThesisUseCase(thesisRepository, userRepository, academicYearRepository, documentRepository, storageService, emailService, auditService, notificationService)
 	consultationUseCase := usecase.NewConsultationUseCase(consultationRepository, thesisRepository, emailService, auditService, notificationService)
 	documentUseCase := usecase.NewDocumentUseCase(documentRepository, thesisRepository, storageService, emailService, auditService, notificationService)
 	seminarUseCase := usecase.NewSeminarUseCase(seminarRepository, thesisRepository, userRepository, documentUseCase, emailService, auditService, notificationService)

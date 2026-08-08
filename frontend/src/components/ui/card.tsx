@@ -6,7 +6,7 @@ export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
     <div
       ref={ref}
       className={cn(
-        'rounded-xl border border-border bg-background shadow-sm transition-shadow hover:shadow-md',
+        'rounded-lg border border-border bg-card',
         className,
       )}
       {...props}
@@ -53,3 +53,11 @@ export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
   ),
 )
 CardFooter.displayName = 'CardFooter'
+
+// Compatibility export for the shadcn dashboard-01 example block.
+export const CardAction = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex items-center gap-2', className)} {...props} />
+  ),
+)
+CardAction.displayName = 'CardAction'

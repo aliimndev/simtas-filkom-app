@@ -1,9 +1,12 @@
 package usecase
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"mime/multipart"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -14,6 +17,8 @@ import (
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/domain/entity"
 	domainRepo "github.com/aliimndev/simtas-filkom-app/backend/internal/domain/repository"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/audit"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/storage"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/utils"
 )
 
 // fakeThesisRepo is a minimal in-memory ThesisRepository for usecase tests.
@@ -247,8 +252,21 @@ func newTestThesisUseCase() (*ThesisUseCase, *fakeThesisRepo, *fakeUserRepo, *fa
 	_ = acadRepo.Activate(context.Background(), year.ID)
 
 	auditSvc := audit.NewAuditService(nil) // nil repo → no-op, safe
-	uc := NewThesisUseCase(thesisRepo, userRepo, acadRepo, &fakeEmailService{}, auditSvc, nil)
+	docRepo := newFakeDocumentRepo()
+	storageSvc := storage.NewStubStorageService(os.TempDir(), "http://test.local")
+	uc := NewThesisUseCase(thesisRepo, userRepo, acadRepo, docRepo, storageSvc, &fakeEmailService{}, auditSvc, nil)
 	return uc, thesisRepo, userRepo, acadRepo
+}
+
+// mustDraftFile / mustDraftHeader return a standalone valid PDF draft pair.
+// They are independent (each call re-reads pdfContent) so they can be assigned
+// directly to DraftFile / DraftHeader fields.
+func mustDraftFile() multipart.File {
+	return testFile{bytes.NewReader(pdfContent)}
+}
+
+func mustDraftHeader() *multipart.FileHeader {
+	return &multipart.FileHeader{Filename: "draft-proposal.pdf", Size: int64(len(pdfContent))}
 }
 
 // seedStudentWithRole adds an active student user and returns their ID.
@@ -286,6 +304,8 @@ func TestSubmitThesis(t *testing.T) {
 		Abstract:     longAbstract(100),
 		FieldOfStudy: "Kecerdasan Buatan",
 		ThesisType:   "skripsi",
+		DraftFile:    mustDraftFile(),
+		DraftHeader:  mustDraftHeader(),
 	}, studentID, Actor{UserID: uuid.New()})
 	if err != nil {
 		t.Fatalf("Submit returned error: %v", err)
@@ -308,18 +328,22 @@ func TestSubmitThesisActiveExists(t *testing.T) {
 
 	// First submission succeeds.
 	if _, err := uc.Submit(context.Background(), CreateThesisRequest{
-		Title:      validTitle(),
-		Abstract:   longAbstract(100),
-		ThesisType: "skripsi",
+		Title:       validTitle(),
+		Abstract:    longAbstract(100),
+		ThesisType:  "skripsi",
+		DraftFile:   mustDraftFile(),
+		DraftHeader: mustDraftHeader(),
 	}, studentID, Actor{UserID: uuid.New()}); err != nil {
 		t.Fatalf("first Submit returned error: %v", err)
 	}
 
 	// Second submission must be rejected.
 	_, err := uc.Submit(context.Background(), CreateThesisRequest{
-		Title:      validTitle(),
-		Abstract:   longAbstract(100),
-		ThesisType: "skripsi",
+		Title:       validTitle(),
+		Abstract:    longAbstract(100),
+		ThesisType:  "skripsi",
+		DraftFile:   mustDraftFile(),
+		DraftHeader: mustDraftHeader(),
 	}, studentID, Actor{UserID: uuid.New()})
 	if !errors.Is(err, ErrActiveThesisExists) {
 		t.Errorf("expected ErrActiveThesisExists, got %v", err)
@@ -339,6 +363,8 @@ func TestSubmitThesisValidation(t *testing.T) {
 		{"title too long", CreateThesisRequest{Title: strings.Repeat("kata ", 101), Abstract: longAbstract(100), ThesisType: "skripsi"}, ErrTitleTooLong},
 		{"abstract too short", CreateThesisRequest{Title: validTitle(), Abstract: "abstrak singkat", ThesisType: "skripsi"}, ErrAbstractTooShort},
 		{"invalid thesis type", CreateThesisRequest{Title: validTitle(), Abstract: longAbstract(100), ThesisType: "tesis"}, ErrInvalidThesisType},
+		{"draft required", CreateThesisRequest{Title: validTitle(), Abstract: longAbstract(100), ThesisType: "skripsi"}, ErrDraftRequired},
+		{"draft not pdf", CreateThesisRequest{Title: validTitle(), Abstract: longAbstract(100), ThesisType: "skripsi", DraftFile: testFile{bytes.NewReader([]byte("not a pdf"))}, DraftHeader: &multipart.FileHeader{Filename: "draft-proposal.pdf", Size: 10}}, utils.ErrNotPDF},
 	}
 
 	for _, tt := range tests {
@@ -359,12 +385,14 @@ func TestSubmitThesisNoActiveAcademicYear(t *testing.T) {
 	studentID := seedStudent(t, userRepo, "mahasiswa")
 
 	auditSvc := audit.NewAuditService(nil)
-	uc := NewThesisUseCase(thesisRepo, userRepo, acadRepo, &fakeEmailService{}, auditSvc, nil)
+	uc := NewThesisUseCase(thesisRepo, userRepo, acadRepo, newFakeDocumentRepo(), storage.NewStubStorageService(os.TempDir(), "http://test.local"), &fakeEmailService{}, auditSvc, nil)
 
 	_, err := uc.Submit(context.Background(), CreateThesisRequest{
-		Title:      validTitle(),
-		Abstract:   longAbstract(100),
-		ThesisType: "skripsi",
+		Title:       validTitle(),
+		Abstract:    longAbstract(100),
+		ThesisType:  "skripsi",
+		DraftFile:   mustDraftFile(),
+		DraftHeader: mustDraftHeader(),
 	}, studentID, Actor{UserID: uuid.New()})
 	if !errors.Is(err, ErrNoActiveAcademicYear) {
 		t.Errorf("expected ErrNoActiveAcademicYear, got %v", err)
@@ -377,9 +405,11 @@ func seedSubmittedThesis(t *testing.T, uc *ThesisUseCase, thesisRepo *fakeThesis
 	studentID := seedStudent(t, userRepo, "mahasiswa")
 	registerFakeStudent(thesisRepo, studentID, userRepo)
 	detail, err := uc.Submit(context.Background(), CreateThesisRequest{
-		Title:      validTitle(),
-		Abstract:   longAbstract(100),
-		ThesisType: "skripsi",
+		Title:       validTitle(),
+		Abstract:    longAbstract(100),
+		ThesisType:  "skripsi",
+		DraftFile:   mustDraftFile(),
+		DraftHeader: mustDraftHeader(),
 	}, studentID, Actor{UserID: uuid.New()})
 	if err != nil {
 		t.Fatalf("seed thesis: %v", err)
@@ -539,9 +569,11 @@ func TestListScopedByStudent(t *testing.T) {
 	registerFakeStudent(thesisRepo, studentID, userRepo)
 
 	if _, err := uc.Submit(context.Background(), CreateThesisRequest{
-		Title:      validTitle(),
-		Abstract:   longAbstract(100),
-		ThesisType: "skripsi",
+		Title:       validTitle(),
+		Abstract:    longAbstract(100),
+		ThesisType:  "skripsi",
+		DraftFile:   mustDraftFile(),
+		DraftHeader: mustDraftHeader(),
 	}, studentID, Actor{UserID: uuid.New()}); err != nil {
 		t.Fatalf("Submit: %v", err)
 	}
@@ -562,9 +594,11 @@ func TestListAllForKaprodi(t *testing.T) {
 	uc, _, userRepo, _ := newTestThesisUseCase()
 	studentID := seedStudent(t, userRepo, "mahasiswa")
 	if _, err := uc.Submit(context.Background(), CreateThesisRequest{
-		Title:      validTitle(),
-		Abstract:   longAbstract(100),
-		ThesisType: "skripsi",
+		Title:       validTitle(),
+		Abstract:    longAbstract(100),
+		ThesisType:  "skripsi",
+		DraftFile:   mustDraftFile(),
+		DraftHeader: mustDraftHeader(),
 	}, studentID, Actor{UserID: uuid.New()}); err != nil {
 		t.Fatalf("Submit: %v", err)
 	}
