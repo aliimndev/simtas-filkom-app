@@ -53,3 +53,11 @@ export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
   ),
 )
 CardFooter.displayName = 'CardFooter'
+
+// Compatibility export for the shadcn dashboard-01 example block.
+export const CardAction = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex items-center gap-2', className)} {...props} />
+  ),
+)
+CardAction.displayName = 'CardAction'
