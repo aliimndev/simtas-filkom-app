@@ -8,7 +8,7 @@ import ExaminerDashboardPage from './examiner-page'
 import { Spinner } from '@/components/ui/spinner'
 
 export default function DashboardPage() {
-  const { user } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
 
   if (!user) return <Spinner label="Memuat dashboard…" />
 

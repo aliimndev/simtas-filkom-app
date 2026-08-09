@@ -54,6 +54,7 @@ export interface CreateThesisRequest {
   field_of_study: string
   thesis_type: 'skripsi' | 'tugas_akhir'
   academic_year_id: string
+  file: File
 }
 
 export interface ReviewThesisRequest {

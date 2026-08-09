@@ -2,39 +2,34 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import { BookOpen, MessagesSquare, FolderOpen, CalendarDays, ArrowRight, AlertCircle } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  FileText,
+  FolderOpen,
+  MessagesSquare,
+  Upload,
+  PenLine,
+} from 'lucide-react'
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardHeader } from '@/components/features/dashboard/dashboard-header'
+import { ProgressTimeline } from '@/components/features/dashboard/progress-timeline'
+import { StatusBadge, thesisStatusProps } from '@/components/features/dashboard/status-badge'
+import { ActivityList, type ActivityItem } from '@/components/features/dashboard/activity-list'
+import { UpcomingList, type UpcomingItem } from '@/components/features/dashboard/upcoming-list'
+import { QuickActions, type QuickActionItem } from '@/components/features/dashboard/quick-actions'
 import { StatCard } from '@/components/features/dashboard/stat-card'
 import { dashboardApi } from '@/lib/api/dashboard-api'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { roleLabel } from '@/constants/roles'
-import { formatDate } from '@/lib/utils/date'
-
-function greeting(): string {
-  const h = new Date().getHours()
-  if (h < 11) return 'Selamat pagi'
-  if (h < 15) return 'Selamat siang'
-  if (h < 18) return 'Selamat sore'
-  return 'Selamat malam'
-}
-
-const STAGE_ORDER = ['submitted', 'approved', 'in_progress', 'seminar_ready', 'seminar_done', 'defense_ready', 'defense_done', 'graduated']
-const STAGE_LABELS: Record<string, string> = {
-  submitted: 'Pengajuan',
-  approved: 'Disetujui',
-  in_progress: 'Bimbingan',
-  seminar_ready: 'Seminar',
-  seminar_done: 'Pasca Seminar',
-  defense_ready: 'Sidang',
-  defense_done: 'Pasca Sidang',
-  graduated: 'Lulus',
-}
+import { formatDate, formatDateTime } from '@/lib/utils/date'
 
 export default function StudentDashboardPage() {
-  const { user } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
   const dash = useQuery({
     queryKey: ['dashboard', 'student'],
     queryFn: dashboardApi.student,
@@ -43,15 +38,20 @@ export default function StudentDashboardPage() {
   })
 
   const d = dash.data
-  const stageIndex = d ? STAGE_ORDER.indexOf(d.status) : -1
   const isNoThesis =
     !d && dash.error instanceof AxiosError && dash.error.response?.status === 404
 
   if (dash.isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="h-8 w-64 animate-pulse rounded bg-muted" />
-        <div className="h-32 animate-pulse rounded-xl bg-muted" />
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-72" />
+        <Skeleton className="h-4 w-96" />
+        <Skeleton className="h-48 w-full" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
       </div>
     )
   }
@@ -60,7 +60,7 @@ export default function StudentDashboardPage() {
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <AlertCircle className="mx-auto h-10 w-10 text-danger" />
+          <AlertCircle className="mx-auto h-9 w-9 text-danger" />
           <p className="mt-3 font-semibold">Gagal memuat dashboard</p>
           <p className="mt-1 text-sm text-muted-foreground">Silakan muat ulang halaman atau coba lagi nanti.</p>
         </CardContent>
@@ -70,142 +70,252 @@ export default function StudentDashboardPage() {
 
   if (isNoThesis || !d) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{greeting()}, {user?.full_name?.split(' ')[0]} 👋</h1>
-        <Card className="border-2 border-dashed border-primary-200 bg-primary-50/50">
-          <CardContent className="flex flex-col items-center gap-4 py-14 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-              <BookOpen className="h-8 w-8" />
+      <div className="space-y-8">
+        <DashboardHeader
+          name={user?.full_name ?? 'Mahasiswa'}
+          subtitle={`${roleLabel(user?.role)} · NIM ${user?.nim_nidn ?? '—'}`}
+        />
+        <Card className="border-dashed border-st-stroke bg-st-surface">
+          <CardContent className="flex flex-col items-center gap-5 px-6 py-16 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary">
+              <BookOpen className="h-6 w-6" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold">Mulai Ajukan Judul Skripsi Anda</h2>
-              <p className="mt-1 max-w-md text-sm text-muted-foreground">
+            <div className="max-w-md">
+              <h2 className="font-display text-2xl leading-tight text-st-text">Mulai Ajukan Judul Skripsi</h2>
+              <p className="mt-2 text-sm text-st-muted">
                 Ajukan judul dan abstrak skripsi Anda untuk direview oleh Kaprodi sebelum memulai bimbingan.
               </p>
             </div>
-            <Button asChild size="lg">
-              <Link href="/thesis/new" className="inline-flex items-center gap-2">
-                Ajukan Judul Skripsi <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+            <Link
+              href="/thesis/new"
+              className="accent-ring inline-flex h-11 items-center gap-2 rounded-full bg-st-text px-7 text-sm font-medium text-st-bg transition hover:opacity-90"
+            >
+              Ajukan Judul Skripsi <ArrowRight className="h-4 w-4" />
+            </Link>
           </CardContent>
         </Card>
       </div>
     )
   }
 
-  // Backend always sends `[]`, but guard anyway so a `null` payload (older
-  // backend, or empty collections serialized as null) never crashes the page.
   const totalDocs = (d.documents ?? []).length
   const pendingActions = d.pending_actions ?? []
+  const { variant: statusVariant, label: statusLabel } = thesisStatusProps(d.status)
+
+  // Build activity items from available data
+  const activityItems: ActivityItem[] = buildActivityItems(d)
+
+  // Build upcoming items from schedule data
+  const upcomingItems: UpcomingItem[] = buildUpcomingItems(d)
+
+  // Quick actions
+  const quickActions: QuickActionItem[] = [
+    { label: 'Upload Dokumen', href: '/documents', icon: Upload, variant: 'secondary' },
+    { label: 'Buat Catatan Bimbingan', href: '/supervision', icon: PenLine, variant: 'secondary' },
+  ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">{greeting()}, {user?.full_name?.split(' ')[0]} 👋</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{roleLabel(user?.role)} — NIM {user?.nim_nidn ?? '—'}</p>
+        <DashboardHeader
+          name={user?.full_name ?? 'Mahasiswa'}
+          subtitle="Pantau seluruh proses Tugas Akhir Skripsi Anda dalam satu tempat."
+        />
       </div>
 
-      {/* Progress stepper */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Progress Skripsi Anda</h2>
-            <div className="flex items-center gap-2">
-              <Badge variant={d.status === 'cancelled' ? 'danger' : d.status === 'graduated' ? 'success' : 'primary'}>
-                {d.current_stage || d.status.replace(/_/g, ' ')}
-              </Badge>
-              <Badge variant="muted">{d.progress_percentage}%</Badge>
+      {/* Thesis Status Card — prominent section */}
+      <Card className="border-st-stroke bg-st-surface">
+        <CardContent className="p-5 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2.5">
+                <p className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-st-muted">Tugas Akhir Skripsi</p>
+                <StatusBadge variant={statusVariant} label={statusLabel} />
+              </div>
+              <h2 className="mt-2.5 font-display text-2xl leading-tight text-st-text sm:text-3xl">
+                {d.title}
+              </h2>
+              <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-sm text-st-muted">
+                <div className="flex items-center gap-1.5">
+                  <dt className="sr-only">Pembimbing</dt>
+                  <dd>{d.supervisors?.length ? d.supervisors.map((s) => s.full_name).join(', ') : 'Belum ditentukan'}</dd>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <dt className="sr-only">Progres</dt>
+                  <dd>{d.progress_percentage}% selesai</dd>
+                </div>
+                {d.last_consultation && (
+                  <div className="flex items-center gap-1.5">
+                    <dt className="sr-only">Terakhir diperbarui</dt>
+                    <dd>Diperbarui {formatDate(d.last_consultation)}</dd>
+                  </div>
+                )}
+              </dl>
             </div>
           </div>
-          {/* Mobile: horizontal snap scroll | Desktop: flex row */}
-          <div className="-mx-1 overflow-x-auto pb-2 sm:mx-0 sm:overflow-visible sm:pb-0">
-            <div className="flex min-w-[640px] items-center sm:min-w-0">
-              {STAGE_ORDER.map((stage, i) => {
-                const done = i <= stageIndex
-                return (
-                  <div key={stage} className="flex flex-1 items-center last:flex-none">
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                          done ? 'bg-success text-white' : 'bg-muted text-muted-foreground'
-                        }`}
-                      >
-                        {i + 1}
-                      </div>
-                      <span className="whitespace-nowrap text-[10px] text-muted-foreground">{STAGE_LABELS[stage]}</span>
-                    </div>
-                    {i < STAGE_ORDER.length - 1 && (
-                      <div className={`mx-2 h-0.5 flex-1 rounded ${done ? 'bg-success' : 'bg-muted'}`} />
-                    )}
-                  </div>
-                )
-              })}
+          {/* Progress bar (compact) */}
+          <div className="mt-5">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-st-surface-hi">
+              <div
+                className="accent-gradient h-full rounded-full transition-all duration-500"
+                style={{ width: `${d.progress_percentage}%` }}
+              />
             </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Pending Actions */}
       {pendingActions.length > 0 && (
-        <Card className="border-warning/30 bg-warning-50">
-          <CardContent className="p-4">
-            <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-warning">
-              <AlertCircle className="h-4 w-4" /> Yang perlu Anda lakukan
+        <Card className="border-warning/30 bg-warning-50/50">
+          <CardContent className="p-5 sm:p-6">
+            <p className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-warning">
+              <AlertCircle className="mr-1.5 -mt-0.5 inline h-4 w-4" /> Yang perlu Anda lakukan
             </p>
-            <ul className="space-y-1 text-sm">
+            <ul className="mt-3 space-y-2 text-sm text-st-text">
               {pendingActions.map((a, i) => (
-                <li key={i}>• {a}</li>
+                <li key={i} className="flex items-baseline gap-2">
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-warning" />
+                  {a}
+                </li>
               ))}
             </ul>
           </CardContent>
         </Card>
       )}
 
+      {/* Progress Timeline */}
+      <Card className="border-st-stroke bg-st-surface">
+        <CardContent className="p-5 sm:p-6">
+          <ProgressTimeline status={d.status} />
+        </CardContent>
+      </Card>
+
+      {/* Stats row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard title="Bimbingan" value={d.consultation_count ?? 0} icon={MessagesSquare} href="/supervision" iconClass="bg-primary-50 text-primary" />
-        <StatCard title="Dokumen" value={totalDocs} icon={FolderOpen} href="/documents" iconClass="bg-secondary-50 text-secondary" />
+        <StatCard title="Bimbingan" value={d.consultation_count ?? 0} icon={MessagesSquare} href="/supervision" />
+        <StatCard title="Dokumen" value={totalDocs} icon={FolderOpen} href="/documents" />
         <StatCard
           title="Ujian Mendatang"
           value={(d.upcoming_seminar ? 1 : 0) + (d.upcoming_defense ? 1 : 0)}
           icon={CalendarDays}
           href="/schedules"
-          iconClass="bg-success-50 text-success"
         />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Skripsi Saya</CardTitle>
-          <CardDescription>Detail pengajuan skripsi Anda</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div>
-            <p className="text-sm text-muted-foreground">Judul</p>
-            <p className="font-medium">{d.title}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Pembimbing</p>
-            <p className="font-medium">
-              {d.supervisors?.length ? d.supervisors.map((s) => s.full_name).join(', ') : 'Belum ditentukan'}
-            </p>
-          </div>
-          {d.last_consultation && (
-            <div>
-              <p className="text-sm text-muted-foreground">Bimbingan terakhir</p>
-              <p className="font-medium">{formatDate(d.last_consultation)}</p>
-            </div>
-          )}
-          {d.upcoming_seminar && (
-            <div>
-              <p className="text-sm text-muted-foreground">Seminar terjadwal</p>
-              <p className="font-medium">
-                {d.upcoming_seminar.scheduled_at ? formatDate(d.upcoming_seminar.scheduled_at) : '—'}
-                {d.upcoming_seminar.room ? ` · ${d.upcoming_seminar.room}` : ''}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Two-column: Activity + Upcoming & Quick Actions */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        {/* Activity */}
+        <Card className="border-st-stroke bg-st-surface lg:col-span-3">
+          <CardContent className="p-5 sm:p-6">
+            <h2 className="mb-4 font-display text-lg leading-none text-st-text">Aktivitas Terbaru</h2>
+            <ActivityList items={activityItems} />
+          </CardContent>
+        </Card>
+
+        {/* Upcoming + Quick Actions */}
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          <Card className="border-st-stroke bg-st-surface">
+            <CardContent className="p-5 sm:p-6">
+              <h2 className="mb-4 font-display text-lg leading-none text-st-text">Agenda Berikutnya</h2>
+              <UpcomingList items={upcomingItems} />
+            </CardContent>
+          </Card>
+
+          <Card className="border-st-stroke bg-st-surface">
+            <CardContent className="p-5 sm:p-6">
+              <h2 className="mb-4 font-display text-lg leading-none text-st-text">Tindakan Cepat</h2>
+              <QuickActions actions={quickActions} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
+}
+
+/** Build activity items from student dashboard data. */
+function buildActivityItems(d: NonNullable<ReturnType<typeof dashboardApi.student> extends Promise<infer T> ? T : never>): ActivityItem[] {
+  const items: ActivityItem[] = []
+
+  // Status-based activity
+  if (d.status === 'submitted') {
+    items.push({
+      id: 'status-submitted',
+      description: 'Judul skripsi diajukan untuk review',
+      type: 'submission',
+      timestamp: 'Baru saja',
+    })
+  }
+
+  // Consultation activity
+  if (d.last_consultation) {
+    items.push({
+      id: 'last-consultation',
+      description: 'Sesi bimbingan terakhir tercatat',
+      actor: d.supervisors?.[0]?.full_name,
+      type: 'note',
+      timestamp: formatDateTime(d.last_consultation),
+    })
+  }
+
+  // Document activities
+  ;(d.documents ?? []).slice(0, 2).forEach((doc, i) => {
+    items.push({
+      id: `doc-${i}`,
+      description: `Dokumen ${doc.type} (v${doc.version}) diunggah`,
+      type: 'upload',
+      timestamp: 'Terbaru',
+    })
+  })
+
+  // If there are upcoming schedules
+  if (d.upcoming_seminar) {
+    items.push({
+      id: 'seminar-scheduled',
+      description: 'Jadwal seminar proposal ditentukan',
+      type: 'schedule',
+      timestamp: formatDate(d.upcoming_seminar.scheduled_at),
+    })
+  }
+
+  // Provide at least one item if empty
+  if (items.length === 0) {
+    items.push({
+      id: 'no-activity',
+      icon: FileText,
+      description: 'Belum ada aktivitas tercatat',
+      timestamp: '—',
+    })
+  }
+
+  return items.slice(0, 6)
+}
+
+/** Build upcoming items from student dashboard schedule data. */
+function buildUpcomingItems(d: NonNullable<ReturnType<typeof dashboardApi.student> extends Promise<infer T> ? T : never>): UpcomingItem[] {
+  const items: UpcomingItem[] = []
+
+  if (d.upcoming_seminar?.scheduled_at) {
+    items.push({
+      id: 'seminar',
+      title: 'Seminar Proposal',
+      date: formatDate(d.upcoming_seminar.scheduled_at),
+      time: d.upcoming_seminar.room ?? undefined,
+      type: 'seminar',
+    })
+  }
+
+  if (d.upcoming_defense?.scheduled_at) {
+    items.push({
+      id: 'defense',
+      title: 'Sidang Akhir',
+      date: formatDate(d.upcoming_defense.scheduled_at),
+      time: d.upcoming_defense.room ?? undefined,
+      type: 'sidang',
+    })
+  }
+
+  return items
 }

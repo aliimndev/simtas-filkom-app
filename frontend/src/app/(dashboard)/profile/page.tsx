@@ -31,7 +31,8 @@ type ChangePwForm = z.infer<typeof changePwSchema>
 function ProfileInner() {
   const searchParams = useSearchParams()
   const force = searchParams.get('force') === 'change-password'
-  const { user, setUser } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
+  const setUser = useAuthStore((s) => s.setUser)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)

@@ -412,6 +412,19 @@ func DoMultipart(router http.Handler, method, path string, fields map[string]str
 	return w
 }
 
+// TestPDF is a minimal-but-valid PDF (the validator only sniffs the %PDF-
+// magic), for uploads that must pass the PDF check.
+func TestPDF() []byte {
+	return []byte("%PDF-1.4\n% test document\n1 0 obj\n<<>>\nendobj\n%%EOF\n")
+}
+
+// SubmitThesis posts a thesis submission as multipart/form-data with a valid
+// draft proposal PDF attached (POST /theses now requires the proposal file).
+func SubmitThesis(t *testing.T, router http.Handler, fields map[string]string, token string) *httptest.ResponseRecorder {
+	t.Helper()
+	return DoMultipart(router, http.MethodPost, "/api/v1/theses", fields, "file", "draft-proposal.pdf", TestPDF(), token)
+}
+
 // DecodeBody unmarshals the recorder body into out.
 func DecodeBody(t *testing.T, w *httptest.ResponseRecorder, out any) {
 	t.Helper()

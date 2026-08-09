@@ -5,7 +5,7 @@
 import { chromium } from 'playwright'
 
 const BASE = 'http://localhost:3000'
-const PAGES = ['/', '/faq', '/about', '/contact']
+const PAGES = ['/', '/faq']
 const DESKTOP = { width: 1280, height: 800 }
 const MOBILE = { width: 375, height: 667 }
 const SS = (name) => `/tmp/ponytail-${name}.png`
@@ -141,9 +141,7 @@ async function snap(context, url, name) {
   const mobileCtx = await browser.newContext({ viewport: MOBILE, deviceScaleFactor: 1 })
   await mobileCtx.addInitScript(() => { try { sessionStorage.setItem('st_booted', '1') } catch {} })
   results['/'].mobile = await snap(mobileCtx, '/', 'mobile-home')
-  for (const p of ['/faq', '/about', '/contact']) {
-    results[p].mobile = await snap(mobileCtx, p, `mobile-${p.slice(1)}`)
-  }
+  results['/faq'].mobile = await snap(mobileCtx, '/faq', 'mobile-faq')
 
   // root vars (constant across app) + confirm via samples
   const root = await ctx.newPage()
@@ -183,24 +181,20 @@ async function snap(context, url, name) {
     sampled_confirm: {
       '/': results['/'].desktop.sampler.samples,
       '/faq': results['/faq'].desktop.sampler.samples,
-      '/about': results['/about'].desktop.sampler.samples,
-      '/contact': results['/contact'].desktop.sampler.samples,
     }
   }
 
   const ssFiles = {
-    desktop: { '/': SS('desktop-home'), '/faq': SS('desktop-faq'), '/about': SS('desktop-about'), '/contact': SS('desktop-contact') },
-    mobile: { '/': SS('mobile-home'), '/faq': SS('mobile-faq'), '/about': SS('mobile-about'), '/contact': SS('mobile-contact') }
+    desktop: { '/': SS('desktop-home'), '/faq': SS('desktop-faq') },
+    mobile: { '/': SS('mobile-home'), '/faq': SS('mobile-faq') }
   }
-  const anyOutlineNone = PAGES.some(p => results[p].desktop.cssOutline.length > 0) || ['/faq', '/about', '/contact'].some(p => results[p].mobile.cssOutline.length > 0)
+  const anyOutlineNone = PAGES.some(p => results[p].desktop.cssOutline.length > 0) || PAGES.some(p => results[p].mobile.cssOutline.length > 0)
 
   const tapFindings = {
     desktop: PAGES.map(p => ({ page: p, total: results[p].desktop.tap.tapTargets, small_below_40: results[p].desktop.tap.smallBelow40 })),
     mobile: {
       '/': { total: results['/'].mobile.tap.tapTargets, small_below_40: results['/'].mobile.tap.smallBelow40 },
       '/faq': { total: results['/faq'].mobile.tap.tapTargets, small_below_40: results['/faq'].mobile.tap.smallBelow40 },
-      '/about': { total: results['/about'].mobile.tap.tapTargets, small_below_40: results['/about'].mobile.tap.smallBelow40 },
-      '/contact': { total: results['/contact'].mobile.tap.tapTargets, small_below_40: results['/contact'].mobile.tap.smallBelow40 },
     },
     note: 'WCAG recommended 44x44; flagged below 40px per brief'
   }
@@ -212,7 +206,7 @@ async function snap(context, url, name) {
   const layoutShifts = {}
   PAGES.forEach(p => { layoutShifts[p] = results[p].desktop.layoutShift })
   layoutShifts['/'].mobile = results['/'].mobile.layoutShift
-  for (const p of ['/faq', '/about', '/contact']) layoutShifts[p].mobile = results[p].mobile.layoutShift
+  layoutShifts['/faq'].mobile = results['/faq'].mobile.layoutShift
 
   const a11yFindings = {
     focus_ring: {
@@ -230,7 +224,7 @@ async function snap(context, url, name) {
   await browser.close()
 
   const allSmall = [...PAGES.flatMap(p => results[p].desktop.tap.smallBelow40 || []), results['/'].mobile.tap.smallBelow40 || []]
-    .concat(['/faq', '/about', '/contact'].flatMap(p => results[p].mobile.tap.smallBelow40 || []))
+    .concat(PAGES.flatMap(p => results[p].mobile.tap.smallBelow40 || []))
   const risks = []
   if (cMuted.ratio < 4.5) risks.push(`muted text contrast ${cMuted.ratio}:1 < 4.5:1 (AA FAIL) — used for eyebrow, captions, muted body copy across all public pages`)
   if (cAccent.ratio < 4.5) risks.push(`accent contrast ${cAccent.ratio}:1 < 4.5:1 on light bg`)
@@ -253,9 +247,9 @@ async function snap(context, url, name) {
       biggest_risks: risks.length ? risks : ['No critical risks flagged in measured areas'],
       positives: [
         'Dev server up (HTTP 200) with security headers: X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy camera/microphone/geolocation blocked.',
-        'Keyboard focus ring implemented via `.simtas-dark :is(a,button,[tabindex]):focus-visible` using --st-accent-to (#2b5f9e).',
+        'Keyboard focus ring implemented via `.simtas-dark :is(a,button,[tabindex]):focus-visible` using --st-accent-to (#07a2b6).',
         'prefers-reduced-motion honored (scroll-reveal + marquee + role-cycle animations disabled under media query).',
-        'prefers-color-scheme: dark intentionally preserves the light identity (documented in globals.css).',
+        'Dark mode available via the app theme provider (`.dark` class on <html>) with an animated View Transitions toggle in the public navbar; light remains the default.',
         'Main text #17191d vs #f7f8fa bg has very high contrast — readable.'
       ]
     }

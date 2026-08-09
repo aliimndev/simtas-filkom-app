@@ -20,7 +20,9 @@ export function RequireAuth({
 }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { accessToken, user, isHydrated } = useAuthStore()
+  const accessToken = useAuthStore((s) => s.accessToken)
+  const user = useAuthStore((s) => s.user)
+  const isHydrated = useAuthStore((s) => s.isHydrated)
 
   useEffect(() => {
     if (!isHydrated) return

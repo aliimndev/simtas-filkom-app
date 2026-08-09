@@ -14,7 +14,15 @@ export const thesisApi = {
   },
 
   async create(data: CreateThesisRequest): Promise<Thesis> {
-    const res = await apiClient.post('/theses', data)
+    const form = new FormData()
+    form.append('title', data.title)
+    form.append('abstract', data.abstract)
+    form.append('field_of_study', data.field_of_study)
+    form.append('thesis_type', data.thesis_type)
+    form.append('file', data.file)
+    const res = await apiClient.post('/theses', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return res.data.data
   },
 

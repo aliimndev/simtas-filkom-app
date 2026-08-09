@@ -93,18 +93,13 @@ func extractID(t *testing.T, rec *httptest.ResponseRecorder, name string) string
 	return body.Data.ID
 }
 
-// pdfBytes is a minimal-but-valid PDF (the validator only sniffs the %PDF- magic).
-func pdfBytes() []byte {
-	return []byte("%PDF-1.4\n% test document\n1 0 obj\n<<>>\nendobj\n%%EOF\n")
-}
-
 // uploadDoc uploads a document of the given type as the student and returns the
 // document ID.
 func uploadDoc(t *testing.T, c *testutil.Client, studentToken, thesisID, docType string) string {
 	t.Helper()
 	w := testutil.DoMultipart(c.Router(), http.MethodPost, "/api/v1/theses/"+thesisID+"/documents",
 		map[string]string{"document_type": docType},
-		"file", "dokumen.pdf", pdfBytes(), studentToken)
+		"file", "dokumen.pdf", testutil.TestPDF(), studentToken)
 	if w.Code != http.StatusCreated {
 		t.Fatalf("upload %s failed: %d %s", docType, w.Code, w.Body.String())
 	}
@@ -160,8 +155,8 @@ func loginLifecycle(t *testing.T, c *testutil.Client) lifecycleTokens {
 func advanceToScheduledDefense(t *testing.T, c *testutil.Client, tok lifecycleTokens) string {
 	t.Helper()
 
-	// 1) Student submits a thesis → submitted.
-	wSubmit := c.Do(http.MethodPost, "/api/v1/theses", thesisPayload(), tok.student)
+	// 1) Student submits a thesis + draft proposal → submitted.
+	wSubmit := testutil.SubmitThesis(t, c.Router(), thesisPayload(), tok.student)
 	assert.Equal(t, http.StatusCreated, wSubmit.Code, "create thesis: %s", wSubmit.Body.String())
 	thesisID := extractID(t, wSubmit, "thesis")
 

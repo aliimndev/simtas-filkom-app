@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, BookOpen } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { FileDropzone } from '@/components/ui/file-dropzone'
 import { thesisApi } from '@/lib/api/thesis-api'
 import { academicYearApi } from '@/lib/api/user-api'
 import { getErrorMessage } from '@/lib/utils/error'
@@ -33,6 +34,7 @@ const thesisSchema = z.object({
   abstract: z
     .string()
     .refine((val) => wordCount(val) >= 100, { message: 'Abstrak minimal 100 kata' }),
+  file: z.instanceof(File, { message: 'Draft proposal wajib diunggah' }),
   field_of_study: z.string().min(1, 'Bidang keahlian wajib diisi'),
   thesis_type: z.enum(['skripsi', 'tugas_akhir'], {
     required_error: 'Tipe skripsi wajib dipilih',
@@ -50,8 +52,12 @@ export default function NewThesisPage() {
   const {
     register,
     handleSubmit,
+    control,
+    setValue,
     formState: { errors },
   } = useForm<ThesisForm>({ resolver: zodResolver(thesisSchema) })
+
+  const draftFile = useWatch({ control, name: 'file' })
 
   const create = useMutation({
     mutationFn: (data: ThesisForm) => thesisApi.create(data),
@@ -119,6 +125,20 @@ export default function NewThesisPage() {
                 {...register('abstract')}
               />
               {errors.abstract && <p className="mt-1 text-xs text-danger">{errors.abstract.message}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="draft_file" required>Draft Proposal Skripsi</Label>
+              <FileDropzone
+                id="draft_file"
+                value={draftFile}
+                invalid={!!errors.file}
+                onChange={(file) => setValue('file', file as File, { shouldValidate: true })}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Upload draft proposal skripsi dalam format PDF. Maksimal 10 MB.
+              </p>
+              {errors.file && <p className="mt-1 text-xs text-danger">{errors.file.message}</p>}
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

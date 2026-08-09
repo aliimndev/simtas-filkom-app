@@ -99,8 +99,8 @@ func TestThesisSubmissionAndRBAC(t *testing.T) {
 	wAdmin := testutil.DoJSON(router, http.MethodGet, "/api/v1/admin/users", nil, adminToken)
 	assert.Equal(t, http.StatusOK, wAdmin.Code)
 
-	// Mahasiswa submit judul → 201.
-	wSubmit := testutil.DoJSON(router, http.MethodPost, "/api/v1/theses", thesisPayload(), studentToken)
+	// Mahasiswa submit judul + draft proposal → 201.
+	wSubmit := testutil.SubmitThesis(t, router, thesisPayload(), studentToken)
 	assert.Equal(t, http.StatusCreated, wSubmit.Code, "submit thesis body: %s", wSubmit.Body.String())
 }
 
@@ -110,7 +110,7 @@ func TestDocumentUploadValidation(t *testing.T) {
 	studentToken := loginToken(t, router, studentEmail, studentPassword)
 
 	// Buat thesis dulu supaya ada konteks upload.
-	wSubmit := testutil.DoJSON(router, http.MethodPost, "/api/v1/theses", thesisPayload(), studentToken)
+	wSubmit := testutil.SubmitThesis(t, router, thesisPayload(), studentToken)
 	if wSubmit.Code != http.StatusCreated {
 		t.Fatalf("setup thesis failed: %d %s", wSubmit.Code, wSubmit.Body.String())
 	}
@@ -177,7 +177,8 @@ func repeatWords(word string, n int) string {
 	return out
 }
 
-// thesisPayload returns a valid CreateThesisRequest body (abstract ≥ 100 kata).
+// thesisPayload returns valid multipart form fields for POST /theses
+// (abstract ≥ 100 kata; the draft proposal PDF is attached by SubmitThesis).
 func thesisPayload() map[string]string {
 	// Title must be >= 10 kata (usecase: ErrTitleTooShort bila < 10).
 	return map[string]string{

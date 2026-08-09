@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -23,21 +24,34 @@ func NewThesisHandler(uc *usecase.ThesisUseCase) *ThesisHandler {
 
 // CreateThesis godoc
 // @Summary      Ajukan judul skripsi
-// @Description  Mengajukan judul skripsi baru (Mahasiswa only)
+// @Description  Mengajukan judul skripsi baru beserta draft proposal PDF (Mahasiswa only)
 // @Tags         Thesis Submission
-// @Accept       json
+// @Accept       multipart/form-data
 // @Produce      json
-// @Param        body body usecase.CreateThesisRequest true "Data pengajuan"
+// @Param        title formData string true "Judul skripsi"
+// @Param        abstract formData string true "Abstrak"
+// @Param        field_of_study formData string false "Bidang keahlian"
+// @Param        thesis_type formData string true "skripsi atau tugas_akhir"
+// @Param        file formData file true "Draft proposal (PDF, maksimal 10 MB)"
 // @Success      201  {object}  response.APIResponse{data=usecase.ThesisDetail} "Pengajuan dibuat"
 // @Failure      400  {object}  response.APIResponse "Data tidak valid / sudah punya thesis aktif"
 // @Security     BearerAuth
 // @Router       /theses [post]
 func (h *ThesisHandler) CreateThesis(c *gin.Context) {
 	var req usecase.CreateThesisRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Request tidak valid: title, abstract, dan thesis_type wajib diisi")
+	req.Title = strings.TrimSpace(c.PostForm("title"))
+	req.Abstract = strings.TrimSpace(c.PostForm("abstract"))
+	req.FieldOfStudy = strings.TrimSpace(c.PostForm("field_of_study"))
+	req.ThesisType = strings.TrimSpace(c.PostForm("thesis_type"))
+
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		response.BadRequest(c, "Request tidak valid: file draft proposal wajib diunggah")
 		return
 	}
+	defer file.Close()
+	req.DraftFile = file
+	req.DraftHeader = header
 
 	studentID := userIDFromContext(c)
 	actor := actorFromContext(c)

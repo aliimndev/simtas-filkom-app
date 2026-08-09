@@ -1,24 +1,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
 @import "tailwindcss";
 
+/* Class-based dark variant: the theme toggler flips `.dark` on <html>, so
+   `dark:` utilities must respond to the class — not OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   /* ── Global light identity (applies to dashboard + auth + public) ── */
-  --background: #f7f8fa;
-  --foreground: #1a1c20;
+  color-scheme: light;
+  --background: oklch(0.9911 0 0);
+  --foreground: oklch(0.2046 0 0);
 
-  /* Brand — FILKOM Unida (biru institusi) — tetap, dipakai sebagai aksen */
-  --primary: #4e85bf;
+  /* Dashboard surface ladder: white cards on the neutral canvas. */
+  --card: oklch(0.9911 0 0);
+  --card-foreground: oklch(0.2046 0 0);
+  --surface-hi: #f3f5f8;
+
+  /* Brand — FILKOM Unida (teal institusional) — tetap, dipakai sebagai aksen */
+  --primary: #07a2b6;
   --primary-foreground: #ffffff;
-  --primary-50: #eef4fb;
-  --primary-100: #dce9f7;
-  --primary-200: #c3d7ee;
-  --primary-300: #a0bfe0;
-  --primary-400: #6a9cc4;
-  --primary-500: #4e85bf;
-  --primary-600: #3d6da3;
-  --primary-700: #35618d;
-  --primary-800: #2a4e73;
-  --primary-900: #203a59;
+  --primary-50: #ecfeff;
+  --primary-100: #cffafe;
+  --primary-200: #a5f3fc;
+  --primary-300: #67e8f9;
+  --primary-400: #22d3ee;
+  --primary-500: #06b6d4;
+  --primary-600: #07a2b6;
+  --primary-700: #0a8998;
+  --primary-800: #0c6e7c;
+  --primary-900: #0f5a66;
 
   /* Sekunder — emas/kuning aksen (light-tuned tints) */
   --secondary: #d97706;
@@ -28,19 +38,27 @@
   --secondary-200: #f6d598;
   --secondary-700: #b45309;
 
-  --muted: #eceff3;
-  --muted-foreground: #646e7a;
-  --accent: #e7eef7;
-  --accent-foreground: #203a63;
-  --border: #dde3ea;
-  --ring: #4e85bf;
+  --muted: oklch(0.9461 0 0);
+  --muted-foreground: oklch(0.2435 0 0);
+  --accent: oklch(0.9461 0 0);
+  --accent-foreground: oklch(0.2435 0 0);
+  --border: oklch(0.9037 0 0);
+  --input: oklch(0.9731 0 0);
+  --ring: #07a2b6;
   --radius: 0.5rem;
 
+  /* Semantic surface + destructive tokens (used by popover/toast/drawer) */
+  --popover: oklch(0.9911 0 0);
+  --popover-foreground: oklch(0.4386 0 0);
+  --destructive: oklch(0.5523 0.1927 32.7272);
+  --destructive-foreground: oklch(0.9934 0.0032 17.2118);
+
   /* Semantic — light-tuned tints */
-  --success: #1f9d55;
+  --success: #07a2b6;
   --success-foreground: #ffffff;
-  --success-50: #ecfdf3;
-  --success-100: #d1fae5;
+  --success-50: #ecfeff;
+  --success-100: #cffafe;
+  --success-700: #0a8998;
   --warning: #c7770a;
   --warning-foreground: #ffffff;
   --warning-50: #fffaf0;
@@ -55,11 +73,11 @@
   /* Sidebar — editorial identity (aligned with global light palette) */
   --sidebar: #ffffff;
   --sidebar-foreground: #5f6873;
-  --sidebar-accent: #4e85bf;
+  --sidebar-accent: #07a2b6;
   --sidebar-border: #e4e8ed;
 
   /* ── SIMTAS public — light editorial identity ────────────────────── */
-  /* Grounded in FILKOM blue + computer-science; distinct from the three
+  /* Grounded in FILKOM green + computer-science; distinct from the three
      default AI-slop looks (cream+terracotta / near-black acid-green /
      broadsheet hairline). */
   --st-bg: #f7f8fa;
@@ -68,15 +86,103 @@
   --st-text: #17191d;
   --st-muted: #5f6a76;
   --st-stroke: #e3e8ee;
-  --st-accent-from: #4a7fb0;
-  --st-accent-to: #2b5f9e;
+  --st-accent-from: #07a2b6;
+  --st-accent-to: #07a2b6;
   --font-display: 'Instrument Serif', ui-serif, Georgia, serif;
   --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Dark identity (toggled by the app theme provider: `.dark` on <html>) ─
+   One token layer — every surface, badge, and accent in dashboard, auth, and
+   public pages resolves through these variables, so flipping the class
+   restyles the whole app. Accent teal is lightened (#2dd4bf) so it reads on
+   dark surfaces; tint scales (-50/-100) become dark washes and -700 becomes
+   the brighter text/hover shade. */
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.1728 0.008 235);
+  --foreground: oklch(0.927 0.005 235);
+  --card: oklch(0.205 0.01 235);
+  --card-foreground: oklch(0.927 0.005 235);
+  --surface-hi: #1e232b;
+
+  /* Brand — FILKOM teal, lightened for dark surfaces */
+  --primary: #2dd4bf;
+  --primary-foreground: #0f1115;
+  --primary-50: #0c2b2e;
+  --primary-100: #12383c;
+  --primary-200: #17484d;
+  --primary-300: #1c5a60;
+  --primary-400: #2dd4bf;
+  --primary-500: #17b3a3;
+  --primary-600: #0f998d;
+  --primary-700: #5eead4;
+  --primary-800: #99f6e4;
+  --primary-900: #ccfbf1;
+
+  /* Sekunder — amber */
+  --secondary: #fbbf24;
+  --secondary-foreground: #1a1203;
+  --secondary-50: #2b1f05;
+  --secondary-100: #3a2c0a;
+  --secondary-200: #4a3a10;
+  --secondary-700: #fcd34d;
+
+  --muted: #1c2128;
+  --muted-foreground: #9aa3b0;
+  --accent: #1c2128;
+  --accent-foreground: #e6eaf0;
+  --border: #262d36;
+  --input: #1a1f26;
+  --ring: #2dd4bf;
+  --radius: 0.5rem;
+
+  --popover: #171b21;
+  --popover-foreground: #c9d0d9;
+  --destructive: #f87171;
+  --destructive-foreground: #1a0d0d;
+
+  /* Semantic */
+  --success: #2dd4bf;
+  --success-foreground: #0f1115;
+  --success-50: #0c2b2e;
+  --success-100: #12383c;
+  --success-700: #5eead4;
+  --warning: #fbbf24;
+  --warning-foreground: #1a1203;
+  --warning-50: #2b1f05;
+  --warning-100: #3a2c0a;
+  /* Danger stays red-600: white foreground + hardcoded `text-white` badges
+     keep AA contrast; error text on dark uses the lighter --danger-700. */
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+  --danger-50: #2b1215;
+  --danger-100: #3b1a1e;
+  --danger-600: #ef4444;
+  --danger-700: #fca5a5;
+
+  /* Sidebar */
+  --sidebar: #161a20;
+  --sidebar-foreground: #98a2b0;
+  --sidebar-accent: #2dd4bf;
+  --sidebar-border: #262d36;
+
+  /* SIMTAS public */
+  --st-bg: #0f1115;
+  --st-surface: #161a20;
+  --st-surface-hi: #1e242c;
+  --st-text: #e8ecf1;
+  --st-muted: #97a1ae;
+  --st-stroke: #252c35;
+  --st-accent-from: #2dd4bf;
+  --st-accent-to: #2dd4bf;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-surface-hi: var(--surface-hi);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-50: var(--primary-50);
@@ -131,12 +237,8 @@
   --color-st-stroke: var(--st-stroke);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Tetap pakai tema terang (light) sebagai default institusional;
-       tidak ada override — konsisten di dashboard, auth, dan public. */
-  }
-}
+/* OS dark preference no longer forces anything: the visitor's choice is
+   owned by the app theme provider (`.dark` class above), defaulting to light. */
 
 body {
   background: var(--background);
@@ -163,10 +265,17 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #b9c1ca;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #3a4350;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4a5463;
+}
 
-/* ── SIMTAS public — light editorial identity (scoped to .simtas-dark) ── */
-/* The dashboard shares the same light theme; the wrapper only carries the
-   public-specific type + accent tokens. */
+/* ── SIMTAS public — editorial identity (scoped to .simtas-dark) ── */
+/* Despite its name, .simtas-dark is the public-surface wrapper (type +
+   accent tokens) — it is NOT the dark-mode scoping. Dark mode is driven by
+   the `.dark` class on <html> (theme provider), which flips every token above. */
 .simtas-dark {
   background: var(--st-bg);
   color: var(--st-text);
@@ -174,7 +283,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 .simtas-dark ::selection {
-  background: rgba(167, 199, 231, 0.5);
+  background: rgba(165, 243, 252, 0.5);
   color: var(--st-text);
 }
 /* Keyboard focus ring for the public editorial surface. Every interactive
@@ -189,7 +298,15 @@ body {
   outline-offset: 2px;
 }
 
-/* Accent gradient (FILKOM institutional blue) */
+/* Keyboard focus ring for the dashboard surface. Components already declare
+   their own ring (buttons, inputs); this catches the links/rows that don't. */
+main :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* Accent gradient (FILKOM institutional green) */
 .accent-gradient {
   background: linear-gradient(90deg, var(--st-accent-from) 0%, var(--st-accent-to) 100%);
 }
@@ -249,13 +366,30 @@ body {
 }
 .landing-grid-bg {
   background-image:
-    linear-gradient(to right, rgba(137, 170, 204, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(137, 170, 204, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 .st-card {
   background: var(--st-surface);
   border: 1px solid var(--st-stroke);
+}
+
+/* ── Animated theme toggler (View Transitions API) ──────────────────────
+   Scoped to html[data-magicui-theme-vt="active"] (set only while a theme
+   toggle is in flight) so no other view transitions in the app are touched. */
+html[data-magicui-theme-vt="active"]::view-transition-old(root),
+html[data-magicui-theme-vt="active"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* Pin the collapsed clip-path (set in JS) so Firefox never paints the new
+   theme unclipped between snapshot and the ready.then() animation. */
+html[data-magicui-theme-vt="active"]::view-transition-new(root) {
+  clip-path: var(--magicui-theme-vt-clip-from, none);
+}
+html[data-magicui-theme-vt="active"]::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration);
 }
 
 /* Dialog & toast micro-interactions (dashboard UI) */
@@ -369,3 +503,5 @@ button, a, [role="button"] {
 .overflow-x-auto > * {
   scroll-snap-align: start;
 }
+
+/* ── Rich text (Tiptap editor + read-only renderer) ──────────── */

@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,7 +28,7 @@ function BrandPanel() {
     <div className="relative hidden overflow-hidden border-r border-border bg-background lg:flex lg:flex-col lg:justify-between lg:p-12">
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[-15%] h-[32rem] w-[32rem] -translate-x-1/2 rounded-full opacity-25 blur-[120px]"
+        className="pointer-events-none absolute left-1/2 top-[-15%] h-128 w-lg -translate-x-1/2 rounded-full opacity-25 blur-[120px]"
         style={{ background: 'radial-gradient(circle, var(--st-accent-to), transparent 60%)' }}
       />
       <div
@@ -92,6 +92,13 @@ function LoginForm() {
   return (
     <div className="flex w-full flex-col justify-center px-6 py-10 sm:px-10">
       <div className="mx-auto w-full max-w-sm">
+        <Link
+          href="/"
+          className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground lg:hidden"
+        >
+          <ArrowLeft className="h-4 w-4" /> Kembali ke beranda
+        </Link>
+
         <div className="mb-8">
           <span className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
             Masuk ke Sistem

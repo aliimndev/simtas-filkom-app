@@ -1,6 +1,6 @@
 'use client'
 
-import { useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 
 /**
  * BootLoader — a one-time, session-guarded "boot" overlay.
@@ -28,6 +28,8 @@ export function BootLoader() {
   // revealed inside useLayoutEffect — before the first client paint — once we
   // know the browser-only boot state.
   const [hidden, setHidden] = useState(true)
+  // Once dismissed (timer or a tap), stop the animation loop entirely.
+  const doneRef = useRef(false)
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return
@@ -43,6 +45,7 @@ export function BootLoader() {
     const showRaf = requestAnimationFrame(() => setHidden(false))
     const start = performance.now()
     const tick = (now: number) => {
+      if (doneRef.current) return
       const p = Math.min(1, (now - start) / DURATION)
       setCount(Math.round(p * 100))
       if (p < 1) {
@@ -50,6 +53,7 @@ export function BootLoader() {
       } else {
         window.setTimeout(() => {
           sessionStorage.setItem('st_booted', '1')
+          doneRef.current = true
           setHidden(true)
         }, 340)
       }
@@ -65,30 +69,45 @@ export function BootLoader() {
 
   const idx = Math.min(INIT_LINES.length - 1, Math.floor((count / 100) * INIT_LINES.length))
 
+  // Dismiss the overlay immediately on tap so the boot sequence can never
+  // swallow the visitor's first interaction (a common source of "clicked the
+  // nav and nothing happened" on mobile).
+  const skip = () => {
+    try {
+      sessionStorage.setItem('st_booted', '1')
+    } catch {
+      // private mode / storage unavailable — the overlay still hides
+    }
+    doneRef.current = true
+    setHidden(true)
+  }
+
   return (
     <div
-      className="fixed inset-0 z-[9999] flex flex-col justify-between px-6 py-8 md:px-10 md:py-10"
-      style={{ background: 'var(--st-bg)' }}
+      role="status"
+      aria-label="Memuat SIMTAS FILKOM — ketuk untuk melewati"
+      onClick={skip}
+      className="fixed inset-0 z-9999 flex cursor-pointer flex-col justify-between bg-st-bg px-6 py-8 md:px-10 md:py-10"
     >
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[var(--st-muted)]">
+        <span className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-st-muted">
           SIMTAS://FILKOM
         </span>
-        <span className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[var(--st-muted)]">
+        <span className="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-st-muted">
           boot
         </span>
       </div>
 
       <div className="flex flex-col items-center justify-center gap-5">
-        <p className="font-mono text-sm text-[var(--st-muted)]">
-          <span className="text-[var(--st-accent-from)]">{'>'}</span> {INIT_LINES[idx]}…
+        <p className="font-mono text-sm text-st-muted">
+          <span className="text-(--st-accent-from)">{'>'}</span> {INIT_LINES[idx]}…
         </p>
-        <div className="font-display text-7xl tabular-nums text-[var(--st-text)] md:text-9xl">
+        <div className="font-display text-7xl tabular-nums text-st-text md:text-9xl">
           {String(count).padStart(3, '0')}
         </div>
       </div>
 
-      <div className="h-[3px] w-full overflow-hidden rounded-full bg-[var(--st-stroke)]">
+      <div className="h-0.75 w-full overflow-hidden rounded-full bg-st-stroke">
         <div
           className="accent-gradient h-full transition-[width] duration-75 ease-out"
           style={{ width: `${count}%`, boxShadow: '0 0 12px rgba(137,170,204,0.35)' }}

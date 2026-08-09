@@ -229,21 +229,6 @@ definitions:
     - consultation_date
     - topics_discussed
     type: object
-  usecase.CreateThesisRequest:
-    properties:
-      abstract:
-        type: string
-      field_of_study:
-        type: string
-      thesis_type:
-        type: string
-      title:
-        type: string
-    required:
-    - abstract
-    - thesis_type
-    - title
-    type: object
   usecase.CreateTitleChangeRequest:
     properties:
       reason:
@@ -2620,15 +2605,34 @@ paths:
       - Thesis Submission
     post:
       consumes:
-      - application/json
-      description: Mengajukan judul skripsi baru (Mahasiswa only)
+      - multipart/form-data
+      description: Mengajukan judul skripsi baru beserta draft proposal PDF (Mahasiswa
+        only)
       parameters:
-      - description: Data pengajuan
-        in: body
-        name: body
+      - description: Judul skripsi
+        in: formData
+        name: title
         required: true
-        schema:
-          $ref: '#/definitions/usecase.CreateThesisRequest'
+        type: string
+      - description: Abstrak
+        in: formData
+        name: abstract
+        required: true
+        type: string
+      - description: Bidang keahlian
+        in: formData
+        name: field_of_study
+        type: string
+      - description: skripsi atau tugas_akhir
+        in: formData
+        name: thesis_type
+        required: true
+        type: string
+      - description: Draft proposal (PDF, maksimal 10 MB)
+        in: formData
+        name: file
+        required: true
+        type: file
       produces:
       - application/json
       responses:
