@@ -55,11 +55,18 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {/* Relative wrapper so the mobile dropdown always sits directly below
             the pill — regardless of safe-area insets (notch) that push the
             header down — and can never be covered by it. */}
-        <div className="relative w-full max-w-3xl">
+        <div
+          className={cn(
+            'relative w-full transition-all duration-300 ease-out',
+            scrolled ? 'max-w-3xl' : 'max-w-5xl',
+          )}
+        >
           <div
             className={cn(
-              'flex w-full items-center justify-between rounded-full border border-st-stroke bg-(--st-surface)/80 px-2 py-2 backdrop-blur-md transition-shadow duration-300',
-              scrolled && 'shadow-lg shadow-black/10',
+              'flex w-full items-center justify-between rounded-full border py-2 transition-all duration-300 ease-out',
+              scrolled
+                ? 'border-st-stroke bg-(--st-surface)/70 px-2 shadow-sm shadow-black/5 backdrop-blur-md'
+                : 'border-transparent bg-transparent px-3',
             )}
           >
             {/* Logo */}
@@ -147,7 +154,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <nav
               id="mobile-nav"
               aria-label="Navigasi mobile"
-              className="absolute inset-x-0 top-full z-50 mt-2 max-h-[75dvh] overflow-y-auto rounded-2xl border border-st-stroke bg-st-surface p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-xl shadow-black/10 md:hidden"
+              className="absolute inset-x-0 top-full z-50 mt-2 max-h-[75dvh] overflow-y-auto rounded-2xl border border-st-stroke bg-(--st-surface)/90 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg shadow-black/10 backdrop-blur-md md:hidden"
             >
               {NAV_LINKS.map((l) => {
                 const active = pathname === l.href
