@@ -391,6 +391,21 @@ html[data-magicui-theme-vt="active"]::view-transition-new(root) {
 html[data-magicui-theme-vt="active"]::view-transition-group(root) {
   animation-duration: var(--magicui-theme-toggle-vt-duration);
 }
+/* Fallback reveal for engines that can run `document.startViewTransition()`
+   and expose ::view-transition-* as CSS pseudo-elements, but whose Web
+   Animations API cannot animate those pseudo-elements via the `pseudoElement`
+   option used by the JS path (e.g. Firefox < 140). The JS-driven path
+   (Chromium/Brave and Firefox >= 140) never sets data-magicui-theme-vt-css,
+   so it keeps its existing Element.animate() reveal unchanged. Higher
+   specificity overrides the `animation: none` above; the same clip-path values
+   (from/to as CSS vars) in, so the visual result matches the JS animation. */
+html[data-magicui-theme-vt="active"][data-magicui-theme-vt-css="active"]::view-transition-new(root) {
+  animation: magicui-theme-vt-reveal var(--magicui-theme-toggle-vt-duration) ease-in-out forwards;
+}
+@keyframes magicui-theme-vt-reveal {
+  from { clip-path: var(--magicui-theme-vt-clip-from, none); }
+  to   { clip-path: var(--magicui-theme-vt-clip-to, none); }
+}
 
 /* Dialog & toast micro-interactions (dashboard UI) */
 @keyframes dialog-overlay-in {

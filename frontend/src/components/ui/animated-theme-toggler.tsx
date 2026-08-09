@@ -152,6 +152,30 @@ function getThemeTransitionClipPaths(
   }
 }
 
+/**
+ * Can the Web Animations API animate the `::view-transition-*` pseudo-elements
+ * via the `pseudoElement` option? Chromium/Brave and Firefox >= 140 accept it;
+ * Firefox < 140 throws a SyntaxError for these pseudo-elements, so the JS
+ * reveal below would silently no-op there (the toggle still works because
+ * applyTheme runs inside the startViewTransition callback — only the clip-path
+ * reveal is lost). Capability-detected by constructing a probe effect, never by
+ * sniffing the user agent. When this returns false, the caller drives the same
+ * clip-path reveal with a CSS keyframe animation instead.
+ */
+export function canAnimateViewTransitionPseudoElement(): boolean {
+  if (typeof KeyframeEffect !== "function") return false
+  try {
+    const probe = new KeyframeEffect(
+      document.documentElement,
+      [{ opacity: 1 }],
+      { pseudoElement: "::view-transition-new(root)" }
+    )
+    return probe.pseudoElement === "::view-transition-new(root)"
+  } catch {
+    return false
+  }
+}
+
 export const AnimatedThemeToggler = ({
   className,
   duration = 400,
@@ -240,6 +264,14 @@ export const AnimatedThemeToggler = ({
       return
     }
 
+    // Accessibility: users who prefer reduced motion get an instant swap with
+    // no reveal animation (theme state still updates identically). Applies to
+    // both the JS and CSS-fallback paths before any transition starts.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      applyTheme()
+      return
+    }
+
     const clipPath = getThemeTransitionClipPaths(
       shape,
       x,
@@ -258,11 +290,24 @@ export const AnimatedThemeToggler = ({
     // Pin the collapsed clip-path via CSS so Firefox does not paint the new
     // theme unclipped between snapshot and the ready.then() JS animation.
     root.style.setProperty("--magicui-theme-vt-clip-from", clipPath[0])
+    // Firefox < 140 can run `document.startViewTransition()` and exposes
+    // ::view-transition-* as CSS pseudo-elements, but its Web Animations API
+    // cannot animate those pseudo-elements via the `pseudoElement` option, so
+    // the ready.then() JS reveal below would no-op. Detect that and drive the
+    // identical clip-path reveal with a CSS keyframe animation instead.
+    // Capability-detected, never user-agent sniffed.
+    const useCssReveal = !canAnimateViewTransitionPseudoElement()
+    if (useCssReveal) {
+      root.dataset.magicuiThemeVtCss = "active"
+      root.style.setProperty("--magicui-theme-vt-clip-to", clipPath[1])
+    }
     const cleanup = () => {
       isTransitioningRef.current = false
       delete root.dataset.magicuiThemeVt
+      delete root.dataset.magicuiThemeVtCss
       root.style.removeProperty("--magicui-theme-toggle-vt-duration")
       root.style.removeProperty("--magicui-theme-vt-clip-from")
+      root.style.removeProperty("--magicui-theme-vt-clip-to")
     }
 
     isTransitioningRef.current = true
@@ -279,6 +324,7 @@ export const AnimatedThemeToggler = ({
     if (ready && typeof ready.then === "function") {
       ready
         .then(() => {
+          if (useCssReveal) return
           document.documentElement.animate(
             {
               clipPath,
