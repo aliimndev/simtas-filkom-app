@@ -454,9 +454,21 @@ html[data-magicui-theme-vt="active"]::view-transition-group(root) {
 
 /* ── Mobile refinements ────────────────────────────────────── */
 
-/* Remove tap highlight on interactive elements for a native-app feel */
+/* Remove tap highlight on interactive elements for a native-app feel.
+   touch-action: manipulation registers a tap immediately — no gesture-wait
+   (double-tap zoom) delay before click fires on touch browsers. */
 button, a, [role="button"] {
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Public area (`.simtas-dark`): instant pressed feedback on tap so an action
+   never feels dead — a small opacity dip gives immediate confirmation with no
+   layout shift. */
+.simtas-dark a:active,
+.simtas-dark button:active,
+.simtas-dark [role="button"]:active {
+  opacity: 0.72;
 }
 
 /* Safe area insets for modern mobile browsers */
