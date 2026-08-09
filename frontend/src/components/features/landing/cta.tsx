@@ -23,8 +23,8 @@ export function CtaSection() {
             <LandingButton href="/login">
               Masuk ke Sistem <ArrowRight className="h-4 w-4" />
             </LandingButton>
-            <LandingButton href="/contact" variant="outline">
-              Hubungi Kami
+            <LandingButton href="/faq" variant="outline">
+              Baca FAQ
             </LandingButton>
           </div>
         </Reveal>

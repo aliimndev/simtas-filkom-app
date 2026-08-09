@@ -18,7 +18,7 @@ const FEATURES: Feature[] = [
 
 export function FeaturesSection() {
   return (
-    <section className="landing-surface border-b border-st-stroke">
+    <section id="kemampuan" className="landing-surface border-b border-st-stroke">
       <div className="landing-container py-20 md:py-28">
         <Reveal>
           <span className="landing-eyebrow">

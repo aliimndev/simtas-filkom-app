@@ -16,7 +16,7 @@ const ROLE_CARDS: RoleCard[] = [
 
 export function RolesSection() {
   return (
-    <section className="border-b border-st-stroke">
+    <section id="pengguna" className="border-b border-st-stroke">
       <div className="landing-container py-20 md:py-28">
         <Reveal>
           <span className="landing-eyebrow">

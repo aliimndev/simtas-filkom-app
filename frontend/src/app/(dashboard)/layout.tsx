@@ -10,7 +10,7 @@ import { Toaster } from '@/components/ui/toaster'
 /*
 THESIS: a calm academic task console — the thesis workflow is the story, not the chrome.
 OWN-WORLD: white cards on a neutral canvas, hairline borders, small radii (8px/6px), one sans
-  family (Inter), a single restrained FILKOM blue accent, 8px spacing grid; no serif/mono
+  family (Inter), a single restrained FILKOM teal accent, 8px spacing grid; no serif/mono
   costume, no emoji, no glow, no shadow lifts inside the dashboard surface.
 STORY: the visitor scans their status, pending actions, and schedule in seconds and acts.
 FIRST VIEWPORT: white sidebar + slim top bar (bell + user menu); content opens with a compact

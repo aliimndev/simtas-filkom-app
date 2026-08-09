@@ -3,17 +3,18 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useTheme } from '@/providers/theme-provider'
 import { ArrowRight, Menu, X } from 'lucide-react'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { BootLoader } from '@/components/features/landing/boot-loader'
+import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler'
 import { cn } from '@/lib/utils/cn'
 
 const NAV_LINKS = [
-  { href: '/', label: 'Beranda' },
-  { href: '/about', label: 'Tentang' },
-  { href: '/guide', label: 'Panduan' },
+  { href: '/#alur', label: 'Alur' },
+  { href: '/#kemampuan', label: 'Kemampuan' },
+  { href: '/#pengguna', label: 'Pengguna' },
   { href: '/faq', label: 'FAQ' },
-  { href: '/contact', label: 'Kontak' },
 ]
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +22,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   const accessToken = useAuthStore((s) => s.accessToken)
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -100,6 +102,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             </nav>
 
             <div className="flex items-center gap-1.5">
+              <AnimatedThemeToggler
+                theme={theme === 'dark' ? 'dark' : 'light'}
+                onThemeChange={setTheme}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-st-muted transition hover:bg-st-surface-hi hover:text-st-text [&_svg]:h-4.5 [&_svg]:w-4.5"
+              />
               {accessToken ? (
                 <Link
                   href="/dashboard"
@@ -196,6 +203,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               Sistem Manajemen Tugas Akhir Skripsi Fakultas Ilmu Komputer
               Universitas Djuanda — mengelola seluruh proses Tugas Akhir dari
               pengajuan judul, bimbingan, seminar, hingga sidang dan arsip.
+            </p>
+            <p className="mt-4 text-sm">
+              <a href="mailto:simtas@filkom.unida.ac.id" className="text-st-muted transition hover:text-st-text">
+                simtas@filkom.unida.ac.id
+              </a>
             </p>
           </div>
 

@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Reveal } from '@/components/features/landing/reveal'
 import { FaqAccordion, type FaqItem } from '@/components/features/landing/faq-accordion'
@@ -36,9 +35,9 @@ export default function FaqPage() {
 
           <div className="mt-12 rounded-2xl border border-st-stroke bg-st-surface p-6 text-center">
             <p className="font-medium text-st-text">Tidak menemukan jawaban yang Anda cari?</p>
-            <Link href="/contact" className="accent-ring mt-3 inline-flex items-center gap-2 rounded-full bg-st-text px-5 py-2.5 text-sm font-medium text-st-bg transition hover:opacity-90">
+            <a href="mailto:simtas@filkom.unida.ac.id" className="accent-ring mt-3 inline-flex items-center gap-2 rounded-full bg-st-text px-5 py-2.5 text-sm font-medium text-st-bg transition hover:opacity-90">
               Hubungi Kami <ArrowRight className="h-4 w-4" />
-            </Link>
+            </a>
           </div>
         </div>
       </section>
