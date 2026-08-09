@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react'
 import { useTheme } from '@/providers/theme-provider'
 import { ArrowRight, Menu, X } from 'lucide-react'
 import { useAuthStore } from '@/lib/stores/auth-store'
-import { BootLoader } from '@/components/features/landing/boot-loader'
 import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler'
 import { cn } from '@/lib/utils/cn'
 
@@ -51,8 +50,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="simtas-dark flex min-h-screen flex-col">
-      <BootLoader />
-
       {/* ── Floating pill navbar ─────────────────────────────────────── */}
       <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4 md:pt-6">
         {/* Relative wrapper so the mobile dropdown always sits directly below
