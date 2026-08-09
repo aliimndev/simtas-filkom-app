@@ -2686,9 +2686,9 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengajukan judul skripsi baru (Mahasiswa only)",
+                "description": "Mengajukan judul skripsi baru beserta draft proposal PDF (Mahasiswa only)",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -2699,13 +2699,38 @@ const docTemplate = `{
                 "summary": "Ajukan judul skripsi",
                 "parameters": [
                     {
-                        "description": "Data pengajuan",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/usecase.CreateThesisRequest"
-                        }
+                        "type": "string",
+                        "description": "Judul skripsi",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Abstrak",
+                        "name": "abstract",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bidang keahlian",
+                        "name": "field_of_study",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "skripsi atau tugas_akhir",
+                        "name": "thesis_type",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Draft proposal (PDF, maksimal 10 MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -4771,28 +4796,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "topics_discussed": {
-                    "type": "string"
-                }
-            }
-        },
-        "usecase.CreateThesisRequest": {
-            "type": "object",
-            "required": [
-                "abstract",
-                "thesis_type",
-                "title"
-            ],
-            "properties": {
-                "abstract": {
-                    "type": "string"
-                },
-                "field_of_study": {
-                    "type": "string"
-                },
-                "thesis_type": {
-                    "type": "string"
-                },
-                "title": {
                     "type": "string"
                 }
             }
