@@ -144,11 +144,17 @@ export function ChartAreaInteractive() {
   const isMobile = useIsMobile()
   const [timeRange, setTimeRange] = React.useState("90d")
 
-  React.useEffect(() => {
+  // Default to the 7-day range when the viewport switches to mobile. This is
+  // the React-endorsed way to adjust state in response to a change — guard the
+  // update with a previous-render snapshot so React re-renders synchronously
+  // instead of looping (no effect needed).
+  const [prevIsMobile, setPrevIsMobile] = React.useState(isMobile)
+  if (prevIsMobile !== isMobile) {
+    setPrevIsMobile(isMobile)
     if (isMobile) {
       setTimeRange("7d")
     }
-  }, [isMobile])
+  }
 
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date)
