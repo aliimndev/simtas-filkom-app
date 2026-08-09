@@ -1,81 +1,97 @@
-Remove the BootLoader from the PUBLIC AREA.
+Redesign the existing navbar/header component to closely match the visual style and behavior of the reference navbar I provided.
 
-Context:
-This is an internal university application used by lecturers, students, and academic staff.
+IMPORTANT:
 
-The current BootLoader displays a full-screen overlay for approximately 2 seconds on the initial visit.
+* Do NOT rebuild the navbar from scratch.
+* Do NOT change the existing navigation structure, routes, functionality, or business logic.
+* Keep the existing component and modify only its visual design, spacing, styling, and responsive behavior.
+* Do not copy the original code. Recreate the same design language using the existing project architecture.
 
-For this type of internal productivity application, I do not want a blocking visual intro or artificial waiting period.
+Reference style:
 
-### Goal
+* Minimal, premium, modern SaaS navbar.
+* Similar visual direction to the provided reference.
+* Clean layout with generous whitespace.
+* Subtle borders instead of heavy shadows.
+* Rounded container when scrolling.
+* Glassmorphism effect using a subtle translucent background + backdrop blur.
+* Smooth 300ms transitions.
+* Clean typography and muted navigation colors.
+* Avoid excessive gradients, animations, or decorative elements.
 
-The public application should become interactive as soon as the actual UI is ready.
+Header behavior:
 
-Preferred behavior:
+* Navbar remains fixed at the top.
+* At the top of the page, keep the navbar visually lightweight and transparent/minimal.
+* When the user scrolls down:
 
-Open SIMTAS
-→ Render UI
-→ User can immediately interact
+  * Slightly reduce the navbar width.
+  * Add a subtle semi-transparent background.
+  * Add backdrop blur.
+  * Add a thin border.
+  * Add rounded corners.
+  * Reduce horizontal padding slightly.
+  * Transition everything smoothly.
+* Keep the scroll transformation subtle and polished, not dramatic.
 
-NOT:
+Desktop layout:
 
-Open SIMTAS
-→ Full-screen BootLoader
-→ Artificial wait
-→ UI becomes interactive
+* Logo/brand on the left.
+* Navigation links centered.
+* Action buttons on the right.
+* Maintain balanced spacing between all elements.
+* Navigation links should use muted foreground colors and become stronger on hover.
+* Buttons should follow the existing project's design system.
 
-### Task
+Mobile layout:
 
-1. Identify where the BootLoader is mounted/rendered.
-2. Remove it from the public application flow.
-3. Remove any related:
+* Keep the existing mobile navigation functionality.
+* Logo on the left.
+* Menu button on the right.
+* Use a clean animated Menu/X transition.
+* Open the navigation inside a rounded panel below the header.
+* Use subtle border, background, and backdrop blur.
+* Keep spacing comfortable and touch-friendly.
+* Ensure the mobile menu feels like the same design system as desktop.
 
-   * timer
-   * autoplay logic
-   * skip handler
-   * full-screen overlay
-   * unnecessary loading state
-   * CSS specifically required only by the BootLoader
-4. Remove unused imports after the BootLoader is removed.
-5. Do not replace it with another full-screen loader.
-6. Do not add artificial delays.
-7. Do not modify authenticated/dashboard UI.
-8. Do not change business logic or API contracts.
+Visual details:
 
-### Preserve useful loading behavior
+* Border: subtle 1px border using existing theme variables.
+* Background: translucent background when scrolled.
+* Backdrop blur: subtle, not excessive.
+* Border radius: modern rounded corners.
+* Shadow: very subtle or none.
+* Hover states: smooth and understated.
+* Focus states: accessible and consistent with the existing design system.
+* Dark mode: ensure the navbar looks equally polished in dark mode.
 
-Do NOT remove legitimate loading states for actual asynchronous operations.
+Technical requirements:
 
-For example:
+* Reuse the existing components and utilities.
+* Reuse existing Button, cn(), icons, theme variables, and design tokens whenever possible.
+* Do not install unnecessary dependencies.
+* Do not introduce a new UI library.
+* Keep TypeScript strict and clean.
+* Preserve all existing routes and links.
+* Preserve accessibility attributes.
+* Make the component responsive across desktop, tablet, and mobile.
 
-* API requests → component-level loading state
-* Form submission → button pending state
-* Navigation → appropriate route loading state
-* Data fetching → skeleton/loading state where necessary
+Before editing:
 
-The distinction should be:
+1. Inspect the current navbar implementation.
+2. Identify its existing structure and functionality.
+3. Apply the reference visual style to that implementation.
+4. Do not modify unrelated components.
 
-**Blocking visual intro:** REMOVE
+After editing:
 
-**Real application loading state:** KEEP
+* Verify desktop navbar.
+* Verify scroll transformation.
+* Verify mobile menu.
+* Verify light/dark mode.
+* Verify hover/focus states.
+* Run TypeScript/lint checks.
+* Fix any visual or TypeScript issues you introduce.
 
-### Verification
-
-After removing BootLoader:
-
-* Landing page renders correctly
-* Public navbar works immediately
-* Mobile hamburger works with one tap
-* CTA buttons work with one tap
-* Public navigation works
-* Login navigation works
-* No console errors
-* No unused BootLoader imports
-* No unnecessary timer remains
-* Desktop regression test passes
-* Mobile viewport test passes
-
-Also verify that removing BootLoader does not expose an uninitialized or broken UI state.
-
-Do not make unrelated optimizations during this task.
-Keep the change minimal and production-safe.
+The goal is:
+"Keep my existing navbar functionality, but make it visually feel like the reference navbar — minimal, premium, clean, responsive, and Vercel-style."
