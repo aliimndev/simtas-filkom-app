@@ -1,97 +1,187 @@
-Redesign the existing navbar/header component to closely match the visual style and behavior of the reference navbar I provided.
+/ponytail-help
 
-IMPORTANT:
+From an **application architecture perspective**, analyze this web application comprehensively and determine the most appropriate architectural approach for the current codebase.
 
-* Do NOT rebuild the navbar from scratch.
-* Do NOT change the existing navigation structure, routes, functionality, or business logic.
-* Keep the existing component and modify only its visual design, spacing, styling, and responsive behavior.
-* Do not copy the original code. Recreate the same design language using the existing project architecture.
+**Do NOT modify or write any code yet. Perform the architectural analysis first.**
 
-Reference style:
+Base the analysis strictly on the **existing codebase**. Do not assume technologies, patterns, or structures that are not actually present.
 
-* Minimal, premium, modern SaaS navbar.
-* Similar visual direction to the provided reference.
-* Clean layout with generous whitespace.
-* Subtle borders instead of heavy shadows.
-* Rounded container when scrolling.
-* Glassmorphism effect using a subtle translucent background + backdrop blur.
-* Smooth 300ms transitions.
-* Clean typography and muted navigation colors.
-* Avoid excessive gradients, animations, or decorative elements.
+### 1. Application Structure
 
-Header behavior:
+* Is the current folder and module structure scalable?
+* Is separation of concerns clear?
+* Are there components, utilities, hooks, services, or business logic that are too tightly coupled?
+* Identify duplicated responsibilities and misplaced logic.
 
-* Navbar remains fixed at the top.
-* At the top of the page, keep the navbar visually lightweight and transparent/minimal.
-* When the user scrolls down:
+### 2. Frontend Architecture
 
-  * Slightly reduce the navbar width.
-  * Add a subtle semi-transparent background.
-  * Add backdrop blur.
-  * Add a thin border.
-  * Add rounded corners.
-  * Reduce horizontal padding slightly.
-  * Transition everything smoothly.
-* Keep the scroll transformation subtle and polished, not dramatic.
+Evaluate:
 
-Desktop layout:
+* Server Components vs Client Components
+* State management
+* Data fetching and API communication
+* Mutations
+* Loading and error states
+* Caching and revalidation
+* UI components vs feature components
+* Business logic placement
+* Reusability and component boundaries
 
-* Logo/brand on the left.
-* Navigation links centered.
-* Action buttons on the right.
-* Maintain balanced spacing between all elements.
-* Navigation links should use muted foreground colors and become stronger on hover.
-* Buttons should follow the existing project's design system.
+Determine whether the current boundaries are appropriate for a growing application.
 
-Mobile layout:
+### 3. Backend / API Architecture
 
-* Keep the existing mobile navigation functionality.
-* Logo on the left.
-* Menu button on the right.
-* Use a clean animated Menu/X transition.
-* Open the navigation inside a rounded panel below the header.
-* Use subtle border, background, and backdrop blur.
-* Keep spacing comfortable and touch-friendly.
-* Ensure the mobile menu feels like the same design system as desktop.
+Evaluate the separation between:
 
-Visual details:
+* Routes / Controllers
+* Middleware
+* Use Cases / Services
+* Repositories
+* Domain / Business Logic
+* Database layer
 
-* Border: subtle 1px border using existing theme variables.
-* Background: translucent background when scrolled.
-* Backdrop blur: subtle, not excessive.
-* Border radius: modern rounded corners.
-* Shadow: very subtle or none.
-* Hover states: smooth and understated.
-* Focus states: accessible and consistent with the existing design system.
-* Dark mode: ensure the navbar looks equally polished in dark mode.
+Identify business logic that should not live inside controllers or HTTP handlers.
 
-Technical requirements:
+Also evaluate:
 
-* Reuse the existing components and utilities.
-* Reuse existing Button, cn(), icons, theme variables, and design tokens whenever possible.
-* Do not install unnecessary dependencies.
-* Do not introduce a new UI library.
-* Keep TypeScript strict and clean.
-* Preserve all existing routes and links.
-* Preserve accessibility attributes.
-* Make the component responsive across desktop, tablet, and mobile.
+* Validation
+* Error handling
+* Authentication
+* Authorization
+* Middleware responsibilities
+* Transaction boundaries
 
-Before editing:
+### 4. Database & Data Architecture
 
-1. Inspect the current navbar implementation.
-2. Identify its existing structure and functionality.
-3. Apply the reference visual style to that implementation.
-4. Do not modify unrelated components.
+Analyze:
 
-After editing:
+* Entity/model relationships
+* Database constraints
+* Transactions
+* Data consistency
+* Concurrency concerns
+* Query efficiency
+* Repository responsibilities
+* Potential N+1 queries or inefficient access patterns
 
-* Verify desktop navbar.
-* Verify scroll transformation.
-* Verify mobile menu.
-* Verify light/dark mode.
-* Verify hover/focus states.
-* Run TypeScript/lint checks.
-* Fix any visual or TypeScript issues you introduce.
+Business rules should not depend solely on frontend validation.
 
-The goal is:
-"Keep my existing navbar functionality, but make it visually feel like the reference navbar — minimal, premium, clean, responsive, and Vercel-style."
+### 5. Authentication & Authorization
+
+Review the complete authentication architecture, including:
+
+* Login/session flow
+* Token or cookie handling
+* Refresh mechanism
+* RBAC
+* Permission boundaries
+* Authentication middleware
+* Authorization middleware
+
+Identify architectural or security weaknesses.
+
+### 6. Scalability & Maintainability
+
+Determine whether the current architecture can comfortably support future feature growth.
+
+Look for:
+
+* Tight coupling
+* Circular dependencies
+* Excessive abstractions
+* Duplicate logic
+* God components
+* God services
+* Technical debt
+* Unclear module boundaries
+
+Avoid unnecessary enterprise patterns and over-engineering.
+
+### 7. Performance Architecture
+
+Identify potential bottlenecks related to:
+
+* Rendering
+* Client-side JavaScript
+* API requests
+* Database queries
+* Asset loading
+* Data fetching
+* Caching
+
+Only recommend optimizations that are justified by the actual codebase.
+
+### 8. Recommended Architecture
+
+After analyzing the current system, propose the architecture that best fits this project.
+
+Explain:
+
+* Recommended architectural pattern
+* Recommended module/folder structure
+* Dependency flow
+* Layer boundaries
+* Frontend → Backend communication
+* Business logic placement
+* Database access strategy
+* External service integration boundaries
+
+Clearly explain **why** the recommended architecture is better than the current approach.
+
+### 9. Refactoring Strategy
+
+Do NOT recommend a complete rewrite unless it is genuinely necessary.
+
+Prefer incremental refactoring.
+
+Categorize recommendations into:
+
+**Priority 1 — Critical**
+Issues that should be addressed immediately.
+
+**Priority 2 — Important**
+Issues that significantly improve maintainability, scalability, or reliability.
+
+**Priority 3 — Improvement**
+Nice-to-have architectural improvements that can be addressed later.
+
+For every major recommendation, explain:
+
+* Current problem
+* Why it matters
+* Recommended solution
+* Expected benefit
+* Risk of changing it
+
+### 10. Final Architecture Assessment
+
+Conclude with a concise architectural report containing:
+
+* **Current Architecture**
+* **Current Strengths**
+* **Main Architectural Problems**
+* **Recommended Architecture**
+* **Recommended Module Boundaries**
+* **Dependency Flow**
+* **Critical Risks**
+* **Refactoring Priorities**
+* **What Should NOT Be Changed**
+
+Use pragmatic engineering principles:
+
+* KISS
+* SOLID
+* Separation of Concerns
+* High Cohesion
+* Low Coupling
+* Dependency Inversion where appropriate
+* YAGNI
+* Pragmatic Architecture
+
+Most importantly:
+
+**Analyze the codebase that actually exists. Do not invent architecture, files, technologies, or problems that cannot be verified from the repository.**
+
+At the end, provide a **clear architectural decision** rather than presenting many alternatives without choosing one.
+
+Again: **ANALYZE ONLY. DO NOT MODIFY ANY FILES YET.**
