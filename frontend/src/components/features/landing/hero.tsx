@@ -45,8 +45,7 @@ export function HeroSection() {
         {/* Description */}
         <Reveal delay={240}>
           <p className="mt-6 max-w-xl text-sm leading-relaxed text-st-muted md:text-base">
-            Dari pengajuan judul, bimbingan, seminar, hingga sidang dan arsip — seluruh proses
-            Tugas Akhir Fakultas Ilmu Komputer dikelola dalam satu platform.
+            Mulai dari pengajuan judul, bimbingan, seminar, sidang, hingga pengarsipan semuanya terintegrasi dalam SIMTAS.
           </p>
         </Reveal>
 
