@@ -129,11 +129,24 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
       updateCanvasSize()
 
       let lastTime = 0
+      let lastDraw = 0
+      const FRAME_MS = 50 // ponytail: 20fps cap; a subtle bg flicker reads identical to 60fps at a third of the GPU cost
       const animate = (time: number) => {
         if (!isInView || !gridParams) return
+        // ponytail: freeze the grid while a theme view-transition snapshots and
+        // reveals the page, so the canvas repaint never delays the toggle.
+        if (document.documentElement.dataset.magicuiThemeVt === 'active') {
+          animationFrameId = requestAnimationFrame(animate)
+          return
+        }
+        if (time - lastDraw < FRAME_MS) {
+          animationFrameId = requestAnimationFrame(animate)
+          return
+        }
 
-        const deltaTime = (time - lastTime) / 1000
+        const deltaTime = Math.min((time - lastTime) / 1000, 0.1)
         lastTime = time
+        lastDraw = time
 
         updateSquares(gridParams.squares, deltaTime)
         drawGrid(
