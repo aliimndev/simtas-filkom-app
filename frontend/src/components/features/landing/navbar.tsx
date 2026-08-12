@@ -116,7 +116,7 @@ export function NavbarSection({ navLinks }: { navLinks: NavLink[] }) {
                 href="/login"
                 className="accent-ring hidden rounded-full bg-st-text px-4 py-1.5 text-sm font-medium text-st-bg transition hover:opacity-90 md:inline-block"
               >
-                Masuk
+                Masuk ke Sistem
               </Link>
             )}
             <button

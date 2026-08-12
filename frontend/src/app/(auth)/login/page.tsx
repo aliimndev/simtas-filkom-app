@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/ui/password-input'
+import { FlickeringGrid } from '@/components/ui/flickering-grid'
 import { useLoginMutation } from '@/lib/hooks/use-auth'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { getErrorMessage, mapAuthError } from '@/lib/utils/error'
@@ -26,14 +27,15 @@ type LoginForm = z.infer<typeof loginSchema>
 function BrandPanel() {
   return (
     <div className="relative hidden overflow-hidden border-r border-border bg-background lg:flex lg:flex-col lg:justify-between lg:p-12">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[-15%] h-128 w-lg -translate-x-1/2 rounded-full opacity-25 blur-[120px]"
-        style={{ background: 'radial-gradient(circle, var(--st-accent-to), transparent 60%)' }}
+      <FlickeringGrid
+        color="#07a2b6"
+        maxOpacity={0.35}
+        className="pointer-events-none absolute inset-0"
       />
       <div
         aria-hidden
-        className="landing-grid-bg pointer-events-none absolute inset-0 opacity-60"
+        className="pointer-events-none absolute left-1/2 top-[-10%] h-160 w-160 -translate-x-1/2 rounded-full opacity-20 blur-[120px]"
+        style={{ background: 'radial-gradient(circle, var(--st-accent-to), transparent 60%)' }}
       />
       <Link href="/" className="accent-ring relative flex w-fit items-center gap-2.5">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-background">

@@ -5,9 +5,7 @@ import { FooterSection } from '@/components/features/landing/footer'
 
 const NAV_LINKS = [
   { href: '/#alur', label: 'Alur' },
-  { href: '/#kemampuan', label: 'Kemampuan' },
-  { href: '/#pengguna', label: 'Pengguna' },
-  { href: '/faq', label: 'FAQ' },
+  { href: '/#fitur', label: 'Fitur' },
 ]
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {

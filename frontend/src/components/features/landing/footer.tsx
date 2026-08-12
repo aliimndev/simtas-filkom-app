@@ -22,22 +22,11 @@ export function FooterSection({ navLinks }: { navLinks: NavLink[] }) {
             </span>
           </div>
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-st-muted">
-            Sistem Manajemen Tugas Akhir Skripsi Fakultas Ilmu Komputer
-            Universitas Djuanda — mengelola seluruh proses Tugas Akhir dari
-            pengajuan judul, bimbingan, seminar, hingga sidang dan arsip.
+            Sistem Manajemen Tugas Akhir Skripsi
+            <br />
+            Fakultas Ilmu Komputer · Universitas Djuanda
           </p>
-          <p className="mt-4 text-sm">
-            <a href="mailto:simtas@filkom.unida.ac.id" className="text-st-muted transition hover:text-st-text">
-              simtas@filkom.unida.ac.id
-            </a>
-          </p>
-        </div>
-
-        <div>
-          <h4 className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-st-muted">
-            Navigasi
-          </h4>
-          <ul className="mt-5 space-y-3 text-sm">
+          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
             {navLinks.map((l) => (
               <li key={l.href}>
                 <Link href={l.href} className="text-st-muted transition hover:text-st-text">
@@ -45,22 +34,9 @@ export function FooterSection({ navLinks }: { navLinks: NavLink[] }) {
                 </Link>
               </li>
             ))}
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-st-muted">
-            Akses Sistem
-          </h4>
-          <ul className="mt-5 space-y-3 text-sm">
             <li>
               <Link href="/login" className="text-st-muted transition hover:text-st-text">
                 Masuk
-              </Link>
-            </li>
-            <li>
-              <Link href="/forgot-password" className="text-st-muted transition hover:text-st-text">
-                Lupa Password
               </Link>
             </li>
           </ul>
@@ -69,8 +45,8 @@ export function FooterSection({ navLinks }: { navLinks: NavLink[] }) {
 
       <div className="border-t border-st-stroke">
         <div className="landing-container flex flex-col items-center justify-between gap-2 py-6 text-xs text-st-muted sm:flex-row">
-          <p>© {new Date().getFullYear()} SIMTAS FILKOM — Universitas Djuanda.</p>
-          <p>Fakultas Ilmu Komputer · Universitas Djuanda</p>
+          <p>© 2026 Fakultas Ilmu Komputer · Universitas Djuanda</p>
+          <p>SIMTAS://FILKOM</p>
         </div>
       </div>
     </footer>
