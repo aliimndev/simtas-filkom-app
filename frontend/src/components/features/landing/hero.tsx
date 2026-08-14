@@ -114,7 +114,7 @@ function DashboardPreview() {
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-st-stroke">
+    <section className="relative overflow-hidden">
       <div className="landing-container">
         <ContainerScroll
           titleComponent={

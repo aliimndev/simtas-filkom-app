@@ -64,7 +64,13 @@ const STAGES: Stage[] = [
 
 export function PipelineSection() {
   return (
-    <section id="alur" className="border-b border-st-stroke">
+    <section id="alur" className="relative overflow-hidden">
+      {/* Soft accent wash so the section still opens on a faint teal breath
+          after the feather, without a hard edge. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-linear-to-b from-transparent to-(--st-accent-from) opacity-[0.04]"
+      />
       <div className="landing-container py-20 md:py-28">
         <Reveal>
           <span className="landing-eyebrow">
