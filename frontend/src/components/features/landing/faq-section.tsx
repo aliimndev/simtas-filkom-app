@@ -15,7 +15,7 @@ export function FaqSection() {
         <Reveal>
           <div className="max-w-2xl">
             <span className="landing-eyebrow">FAQ</span>
-            <h2 className="landing-display mt-5 text-3xl md:text-5xl">Pertanyaan yang sering muncul.</h2>
+            <h2 className="landing-heading mt-5 text-3xl md:text-5xl">Pertanyaan yang sering muncul.</h2>
           </div>
         </Reveal>
         <div className="mt-10 max-w-2xl">

@@ -114,6 +114,9 @@ func newRecordingArchiveEmailService() *recordingArchiveEmailService {
 func (r *recordingArchiveEmailService) SendWelcomeEmail(context.Context, string, string, string) error {
 	return nil
 }
+func (r *recordingArchiveEmailService) SendPasswordResetLink(context.Context, string, string, string) error {
+	return nil
+}
 func (r *recordingArchiveEmailService) SendPasswordReset(context.Context, string, string, string) error {
 	return nil
 }

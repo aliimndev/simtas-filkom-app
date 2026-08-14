@@ -23,8 +23,11 @@ export const authApi = {
     return res.data.data
   },
 
-  async forgotPassword(data: ForgotPasswordRequest): Promise<void> {
-    await apiClient.post('/auth/forgot-password', data)
+  // Returns the reset link in development (reset_url) so the flow can be
+  // tested without a working email provider. Production omits it.
+  async forgotPassword(data: ForgotPasswordRequest): Promise<{ reset_url?: string } | undefined> {
+    const res = await apiClient.post('/auth/forgot-password', data)
+    return res.data.data
   },
 
   async resetPassword(data: ResetPasswordRequest): Promise<void> {

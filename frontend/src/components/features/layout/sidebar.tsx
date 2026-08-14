@@ -19,6 +19,8 @@ import { cn } from '@/lib/utils/cn'
 import { useLogoutMutation } from '@/lib/hooks/use-auth'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { NotificationBell } from '@/components/features/notification-bell'
+import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler'
+import { useTheme } from '@/providers/theme-provider'
 
 /* ── Brand Mark — public editorial "sf" mark (mirrors landing nav/footer) ── */
 function BrandMark() {
@@ -139,6 +141,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const logout = useLogoutMutation()
   const [menuOpen, setMenuOpen] = useState(false)
   const pathname = usePathname()
+  const { theme, setTheme } = useTheme()
 
   const breadcrumb = buildBreadcrumb(pathname)
 
@@ -188,6 +191,13 @@ export function TopBar({ onOpenMenu }: { onOpenMenu?: () => void }) {
         >
           <Search className="h-4.5 w-4.5" />
         </button>
+
+        {/* Theme toggle — same animated switcher as the public navbar */}
+        <AnimatedThemeToggler
+          theme={theme === 'dark' ? 'dark' : 'light'}
+          onThemeChange={setTheme}
+          className="rounded-full p-1.5 text-st-muted transition-colors hover:bg-st-surface-hi hover:text-st-text [&_svg]:h-4.5 [&_svg]:w-4.5"
+        />
 
         <NotificationBell />
 

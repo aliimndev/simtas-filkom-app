@@ -78,7 +78,7 @@ function ResetPasswordInner() {
             <span className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
               Reset Password
             </span>
-            <h1 className="landing-display mt-3 text-3xl">Password baru</h1>
+            <h1 className="landing-heading mt-3 text-3xl">Password baru</h1>
             <p className="mt-2 text-sm text-muted-foreground">Buat password baru untuk akun Anda.</p>
           </div>
 

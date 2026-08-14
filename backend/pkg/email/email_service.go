@@ -15,6 +15,8 @@ type EmailService interface {
 	SendWelcomeEmail(ctx context.Context, to, fullName, temporaryPassword string) error
 	// SendPasswordReset sends a password-reset notification with a new password.
 	SendPasswordReset(ctx context.Context, to, fullName, newPassword string) error
+	// SendPasswordResetLink sends a self-service reset link (forgot-password flow).
+	SendPasswordResetLink(ctx context.Context, to, fullName, resetURL string) error
 
 	// ── Thesis notifications (Job 05) ────────────────────────────────────
 	// SendThesisSubmitted notifies all kaprodi about a new thesis submission.

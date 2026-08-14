@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '@/providers/theme-provider'
 import { ArrowRight, Menu, X } from 'lucide-react'
 import { useAuthStore } from '@/lib/stores/auth-store'
@@ -14,16 +14,47 @@ type NavLink = { href: string; label: string }
 export function NavbarSection({ navLinks }: { navLinks: NavLink[] }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const progressRef = useRef<HTMLDivElement>(null)
+  const [activeSection, setActiveSection] = useState<string | null>(null)
   const pathname = usePathname()
   const accessToken = useAuthStore((s) => s.accessToken)
   const { theme, setTheme } = useTheme()
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40)
+    const onScroll = () => {
+      const y = window.scrollY
+      setScrolled(y > 40)
+      // Progress bar writes straight to the DOM — no per-frame re-render.
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      const p = max > 0 ? Math.min(1, y / max) : 0
+      if (progressRef.current) progressRef.current.style.transform = `scaleX(${p})`
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Highlight the nav link whose section is near the top of the viewport.
+  useEffect(() => {
+    const sections = navLinks
+      .map((l) => document.getElementById(l.href.split('#')[1] ?? ''))
+      .filter((el): el is HTMLElement => el !== null)
+    if (sections.length === 0) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        let best: { id: string; ratio: number } | null = null
+        for (const entry of entries) {
+          if (entry.isIntersecting && (!best || entry.intersectionRatio > best.ratio)) {
+            best = { id: entry.target.id, ratio: entry.intersectionRatio }
+          }
+        }
+        setActiveSection(best ? `#${best.id}` : null)
+      },
+      { rootMargin: '-35% 0px -55% 0px' },
+    )
+    sections.forEach((s) => io.observe(s))
+    return () => io.disconnect()
+  }, [navLinks])
 
   // Close the mobile menu on browser back/forward (popstate) so it can
   // never linger over a page the user navigated away from.
@@ -45,6 +76,13 @@ export function NavbarSection({ navLinks }: { navLinks: NavLink[] }) {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4 md:pt-6">
+      {/* Scroll progress */}
+      <div
+        aria-hidden
+        ref={progressRef}
+        className="accent-gradient fixed inset-x-0 top-0 h-0.75 origin-left transition-transform duration-150 ease-out"
+        style={{ transform: 'scaleX(0)' }}
+      />
       {/* Relative wrapper so the mobile dropdown always sits directly below
           the pill — regardless of safe-area insets (notch) that push the
           header down — and can never be covered by it. */}
@@ -79,7 +117,9 @@ export function NavbarSection({ navLinks }: { navLinks: NavLink[] }) {
           {/* Desktop nav */}
           <nav aria-label="Navigasi utama" className="hidden items-center gap-0.5 md:flex">
             {navLinks.map((l) => {
-              const active = pathname === l.href
+              const active = l.href.startsWith('/#')
+                ? activeSection === l.href.slice(1)
+                : pathname === l.href
               return (
                 <Link
                   key={l.href}
@@ -150,7 +190,9 @@ export function NavbarSection({ navLinks }: { navLinks: NavLink[] }) {
             className="absolute inset-x-0 top-full z-50 mt-2 max-h-[75dvh] overflow-y-auto rounded-2xl border border-st-stroke bg-(--st-surface)/90 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg shadow-black/10 backdrop-blur-md md:hidden"
           >
             {navLinks.map((l) => {
-              const active = pathname === l.href
+              const active = l.href.startsWith('/#')
+                ? activeSection === l.href.slice(1)
+                : pathname === l.href
               return (
                 <Link
                   key={l.href}

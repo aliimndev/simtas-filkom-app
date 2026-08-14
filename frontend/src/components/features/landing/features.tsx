@@ -12,6 +12,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { Reveal } from './reveal'
+import { NumberTicker } from './number-ticker'
+import { ScrollStack, ScrollStackItem } from './scroll-stack'
 
 interface Feature {
   icon: LucideIcon
@@ -60,6 +62,13 @@ const ROLES: { icon: LucideIcon; title: string }[] = [
   { icon: LayoutDashboard, title: 'Administrator Fakultas' },
 ]
 
+const STATS: { value: number; suffix?: string; label: string }[] = [
+  { value: 800, suffix: '+', label: 'Mahasiswa Terlayani' },
+  { value: 1200, suffix: '+', label: 'Dokumen Tersimpan' },
+  { value: 300, suffix: '+', label: 'Sidang Terproses' },
+  { value: 48, label: 'Dosen Terbantu' },
+]
+
 export function FeaturesSection() {
   return (
     <section
@@ -86,9 +95,9 @@ export function FeaturesSection() {
           <Reveal delay={80}>
             <h2
               id="kemampuan-title"
-              className="landing-display mt-5 text-balance text-3xl md:text-5xl"
+              className="landing-heading mt-5 text-balance text-3xl md:text-5xl"
             >
-              Semua proses dalam satu sistem.
+              Semua proses dalam <span className="accent-text italic">satu sistem</span>.
             </h2>
           </Reveal>
 
@@ -100,62 +109,64 @@ export function FeaturesSection() {
           </Reveal>
         </div>
 
-        <div className="mt-14 grid gap-4 md:grid-cols-6">
-          {FEATURES.map((feature, index) => {
-            const Icon = feature.icon
-            const number = String(index + 1).padStart(2, '0')
-            const isPrimary = index === 0
-            const isSecondary = index > 0 && index < 3
-            const spanClass = isPrimary
-              ? 'md:col-span-3 md:row-span-2'
-              : isSecondary
-                ? 'md:col-span-3'
-                : 'md:col-span-2'
+        <div className="mt-14">
+          <ScrollStack
+            itemDistance={40}
+            itemStackDistance={14}
+            itemScale={0.02}
+            baseScale={0.92}
+            stackPosition="18%"
+            scaleEndPosition="12%"
+          >
+            {FEATURES.map((feature, index) => {
+              const Icon = feature.icon
+              const number = String(index + 1).padStart(2, '0')
 
-            return (
-              <Reveal key={feature.title} delay={index * 50} className={`h-full ${spanClass}`}>
-                <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-st-stroke bg-st-surface/80 p-6 backdrop-blur-sm transition hover:bg-st-surface-hi md:p-7">
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute -right-12 -bottom-12 h-36 w-36 rounded-full bg-(--st-accent-from)/10 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
-                  />
-                  <div className="relative flex items-center justify-between gap-4">
-                    <span className="transition-transform duration-300 group-hover:-translate-y-0.5">
-                      <Icon
-                        className={`text-(--st-accent-from) transition-colors duration-300 group-hover:text-(--st-accent-to) ${
-                          isPrimary ? 'h-7 w-7' : 'h-6 w-6'
-                        }`}
-                        aria-hidden
-                      />
-                    </span>
-
-                    <span
+              return (
+                <ScrollStackItem key={feature.title}>
+                  <article className="relative flex min-h-44 flex-col overflow-hidden rounded-2xl border border-st-stroke bg-st-surface p-6 md:min-h-52 md:p-8">
+                    <div
                       aria-hidden
-                      className="select-none text-4xl font-semibold tracking-tight text-st-text opacity-[0.08] transition-opacity duration-300 group-hover:opacity-20"
-                    >
-                      {number}
-                    </span>
-                  </div>
+                      className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-(--st-accent-from)/10 blur-2xl"
+                    />
+                    <div className="relative flex items-start justify-between gap-4">
+                      <span className="accent-ring flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-st-surface-hi">
+                        <Icon className="h-6 w-6 text-(--st-accent-from)" aria-hidden />
+                      </span>
+                      <span
+                        aria-hidden
+                        className="select-none font-display text-5xl font-semibold tracking-tight text-st-text opacity-[0.07] md:text-6xl"
+                      >
+                        {number}
+                      </span>
+                    </div>
+                    <div className="relative mt-6 md:mt-8">
+                      <h3 className="text-xl font-semibold tracking-tight text-st-text md:text-2xl">
+                        {feature.title}
+                      </h3>
+                      <p className="mt-3 max-w-2xl text-sm leading-7 text-st-muted md:text-base">
+                        {feature.desc}
+                      </p>
+                    </div>
+                  </article>
+                </ScrollStackItem>
+              )
+            })}
+          </ScrollStack>
+        </div>
 
-                  <h3
-                    className={`mt-5 max-w-xs font-semibold leading-snug text-st-text transition-colors duration-300 group-hover:text-(--st-accent-from) ${
-                      isPrimary ? 'text-xl md:text-2xl' : 'text-lg'
-                    }`}
-                  >
-                    {feature.title}
-                  </h3>
-
-                  <p
-                    className={`mt-3 max-w-sm text-st-muted ${
-                      isPrimary ? 'text-sm leading-7 md:text-base' : 'text-sm leading-7'
-                    }`}
-                  >
-                    {feature.desc}
-                  </p>
-                </article>
-              </Reveal>
-            )
-          })}
+        <div className="mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-st-stroke bg-st-stroke sm:grid-cols-2 lg:grid-cols-4">
+          {STATS.map((stat, index) => (
+            <Reveal key={stat.label} delay={index * 70} className="h-full">
+              <div className="flex h-full flex-col gap-1 bg-st-surface px-6 py-8 text-center transition-colors hover:bg-st-surface-hi md:py-10">
+                <span className="font-display text-3xl text-(--st-accent-from) tabular-nums md:text-4xl">
+                  <NumberTicker value={stat.value} />
+                  {stat.suffix && <span className="text-(--st-accent-to)">{stat.suffix}</span>}
+                </span>
+                <span className="text-sm text-st-muted">{stat.label}</span>
+              </div>
+            </Reveal>
+          ))}
         </div>
 
         <div className="mt-16 border-t border-st-stroke pt-12">
@@ -163,8 +174,8 @@ export function FeaturesSection() {
             <span className="landing-eyebrow">PENGGUNA</span>
           </Reveal>
           <Reveal delay={80}>
-            <h3 className="landing-display mt-5 max-w-2xl text-2xl md:text-4xl">
-              Dibuat untuk setiap peran.
+            <h3 className="landing-heading mt-5 max-w-2xl text-2xl md:text-4xl">
+              Dibuat untuk <span className="accent-text italic">setiap peran</span>.
             </h3>
           </Reveal>
           <div className="mt-8 flex flex-wrap gap-3">

@@ -133,6 +133,16 @@ func (s *ResendEmailService) SendWelcomeEmail(ctx context.Context, to, fullName,
 	return s.send([]string{to}, subject, "event.html", "welcome", data)
 }
 
+func (s *ResendEmailService) SendPasswordResetLink(ctx context.Context, to, fullName, resetURL string) error {
+	subject := "[SIMTAS] Atur Ulang Password Anda"
+	data := s.baseData("Atur Ulang Password Anda")
+	data.Greeting = "Halo " + fullName + ","
+	data.Message = "Kami menerima permintaan untuk mengatur ulang password akun SIMTAS Anda. Klik tombol di bawah untuk melanjutkan (tautan berlaku 1 jam):"
+	data.CTA = &CTA{Label: "Atur Ulang Password", URL: resetURL}
+	data.Notes = "Jika Anda tidak meminta ini, abaikan email ini — password Anda tidak akan berubah."
+	return s.send([]string{to}, subject, "event.html", "password_reset_link", data)
+}
+
 func (s *ResendEmailService) SendPasswordReset(ctx context.Context, to, fullName, newPassword string) error {
 	subject := "[SIMTAS] Password Anda Telah Direset"
 	data := s.baseData("Password Anda Telah Direset")

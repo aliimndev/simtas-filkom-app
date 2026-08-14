@@ -24,7 +24,7 @@ export function RolesSection() {
           </span>
         </Reveal>
         <Reveal delay={80}>
-          <h2 className="landing-display mt-5 max-w-2xl text-3xl md:text-5xl">
+          <h2 className="landing-heading mt-5 max-w-2xl text-3xl md:text-5xl">
             Dibuat untuk setiap <span className="accent-text italic">peran</span>.
           </h2>
         </Reveal>

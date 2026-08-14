@@ -175,6 +175,9 @@ func newTCRRecordingEmail() *tcrRecordingEmail {
 func (r *tcrRecordingEmail) SendWelcomeEmail(context.Context, string, string, string) error {
 	return nil
 }
+func (r *tcrRecordingEmail) SendPasswordResetLink(context.Context, string, string, string) error {
+	return nil
+}
 func (r *tcrRecordingEmail) SendPasswordReset(context.Context, string, string, string) error {
 	return nil
 }

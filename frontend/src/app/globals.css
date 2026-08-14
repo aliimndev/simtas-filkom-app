@@ -311,10 +311,7 @@ main :is(a, button, [tabindex]):focus-visible {
   background: linear-gradient(90deg, var(--st-accent-from) 0%, var(--st-accent-to) 100%);
 }
 .accent-text {
-  background: linear-gradient(90deg, var(--st-accent-from) 0%, var(--st-accent-to) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--st-accent-to);
 }
 
 /* Gradient hover ring: a gradient layer sits behind an opaque inner chip. */
@@ -358,6 +355,14 @@ main :is(a, button, [tabindex]):focus-visible {
   font-weight: 400;
   letter-spacing: -0.02em;
   line-height: 1.0;
+  color: var(--st-text);
+}
+/* Editorial heading — Inter semibold, matching the hero's h1. */
+.landing-heading {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
   color: var(--st-text);
 }
 .landing-surface {

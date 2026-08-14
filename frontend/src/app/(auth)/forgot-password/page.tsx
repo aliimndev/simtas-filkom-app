@@ -22,6 +22,7 @@ type ForgotForm = z.infer<typeof forgotSchema>
 export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [resetUrl, setResetUrl] = useState<string | null>(null)
   const forgot = useForgotPasswordMutation()
   const {
     register,
@@ -32,8 +33,11 @@ export default function ForgotPasswordPage() {
   const onSubmit = handleSubmit(async (data) => {
     setError(null)
     try {
-      await forgot.mutateAsync(data)
+      const res = await forgot.mutateAsync(data)
       setDone(true)
+      // Development: backend exposes the reset link when no email provider is
+      // wired up — show it so the flow can be completed manually.
+      if (res?.reset_url) setResetUrl(res.reset_url)
     } catch (err) {
       setError(getErrorMessage(err, 'Gagal mengirim email reset. Silakan coba lagi.'))
     }
@@ -47,7 +51,7 @@ export default function ForgotPasswordPage() {
             <span className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
               Lupa Password
             </span>
-            <h1 className="landing-display mt-3 text-3xl">Atur ulang password</h1>
+            <h1 className="landing-heading mt-3 text-3xl">Atur ulang password</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Masukkan email terdaftar Anda, kami akan mengirimkan tautan untuk mereset password.
             </p>
@@ -58,6 +62,17 @@ export default function ForgotPasswordPage() {
               <Alert variant="success">
                 Jika email terdaftar, tautan reset password telah dikirim. Periksa kotak masuk Anda.
               </Alert>
+              {resetUrl && (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-left">
+                  <p className="text-xs font-medium text-foreground">Link reset (development):</p>
+                  <a
+                    href={resetUrl}
+                    className="mt-1 block break-all text-xs text-primary underline hover:text-primary-700"
+                  >
+                    {resetUrl}
+                  </a>
+                </div>
+              )}
               <Button asChild variant="outline" className="w-full">
                 <Link href="/login">Kembali ke Login</Link>
               </Button>

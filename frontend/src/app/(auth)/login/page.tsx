@@ -50,7 +50,7 @@ function BrandPanel() {
         <p className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
           SIMTAS://FILKOM
         </p>
-        <h1 className="landing-display mt-5 text-4xl md:text-5xl">
+        <h1 className="landing-heading mt-5 text-4xl md:text-5xl">
           Satu sistem untuk seluruh perjalanan{' '}
           <span className="accent-text italic">Tugas Akhir Skripsi</span>.
         </h1>
@@ -105,7 +105,7 @@ function LoginForm() {
           <span className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted-foreground">
             Masuk ke Sistem
           </span>
-          <h2 className="landing-display mt-3 text-3xl md:text-4xl">Selamat datang kembali.</h2>
+          <h2 className="landing-heading mt-3 text-3xl md:text-4xl">Selamat datang kembali.</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Gunakan kredensial yang diberikan administrator fakultas.
           </p>

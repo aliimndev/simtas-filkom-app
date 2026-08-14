@@ -160,6 +160,9 @@ type fakeEmailService struct{}
 func (f *fakeEmailService) SendWelcomeEmail(context.Context, string, string, string) error {
 	return nil
 }
+func (f *fakeEmailService) SendPasswordResetLink(context.Context, string, string, string) error {
+	return nil
+}
 func (f *fakeEmailService) SendPasswordReset(context.Context, string, string, string) error {
 	return nil
 }

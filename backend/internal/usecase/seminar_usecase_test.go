@@ -223,6 +223,9 @@ func newRecordingSeminarEmailService() *recordingSeminarEmailService {
 func (r *recordingSeminarEmailService) SendWelcomeEmail(context.Context, string, string, string) error {
 	return nil
 }
+func (r *recordingSeminarEmailService) SendPasswordResetLink(context.Context, string, string, string) error {
+	return nil
+}
 func (r *recordingSeminarEmailService) SendPasswordReset(context.Context, string, string, string) error {
 	return nil
 }

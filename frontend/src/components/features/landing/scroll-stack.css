@@ -1,0 +1,30 @@
+/* Lenis recommended base */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+/* Window-scroll mode: no nested scroller, card visuals come from the JSX. */
+.scroll-stack-scroller {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+.scroll-stack-inner {
+  min-height: 0;
+  padding: 0;
+}
+.scroll-stack-card {
+  position: relative;
+  transform-origin: top center;
+  will-change: transform, filter;
+  backface-visibility: hidden;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  border-radius: 0;
+}

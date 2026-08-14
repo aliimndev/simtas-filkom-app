@@ -183,6 +183,9 @@ func newRecordingDocEmailService() *recordingDocEmailService {
 func (r *recordingDocEmailService) SendWelcomeEmail(context.Context, string, string, string) error {
 	return nil
 }
+func (r *recordingDocEmailService) SendPasswordResetLink(context.Context, string, string, string) error {
+	return nil
+}
 func (r *recordingDocEmailService) SendPasswordReset(context.Context, string, string, string) error {
 	return nil
 }

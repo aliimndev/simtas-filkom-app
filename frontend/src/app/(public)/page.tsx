@@ -1,8 +1,7 @@
 import { RedirectAuthenticated } from '@/components/features/landing/redirect-authenticated'
 import { HeroSection } from '@/components/features/landing/hero'
-import { ProblemSolutionSection } from '@/components/features/landing/stats'
-import { PipelineSection } from '@/components/features/landing/pipeline'
 import { FeaturesSection } from '@/components/features/landing/features'
+import { PipelineSection } from '@/components/features/landing/pipeline'
 import { CtaSection } from '@/components/features/landing/cta'
 
 export const metadata = {
@@ -16,9 +15,8 @@ export default function HomePage() {
     <div>
       <RedirectAuthenticated />
       <HeroSection />
-      <ProblemSolutionSection />
-      <PipelineSection />
       <FeaturesSection />
+      <PipelineSection />
       <CtaSection />
     </div>
   )

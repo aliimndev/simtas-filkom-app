@@ -20,7 +20,7 @@ export default function FaqPage() {
       <section className="border-b border-st-stroke">
         <div className="landing-container max-w-3xl pb-16 pt-36 md:pt-44">
           <Reveal><span className="landing-eyebrow">FAQ</span></Reveal>
-          <Reveal delay={80}><h1 className="landing-display mt-5 text-4xl md:text-5xl">Pertanyaan yang sering diajukan</h1></Reveal>
+          <Reveal delay={80}><h1 className="landing-heading mt-5 text-4xl md:text-5xl">Pertanyaan yang sering diajukan</h1></Reveal>
           <Reveal delay={160}>
             <p className="mt-5 text-base text-st-muted md:text-lg">
               Temukan jawaban atas pertanyaan umum seputar penggunaan sistem.

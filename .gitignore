@@ -23,6 +23,7 @@ frontend/coverage/
 # IDE
 .vscode/
 .idea/
+.zcode/
 *.swp
 *.swo
 

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/usecase"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/config"
+	"github.com/aliimndev/simtas-filkom-app/backend/pkg/email"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/response"
 )
 
@@ -20,10 +22,11 @@ const RefreshCookieName = "simtas_refresh_token"
 type AuthHandler struct {
 	authUseCase *usecase.AuthUseCase
 	cfg         *config.Config
+	emailSvc    email.EmailService
 }
 
-func NewAuthHandler(authUseCase *usecase.AuthUseCase, cfg *config.Config) *AuthHandler {
-	return &AuthHandler{authUseCase: authUseCase, cfg: cfg}
+func NewAuthHandler(authUseCase *usecase.AuthUseCase, cfg *config.Config, emailSvc email.EmailService) *AuthHandler {
+	return &AuthHandler{authUseCase: authUseCase, cfg: cfg, emailSvc: emailSvc}
 }
 
 // refreshCookieAttrs returns the cookie attributes for the refresh token. The
@@ -244,12 +247,25 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	}
 
 	// Always return 200 to prevent email enumeration
-	_, _ = h.authUseCase.ForgotPassword(c.Request.Context(), req.Email)
+	resetToken, fullName, _ := h.authUseCase.ForgotPassword(c.Request.Context(), req.Email)
 
-	// TODO: Send email with reset link when email service is implemented (Job 08)
-	response.Success(c, http.StatusOK, gin.H{
-		"message": "Jika email terdaftar, tautan reset telah dikirim",
-	})
+	resp := gin.H{"message": "Jika email terdaftar, tautan reset telah dikirim"}
+	// Development convenience: expose the reset link directly so the flow can
+	// be tested end-to-end without a working email provider. Only exposed when
+	// the email is actually registered (token non-empty) and never in production.
+	if h.cfg.AppEnv != "production" && resetToken != "" {
+		resp["reset_url"] = fmt.Sprintf("%s/reset-password?token=%s", h.cfg.FrontendURL, resetToken)
+	}
+
+	// Send the reset-link email (the sender never blocks the response; delivery
+	// happens on the email worker). Silent failure: forgot-password always
+	// returns 200 for anti-enumeration, so a broken email provider must not
+	// change the response shape.
+	if resetToken != "" {
+		resetURL := fmt.Sprintf("%s/reset-password?token=%s", h.cfg.FrontendURL, resetToken)
+		_ = h.emailSvc.SendPasswordResetLink(c.Request.Context(), req.Email, fullName, resetURL)
+	}
+	response.Success(c, http.StatusOK, resp)
 }
 
 // ResetPassword godoc

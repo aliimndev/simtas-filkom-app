@@ -162,6 +162,9 @@ func newRecordingEmailService() *recordingEmailService {
 func (r *recordingEmailService) SendWelcomeEmail(context.Context, string, string, string) error {
 	return nil
 }
+func (r *recordingEmailService) SendPasswordResetLink(context.Context, string, string, string) error {
+	return nil
+}
 func (r *recordingEmailService) SendPasswordReset(context.Context, string, string, string) error {
 	return nil
 }

@@ -55,7 +55,10 @@ func TestRenderAllTemplates(t *testing.T) {
 			if err != nil {
 				t.Fatalf("render %s: %v", name, err)
 			}
-			if !strings.Contains(html, "SIMTAS FILKOM") {
+			// Brand header must be present. Checked as separate words because the
+			// wordmark is styled with a two-tone <span> between "SIMTAS" and
+			// "FILKOM" (contiguous-substring matching would be markup-fragile).
+			if !strings.Contains(html, "SIMTAS") || !strings.Contains(html, "FILKOM") {
 				t.Errorf("render %s: missing brand header", name)
 			}
 			if !strings.Contains(html, "Judul Email") {

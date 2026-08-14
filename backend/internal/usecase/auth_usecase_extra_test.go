@@ -193,12 +193,15 @@ func TestForgotPassword(t *testing.T) {
 	user := newTestUser("Password123")
 	uc, _ := newAuthUC(user)
 
-	token, err := uc.ForgotPassword(context.Background(), user.Email)
+	token, fullName, err := uc.ForgotPassword(context.Background(), user.Email)
 	if err != nil {
 		t.Fatalf("ForgotPassword: %v", err)
 	}
 	if len(token) != 64 { // 32 random bytes hex-encoded
 		t.Errorf("token length = %d, want 64", len(token))
+	}
+	if fullName != user.FullName {
+		t.Errorf("full name = %q, want %q", fullName, user.FullName)
 	}
 }
 
@@ -207,12 +210,15 @@ func TestForgotPasswordUnknownEmail(t *testing.T) {
 	user := newTestUser("Password123")
 	uc, _ := newAuthUC(user)
 
-	token, err := uc.ForgotPassword(context.Background(), "nobody@example.com")
+	token, name, err := uc.ForgotPassword(context.Background(), "nobody@example.com")
 	if err != nil {
 		t.Fatalf("ForgotPassword: %v", err)
 	}
 	if token != "" {
 		t.Errorf("expected empty token for unknown email, got %q", token)
+	}
+	if name != "" {
+		t.Errorf("expected empty name for unknown email, got %q", name)
 	}
 }
 

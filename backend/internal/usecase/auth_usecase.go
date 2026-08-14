@@ -322,17 +322,18 @@ func (uc *AuthUseCase) GetMe(ctx context.Context, userID uuid.UUID) (*UserDTO, e
 	}, nil
 }
 
-// ForgotPassword generates and stores a reset token; returns token for email sending
-func (uc *AuthUseCase) ForgotPassword(ctx context.Context, email string) (string, error) {
+// ForgotPassword generates and stores a reset token; returns the token and the
+// user's full name for email sending.
+func (uc *AuthUseCase) ForgotPassword(ctx context.Context, email string) (string, string, error) {
 	user, err := uc.authRepo.FindUserByEmail(ctx, email)
 	if err != nil {
 		// Prevent email enumeration — silently succeed
-		return "", nil
+		return "", "", nil
 	}
 
 	tokenBytes := make([]byte, 32)
 	if _, err := rand.Read(tokenBytes); err != nil {
-		return "", err
+		return "", "", err
 	}
 	resetToken := hex.EncodeToString(tokenBytes)
 
@@ -343,10 +344,10 @@ func (uc *AuthUseCase) ForgotPassword(ctx context.Context, email string) (string
 	}
 
 	if err := uc.authRepo.CreatePasswordResetToken(ctx, prt); err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return resetToken, nil
+	return resetToken, user.FullName, nil
 }
 
 // ResetPassword validates token, updates password, and marks token used

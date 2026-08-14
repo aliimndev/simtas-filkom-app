@@ -9,7 +9,7 @@ export default function NotFound() {
           <Compass className="h-7 w-7" />
         </span>
         <p className="mt-8 text-sm font-semibold uppercase tracking-[0.2em] text-primary">Error 404</p>
-        <h1 className="landing-display mt-3 text-5xl md:text-6xl">Halaman tidak ditemukan</h1>
+        <h1 className="landing-heading mt-3 text-5xl md:text-6xl">Halaman tidak ditemukan</h1>
         <p className="mt-5 max-w-md text-muted-foreground">
           Halaman yang Anda cari mungkin telah dipindahkan, dihapus, atau alamatnya salah.
         </p>
