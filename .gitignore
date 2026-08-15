@@ -10,6 +10,8 @@ backend/coverage.out
 backend/coverage.html
 backend/seed
 backend/internal/handler/tmp/
+# Local dev data (uploads + throwaway Postgres data dir)
+backend/tmp/
 
 # Node
 node_modules/
