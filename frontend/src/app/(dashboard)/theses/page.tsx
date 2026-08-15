@@ -45,8 +45,10 @@ export default function ThesesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Daftar Skripsi</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Kelola pengajuan dan status skripsi mahasiswa</p>
+        <p className="landing-eyebrow">Daftar Tugas Akhir</p>
+        <h1 className="mt-2 text-balance landing-heading text-2xl">
+          Kelola pengajuan dan status <span className="accent-text italic">skripsi</span> mahasiswa
+        </h1>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -79,7 +81,7 @@ export default function ThesesPage() {
             <Card key={t.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary">
+                  <div className="accent-ring flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--st-accent-from)/10 text-(--st-accent-to)">
                     <BookOpen className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
@@ -109,7 +111,13 @@ export default function ThesesPage() {
               </CardContent>
             </Card>
           ))}
-          {list.length === 0 && <p className="py-10 text-center text-sm text-muted-foreground">Tidak ada skripsi ditemukan.</p>}
+          {list.length === 0 && (
+            <div className="py-12 text-center">
+              <BookOpen className="mx-auto h-10 w-10 text-st-muted/40" />
+              <p className="mt-3 landing-heading text-lg">Tidak ada <span className="accent-text italic">skripsi</span> ditemukan</p>
+              <p className="mt-1 text-sm text-st-muted">Coba ubah filter atau kata kunci pencarian Anda.</p>
+            </div>
+          )}
         </div>
       )}
 

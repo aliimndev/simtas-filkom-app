@@ -89,7 +89,7 @@ export default function MyThesisPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Skripsi Saya</h1>
+        <h1 className="text-balance landing-heading text-2xl">Skripsi <span className="accent-text italic">Saya</span></h1>
         <div className="flex flex-wrap items-center gap-2">
           {canRequest && (
             <Button size="sm" onClick={() => setSubmitOpen(true)}>

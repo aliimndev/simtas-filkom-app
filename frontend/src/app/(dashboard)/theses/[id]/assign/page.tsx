@@ -66,7 +66,7 @@ export default function AssignSupervisorPage() {
         <Link href="/theses" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali ke Daftar
         </Link>
-        <h1 className="text-2xl font-bold">Atur Dosen Pembimbing</h1>
+        <h1 className="text-balance landing-heading text-2xl">Atur Dosen <span className="accent-text italic">Pembimbing</span></h1>
         {t && (
           <p className="mt-1 text-sm text-muted-foreground">
             {t.title} · {t.student?.full_name} · {formatDate(t.submitted_at)}

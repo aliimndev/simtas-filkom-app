@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Archive as ArchiveIcon, Search, Download, FileArchive, Loader2 } from 'lucide-react'
+import { Search, Download, FileArchive, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -39,14 +39,11 @@ export default function ArchivesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary">
-          <ArchiveIcon className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold">Arsip Skripsi</h1>
-          <p className="text-sm text-muted-foreground">Kumpulan skripsi yang telah diarsipkan</p>
-        </div>
+      <div>
+        <p className="landing-eyebrow">Arsip Skripsi</p>
+        <h1 className="mt-2 text-balance landing-heading text-2xl">
+          Kumpulan skripsi yang telah <span className="accent-text italic">diarsipkan</span>
+        </h1>
       </div>
 
       <div className="relative max-w-md">
@@ -70,7 +67,7 @@ export default function ArchivesPage() {
               <Card key={a.id} className="group">
                 <CardContent className="p-5">
                   <div className="mb-3 flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary-50 text-secondary">
+                    <div className="accent-ring flex h-10 w-10 items-center justify-center rounded-xl bg-secondary-50 text-secondary">
                       <FileArchive className="h-5 w-5" />
                     </div>
                     <Button
@@ -95,7 +92,11 @@ export default function ArchivesPage() {
           </div>
 
           {list.length === 0 && (
-            <p className="py-10 text-center text-sm text-muted-foreground">Tidak ada arsip ditemukan.</p>
+            <div className="py-12 text-center">
+              <FileArchive className="mx-auto h-10 w-10 text-st-muted/40" />
+              <p className="mt-3 landing-heading text-lg">Tidak ada <span className="accent-text italic">arsip</span> ditemukan</p>
+              <p className="mt-1 text-sm text-st-muted">Coba ubah kata kunci pencarian Anda.</p>
+            </div>
           )}
 
           {total > 12 && (

@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatCard, ViewAllLink } from '@/components/features/dashboard/stat-card'
 import { DashboardHeader } from '@/components/features/dashboard/dashboard-header'
+import { DashboardHeroBand } from '@/components/features/dashboard/dashboard-hero-band'
 import { StatusBadge, thesisStatusProps } from '@/components/features/dashboard/status-badge'
 import { dashboardApi } from '@/lib/api/dashboard-api'
 import { titleChangeApi } from '@/lib/api/title-change-api'
@@ -34,10 +35,12 @@ export default function SupervisorDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <DashboardHeader
-        name={user?.full_name ?? 'Pembimbing'}
-        subtitle={`${roleLabel(user?.role)} · NIDN ${user?.nim_nidn ?? '—'}`}
-      />
+      <DashboardHeroBand>
+        <DashboardHeader
+          name={user?.full_name ?? 'Pembimbing'}
+          subtitle={`${roleLabel(user?.role)} · NIDN ${user?.nim_nidn ?? '—'}`}
+        />
+      </DashboardHeroBand>
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -53,7 +56,7 @@ export default function SupervisorDashboardPage() {
           <CardContent className="p-5 sm:p-6">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h2 className="font-display text-lg leading-none text-st-text">Mahasiswa Bimbingan</h2>
+                <h2 className="landing-heading text-lg">Mahasiswa <span className="accent-text italic">Bimbingan</span></h2>
                 <p className="mt-0.5 text-[13px] text-st-muted">Daftar mahasiswa yang Anda bimbing</p>
               </div>
               <ViewAllLink href="/supervision" />
@@ -63,7 +66,7 @@ export default function SupervisorDashboardPage() {
               {d?.students?.map((st) => {
                 const { variant, label } = thesisStatusProps(st.status)
                 return (
-                  <div key={st.thesis_id} className="flex items-center gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                  <div key={st.thesis_id} className="flex items-center gap-3 rounded-xl border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-st-text">{st.student.full_name}</p>
                       <p className="truncate text-xs text-st-muted">
@@ -88,12 +91,12 @@ export default function SupervisorDashboardPage() {
 
         <Card>
           <CardContent className="p-5 sm:p-6">
-            <h2 className="font-display text-lg leading-none text-st-text">Butuh Perhatian</h2>
+            <h2 className="landing-heading text-lg">Butuh <span className="accent-text italic">Perhatian</span></h2>
             <p className="mt-0.5 text-[13px] text-st-muted">Mahasiswa dengan dokumen pending review</p>
             <div className="mt-4 space-y-2">
               {dash.isLoading && <Skeleton className="h-20 w-full" />}
               {needsAttention.map((st) => (
-                <div key={st.thesis_id} className="flex items-center gap-3 rounded-md border border-warning/25 bg-warning-50 px-4 py-3">
+                <div key={st.thesis_id} className="flex items-center gap-3 rounded-xl border border-warning/25 bg-warning-50 px-4 py-3">
                   <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-st-text">{st.student.full_name}</p>
@@ -115,15 +118,15 @@ export default function SupervisorDashboardPage() {
         <CardContent className="p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-display text-lg leading-none text-st-text">Jadwal Mendatang</h2>
+              <h2 className="landing-heading text-lg">Jadwal <span className="accent-text italic">Mendatang</span></h2>
               <p className="mt-0.5 text-[13px] text-st-muted">Seminar & sidang mahasiswa bimbingan</p>
             </div>
             <ViewAllLink href="/schedules" />
           </div>
           <div className="space-y-2">
             {schedules.map((u) => (
-              <div key={`${u.type}-${u.id}`} className="flex items-center gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
-                <ClipboardCheck className="h-4 w-4 shrink-0 text-primary" />
+              <div key={`${u.type}-${u.id}`} className="flex items-center gap-3 rounded-xl border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                <ClipboardCheck className="h-4 w-4 shrink-0 text-(--st-accent-to)" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-st-text">{u.student_name ?? u.thesis_title}</p>
                   <p className="text-xs text-st-muted">
@@ -131,7 +134,7 @@ export default function SupervisorDashboardPage() {
                   </p>
                 </div>
                 {u.room && (
-                  <span className="shrink-0 rounded-md bg-surface-hi px-2 py-0.5 text-xs font-medium text-st-muted">{u.room}</span>
+                  <span className="shrink-0 rounded-full bg-st-surface-hi px-2 py-0.5 text-xs font-medium text-st-muted">{u.room}</span>
                 )}
               </div>
             ))}

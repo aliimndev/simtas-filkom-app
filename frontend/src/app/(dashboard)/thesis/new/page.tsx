@@ -85,7 +85,7 @@ export default function NewThesisPage() {
         >
           <ArrowLeft className="h-4 w-4" /> Kembali ke Dashboard
         </Link>
-        <h1 className="text-2xl font-bold">Ajukan Judul Skripsi</h1>
+        <h1 className="text-balance landing-heading text-2xl">Ajukan Judul <span className="accent-text italic">Skripsi</span></h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Lengkapi form di bawah untuk mengajukan judul. Kaprodi akan mereview pengajuan Anda.
         </p>

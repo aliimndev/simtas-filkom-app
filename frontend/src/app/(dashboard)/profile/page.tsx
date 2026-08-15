@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/ui/password-input'
 import { userApi } from '@/lib/api/user-api'
@@ -76,8 +76,8 @@ function ProfileInner() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Profil Saya</CardTitle>
-          <CardDescription>Informasi akun Anda</CardDescription>
+          <p className="landing-eyebrow">Profil</p>
+          <CardTitle className="mt-1 landing-heading text-xl">Informasi <span className="accent-text italic">Akun</span> Anda</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
@@ -101,8 +101,8 @@ function ProfileInner() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Ubah Password</CardTitle>
-          <CardDescription>Ganti password akun Anda secara berkala</CardDescription>
+          <p className="landing-eyebrow">Keamanan</p>
+          <CardTitle className="mt-1 landing-heading text-xl">Ubah <span className="accent-text italic">Password</span></CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} noValidate className="space-y-4">

@@ -42,7 +42,7 @@ function NavLink({ href, label, icon: Icon, onNavigate }: { href: string; label:
       href={href}
       onClick={onNavigate}
       className={cn(
-        'flex items-center gap-2.5 rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors duration-100',
+        'accent-ring flex items-center gap-2.5 rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors duration-100',
         active
           ? 'bg-st-surface-hi text-st-text'
           : 'text-st-muted hover:bg-st-surface-hi hover:text-st-text',
@@ -119,9 +119,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/profile"
           onClick={onNavigate}
-          className="flex items-center gap-2.5 rounded-full px-2.5 py-2 text-sm transition-colors hover:bg-st-surface-hi"
-        >
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-st-surface-hi font-display text-[11px] italic text-st-text">
+          className="accent-ring flex items-center gap-2.5 rounded-full px-2.5 py-2 text-sm transition-colors hover:bg-st-surface-hi"
+        >            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-(--st-accent-from)/10 font-display text-[11px] italic text-(--st-accent-to)">
             {(user?.full_name ?? '?').slice(0, 1).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1 leading-tight">
@@ -210,7 +209,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu?: () => void }) {
             aria-haspopup="menu"
             aria-expanded={menuOpen}
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-st-surface-hi font-display text-[10px] italic text-st-text">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-(--st-accent-from)/10 font-display text-[10px] italic text-(--st-accent-to)">
               {(user?.full_name ?? '?').slice(0, 1).toUpperCase()}
             </span>
             <ChevronDown className="h-3 w-3 text-st-muted" />

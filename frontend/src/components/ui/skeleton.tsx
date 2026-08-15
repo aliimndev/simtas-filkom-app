@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils/cn'
 
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('animate-pulse rounded-lg bg-muted', className)} {...props} />
+  return <div className={cn('animate-pulse rounded-xl bg-muted', className)} {...props} />
 }
 
 // ponytail: single card-row placeholder for every list page; good enough for table/grid pages too
@@ -9,7 +9,7 @@ export function ListSkeleton({ count = 5, label = 'Memuat data…' }: { count?: 
   return (
     <div className="space-y-3" role="status" aria-label={label}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-5">
+        <div key={i} className="flex items-center justify-between gap-3 rounded-xl border border-st-stroke bg-st-surface p-5">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Skeleton className="h-11 w-11 shrink-0 rounded-xl" />
             <div className="min-w-0 flex-1 space-y-2">

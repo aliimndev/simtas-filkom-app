@@ -4,14 +4,14 @@ import { cn } from '@/lib/utils/cn'
 type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'muted' | 'secondary' | 'outline'
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: 'bg-primary/15 text-primary border border-primary/25',
-  primary: 'bg-primary/15 text-primary border border-primary/25',
-  success: 'bg-success/15 text-success border border-success/25',
-  warning: 'bg-warning/15 text-warning border border-warning/25',
-  danger: 'bg-danger/15 text-danger-700 border border-danger/25',
-  muted: 'bg-muted text-muted-foreground border border-border',
-  secondary: 'bg-secondary/15 text-secondary border border-secondary/25',
-  outline: 'border border-border text-foreground',
+  default: 'bg-primary-50 text-primary border border-primary/20',
+  primary: 'bg-primary-50 text-primary border border-primary/20',
+  success: 'bg-success-50 text-success border border-success/20',
+  warning: 'bg-warning-50 text-warning border border-warning/20',
+  danger: 'bg-danger-50 text-danger-700 border border-danger/20',
+  muted: 'bg-st-surface-hi text-st-muted border border-st-stroke',
+  secondary: 'bg-secondary-50 text-secondary border border-secondary/20',
+  outline: 'border border-st-stroke text-st-text',
 }
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {

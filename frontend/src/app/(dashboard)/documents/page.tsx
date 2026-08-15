@@ -112,8 +112,11 @@ export default function DocumentsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Dokumen</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="landing-eyebrow">Dokumen Skripsi</p>
+          <h1 className="mt-2 text-balance landing-heading text-2xl">
+            {isStudent ? 'Unggah dan Pantau <span className="accent-text italic">Dokumen</span>' : 'Review Dokumen Mahasiswa'}
+          </h1>
+          <p className="mt-1.5 text-sm text-st-muted">
             {isStudent ? 'Unggah dan pantau dokumen skripsi Anda' : 'Review dokumen yang diunggah mahasiswa bimbingan'}
           </p>
           {!isStudent && picker}
@@ -163,7 +166,11 @@ export default function DocumentsPage() {
           />
         ))}
         {!docs.isLoading && list.length === 0 && (
-          <p className="py-10 text-center text-sm text-muted-foreground">Belum ada dokumen.</p>
+          <div className="py-12 text-center">
+            <FileText className="mx-auto h-10 w-10 text-st-muted/40" />
+            <p className="mt-3 landing-heading text-lg">Belum ada <span className="accent-text italic">dokumen</span></p>
+            <p className="mt-1 text-sm text-st-muted">Unggah dokumen skripsi pertama Anda untuk memulai.</p>
+          </div>
         )}
       </div>
     </div>

@@ -23,6 +23,7 @@ import { ActivityList, type ActivityItem } from '@/components/features/dashboard
 import { UpcomingList, type UpcomingItem } from '@/components/features/dashboard/upcoming-list'
 import { QuickActions, type QuickActionItem } from '@/components/features/dashboard/quick-actions'
 import { StatCard } from '@/components/features/dashboard/stat-card'
+import { DashboardHeroBand } from '@/components/features/dashboard/dashboard-hero-band'
 import { dashboardApi } from '@/lib/api/dashboard-api'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { roleLabel } from '@/constants/roles'
@@ -77,11 +78,11 @@ export default function StudentDashboardPage() {
         />
         <Card className="border-dashed border-st-stroke bg-st-surface">
           <CardContent className="flex flex-col items-center gap-5 px-6 py-16 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary">
+            <div className="accent-ring flex h-12 w-12 items-center justify-center rounded-full bg-(--st-accent-from)/10 text-(--st-accent-to)">
               <BookOpen className="h-6 w-6" />
             </div>
             <div className="max-w-md">
-              <h2 className="font-display text-2xl leading-tight text-st-text">Mulai Ajukan Judul Skripsi</h2>
+              <h2 className="landing-heading text-2xl">Mulai Ajukan <span className="accent-text italic">Judul Skripsi</span></h2>
               <p className="mt-2 text-sm text-st-muted">
                 Ajukan judul dan abstrak skripsi Anda untuk direview oleh Kaprodi sebelum memulai bimbingan.
               </p>
@@ -116,13 +117,16 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <DashboardHeader
-          name={user?.full_name ?? 'Mahasiswa'}
-          subtitle="Pantau seluruh proses Tugas Akhir Skripsi Anda dalam satu tempat."
-        />
-      </div>
+      {/* Hero band: greeting + stats */}
+      <DashboardHeroBand>
+        {/* Header */}
+        <div>
+          <DashboardHeader
+            name={user?.full_name ?? 'Mahasiswa'}
+            subtitle="Pantau seluruh proses Tugas Akhir Skripsi Anda dalam satu tempat."
+          />
+        </div>
+      </DashboardHeroBand>
 
       {/* Thesis Status Card — prominent section */}
       <Card className="border-st-stroke bg-st-surface">
@@ -133,7 +137,7 @@ export default function StudentDashboardPage() {
                 <p className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-st-muted">Tugas Akhir Skripsi</p>
                 <StatusBadge variant={statusVariant} label={statusLabel} />
               </div>
-              <h2 className="mt-2.5 font-display text-2xl leading-tight text-st-text sm:text-3xl">
+              <h2 className="mt-2.5 landing-heading text-2xl sm:text-3xl">
                 {d.title}
               </h2>
               <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-sm text-st-muted">
@@ -209,7 +213,7 @@ export default function StudentDashboardPage() {
         {/* Activity */}
         <Card className="border-st-stroke bg-st-surface lg:col-span-3">
           <CardContent className="p-5 sm:p-6">
-            <h2 className="mb-4 font-display text-lg leading-none text-st-text">Aktivitas Terbaru</h2>
+            <h2 className="mb-4 landing-heading text-lg">Aktivitas <span className="accent-text italic">Terbaru</span></h2>
             <ActivityList items={activityItems} />
           </CardContent>
         </Card>
@@ -218,14 +222,14 @@ export default function StudentDashboardPage() {
         <div className="flex flex-col gap-6 lg:col-span-2">
           <Card className="border-st-stroke bg-st-surface">
             <CardContent className="p-5 sm:p-6">
-              <h2 className="mb-4 font-display text-lg leading-none text-st-text">Agenda Berikutnya</h2>
+              <h2 className="mb-4 landing-heading text-lg">Agenda <span className="accent-text italic">Berikutnya</span></h2>
               <UpcomingList items={upcomingItems} />
             </CardContent>
           </Card>
 
           <Card className="border-st-stroke bg-st-surface">
             <CardContent className="p-5 sm:p-6">
-              <h2 className="mb-4 font-display text-lg leading-none text-st-text">Tindakan Cepat</h2>
+              <h2 className="mb-4 landing-heading text-lg">Tindakan <span className="accent-text italic">Cepat</span></h2>
               <QuickActions actions={quickActions} />
             </CardContent>
           </Card>

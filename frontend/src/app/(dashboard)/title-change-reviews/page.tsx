@@ -58,9 +58,12 @@ function TitleChangeReviewsInner() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Review Perubahan Judul</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Permintaan perubahan judul dari mahasiswa bimbingan yang menunggu keputusan Anda
+        <p className="landing-eyebrow">Review Perubahan Judul</p>
+        <h1 className="mt-2 text-balance landing-heading text-2xl">
+          Permintaan perubahan <span className="accent-text italic">judul</span> dari mahasiswa bimbingan
+        </h1>
+        <p className="mt-1.5 text-sm text-st-muted">
+          Permintaan yang menunggu keputusan Anda
         </p>
       </div>
 

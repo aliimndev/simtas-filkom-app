@@ -15,12 +15,12 @@ describe('Badge', () => {
 
   it('applies the success variant class', () => {
     render(<Badge variant="success">Ok</Badge>)
-    expect(screen.getByText('Ok').className).toContain('bg-success/15')
+    expect(screen.getByText('Ok').className).toContain('bg-success-50')
   })
 
   it('applies the danger variant class', () => {
     render(<Badge variant="danger">Error</Badge>)
-    expect(screen.getByText('Error').className).toContain('bg-danger/15')
+    expect(screen.getByText('Error').className).toContain('bg-danger-50')
   })
 
   it('merges custom className', () => {

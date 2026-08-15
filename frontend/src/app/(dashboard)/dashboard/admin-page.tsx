@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatCard, ViewAllLink } from '@/components/features/dashboard/stat-card'
 import { DashboardHeader } from '@/components/features/dashboard/dashboard-header'
+import { DashboardHeroBand } from '@/components/features/dashboard/dashboard-hero-band'
 import { StatusBadge } from '@/components/features/dashboard/status-badge'
 import { dashboardApi } from '@/lib/api/dashboard-api'
 import { useAuthStore } from '@/lib/stores/auth-store'
@@ -49,10 +50,12 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <DashboardHeader
-        name={user?.full_name ?? 'Admin'}
-        subtitle={`Ringkasan operasional fakultas · ${roleLabel(user?.role)}`}
-      />
+      <DashboardHeroBand>
+        <DashboardHeader
+          name={user?.full_name ?? 'Admin'}
+          subtitle={`Ringkasan operasional fakultas · ${roleLabel(user?.role)}`}
+        />
+      </DashboardHeroBand>
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -68,7 +71,7 @@ export default function AdminDashboardPage() {
           <CardContent className="p-5 sm:p-6">
             <div className="mb-5 flex items-start justify-between gap-3">
               <div>
-                <h2 className="font-display text-lg leading-none text-st-text">Funnel Tahapan Skripsi</h2>
+                <h2 className="landing-heading text-lg">Funnel Tahapan <span className="accent-text italic">Skripsi</span></h2>
                 <p className="mt-0.5 text-[13px] text-st-muted">Distribusi mahasiswa per tahap</p>
               </div>
               <ViewAllLink href="/theses" />
@@ -100,12 +103,12 @@ export default function AdminDashboardPage() {
 
         <Card>
           <CardContent className="p-5 sm:p-6">
-            <h2 className="font-display text-lg leading-none text-st-text">Pending Actions</h2>
+            <h2 className="landing-heading text-lg">Pending <span className="accent-text italic">Actions</span></h2>
             <p className="mt-0.5 text-[13px] text-st-muted">Tindakan yang menunggu Anda</p>
             <div className="mt-4 space-y-2">
               {operational.isLoading && <Skeleton className="h-32 w-full" />}
               {pendingRows.map((row) => (
-                <div key={row.label} className="flex items-center justify-between gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                <div key={row.label} className="flex items-center justify-between gap-3 rounded-xl border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
                   <span className="text-sm text-st-text">{row.label}</span>
                   {row.count > 0 ? (
                     <StatusBadge variant="pending" label={`${row.count} menunggu`} />
@@ -129,7 +132,7 @@ export default function AdminDashboardPage() {
           <CardContent className="p-5 sm:p-6">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h2 className="font-display text-lg leading-none text-st-text">Jadwal Mendatang</h2>
+                <h2 className="landing-heading text-lg">Jadwal <span className="accent-text italic">Mendatang</span></h2>
                 <p className="mt-0.5 text-[13px] text-st-muted">Seminar & sidang 14 hari ke depan</p>
               </div>
               <ViewAllLink href="/schedules" />
@@ -137,8 +140,8 @@ export default function AdminDashboardPage() {
             <div className="space-y-2">
               {operational.isLoading && <Skeleton className="h-20 w-full" />}
               {schedules.slice(0, 5).map((item) => (
-                <div key={`${item.type}-${item.id}`} className="flex items-center gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-50 text-primary">
+                <div key={`${item.type}-${item.id}`} className="flex items-center gap-3 rounded-xl border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--st-accent-from)/10 text-(--st-accent-to)">
                     <CalendarDays className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -148,7 +151,7 @@ export default function AdminDashboardPage() {
                     </p>
                   </div>
                   {item.room && (
-                    <span className="shrink-0 rounded-md bg-surface-hi px-2 py-0.5 text-xs font-medium text-st-muted">{item.room}</span>
+                    <span className="shrink-0 rounded-full bg-st-surface-hi px-2 py-0.5 text-xs font-medium text-st-muted">{item.room}</span>
                   )}
                 </div>
               ))}
@@ -161,27 +164,27 @@ export default function AdminDashboardPage() {
 
         <Card>
           <CardContent className="p-5 sm:p-6">
-            <h2 className="font-display text-lg leading-none text-st-text">Aktivitas Sistem</h2>
+            <h2 className="landing-heading text-lg">Aktivitas <span className="accent-text italic">Sistem</span></h2>
             <p className="mt-0.5 text-[13px] text-st-muted">Statistik minggu ini</p>
             <div className="mt-4 space-y-2">
               {operational.isLoading && <Skeleton className="h-24 w-full" />}
               {op?.activity_stats && (
                 <>
-                  <div className="flex items-center justify-between gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
                     <span className="inline-flex items-center gap-2 text-sm text-st-text">
-                      <ClipboardCheck className="h-4 w-4 text-primary" /> Login hari ini
+                      <ClipboardCheck className="h-4 w-4 text-(--st-accent-to)" /> Login hari ini
                     </span>
                     <span className="font-semibold tabular-nums text-st-text">{op.activity_stats.logins_today}</span>
                   </div>
-                  <div className="flex items-center justify-between gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
                     <span className="inline-flex items-center gap-2 text-sm text-st-text">
-                      <BookOpen className="h-4 w-4 text-primary" /> Dokumen minggu ini
+                      <BookOpen className="h-4 w-4 text-(--st-accent-to)" /> Dokumen minggu ini
                     </span>
                     <span className="font-semibold tabular-nums text-st-text">{op.activity_stats.documents_uploaded_this_week}</span>
                   </div>
-                  <div className="flex items-center justify-between gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
                     <span className="inline-flex items-center gap-2 text-sm text-st-text">
-                      <GraduationCap className="h-4 w-4 text-primary" /> Bimbingan minggu ini
+                      <GraduationCap className="h-4 w-4 text-(--st-accent-to)" /> Bimbingan minggu ini
                     </span>
                     <span className="font-semibold tabular-nums text-st-text">{op.activity_stats.consultations_this_week}</span>
                   </div>

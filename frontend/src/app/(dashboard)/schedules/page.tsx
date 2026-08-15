@@ -29,20 +29,21 @@ export default function SchedulesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary">
-          <CalendarDays className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold">Jadwal Ujian</h1>
-          <p className="text-sm text-muted-foreground">Seminar & sidang 14 hari ke depan</p>
-        </div>
+      <div>
+        <p className="landing-eyebrow">Jadwal Ujian</p>
+        <h1 className="mt-2 text-balance landing-heading text-2xl">
+          Seminar & <span className="accent-text italic">sidang</span> 14 hari ke depan
+        </h1>
       </div>
 
       {upcoming.isLoading ? (
         <ListSkeleton count={5} label="Memuat jadwal…" />
       ) : items.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">Tidak ada jadwal mendatang.</p>
+        <div className="py-12 text-center">
+          <CalendarDays className="mx-auto h-10 w-10 text-st-muted/40" />
+          <p className="mt-3 landing-heading text-lg">Tidak ada <span className="accent-text italic">jadwal mendatang</span></p>
+          <p className="mt-1 text-sm text-st-muted">Jadwal ujian akan muncul di sini.</p>
+        </div>
       ) : (
         Object.entries(grouped).map(([dateKey, dayItems]) => (
           <div key={dateKey}>
@@ -53,7 +54,7 @@ export default function SchedulesPage() {
               {dayItems.map((item) => (
                 <Card key={`${item.type}-${item.id}`}>
                   <CardContent className="flex flex-wrap items-center gap-3 p-4">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${item.type === 'seminar' ? 'bg-primary-50 text-primary' : 'bg-success-50 text-success'}`}>
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${item.type === 'seminar' ? 'bg-(--st-accent-from)/10 text-(--st-accent-to)' : 'bg-success-50 text-success'}`}>
                       {item.type === 'seminar' ? <GraduationCap className="h-5 w-5" /> : <ClipboardCheck className="h-5 w-5" />}
                     </div>
                     <div className="min-w-0 flex-1">

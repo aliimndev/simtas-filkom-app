@@ -59,8 +59,10 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Manajemen Pengguna</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Kelola akun mahasiswa, dosen, dan staf</p>
+          <p className="landing-eyebrow">Manajemen Pengguna</p>
+          <h1 className="mt-2 text-balance landing-heading text-2xl">
+            Kelola akun <span className="accent-text italic">mahasiswa</span>, dosen, dan staf
+          </h1>
         </div>
         <Button onClick={() => setShowCreate((v) => !v)}>
           <UserPlus className="h-4 w-4" /> Tambah Pengguna

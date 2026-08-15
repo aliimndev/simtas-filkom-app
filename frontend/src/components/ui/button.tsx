@@ -3,20 +3,21 @@ import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost' | 'outline' | 'default' | 'destructive' | 'icon' | 'link'
+type Shape = 'default' | 'pill'
 type Size = 'sm' | 'md' | 'lg' | 'xs' | 'icon' | 'icon-sm'
 
 const variantClasses: Record<Variant, string> = {
-  primary: 'bg-primary text-primary-foreground hover:bg-primary-700 focus-visible:ring-primary',
-  default: 'bg-primary text-primary-foreground hover:bg-primary-700 focus-visible:ring-primary',
-  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary-700 focus-visible:ring-secondary',
+  primary: 'bg-st-text text-st-bg hover:opacity-90 focus-visible:ring-ring',
+  default: 'bg-st-text text-st-bg hover:opacity-90 focus-visible:ring-ring',
+  secondary: 'bg-st-surface-hi text-st-text border border-st-stroke hover:bg-st-surface-hi/80 focus-visible:ring-ring',
   danger: 'bg-danger text-danger-foreground hover:bg-danger-700 focus-visible:ring-danger',
   destructive: 'bg-danger text-danger-foreground hover:bg-danger-700 focus-visible:ring-danger',
   success: 'bg-success text-success-foreground hover:bg-success/90 focus-visible:ring-success',
-  ghost: 'bg-transparent hover:bg-muted text-foreground focus-visible:ring-ring',
-  icon: 'bg-transparent text-foreground hover:bg-muted focus-visible:ring-ring',
-  link: 'bg-transparent p-0 text-primary underline-offset-4 hover:underline focus-visible:ring-primary',
+  ghost: 'bg-transparent hover:bg-st-surface-hi text-st-text focus-visible:ring-ring',
+  icon: 'bg-transparent text-st-text hover:bg-st-surface-hi focus-visible:ring-ring',
+  link: 'bg-transparent p-0 text-(--st-accent-to) underline-offset-4 hover:underline focus-visible:ring-ring',
   outline:
-    'border border-border bg-transparent hover:bg-muted text-foreground focus-visible:ring-ring',
+    'border border-st-stroke bg-transparent hover:bg-st-surface-hi text-st-text focus-visible:ring-ring',
 }
 
 const sizeClasses: Record<Size, string> = {
@@ -31,6 +32,7 @@ const sizeClasses: Record<Size, string> = {
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant
   size?: Size
+  shape?: Shape
   loading?: boolean
   fullWidth?: boolean
   /** Render sebagai elemen anak (mis. Link) sambil tetap memakai styling tombol. */
@@ -38,17 +40,18 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const buttonBaseClasses =
-  'inline-flex items-center justify-center font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
+  'inline-flex items-center justify-center font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.96] transition-transform'
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant = 'primary', size = 'md', loading = false, fullWidth = false, disabled, asChild = false, children, ...props },
+    { className, variant = 'primary', size = 'md', shape = 'default', loading = false, fullWidth = false, disabled, asChild = false, children, ...props },
     ref,
   ) => {
     const classes = cn(
       buttonBaseClasses,
       variantClasses[variant],
       sizeClasses[size],
+      shape === 'pill' && 'rounded-full',
       fullWidth && 'w-full',
       className,
     )

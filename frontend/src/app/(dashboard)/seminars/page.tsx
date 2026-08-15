@@ -38,8 +38,11 @@ export default function SeminarsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Seminar</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Jadwal dan hasil seminar proposal / kemajuan</p>
+        <p className="landing-eyebrow">Seminar Proposal</p>
+        <h1 className="mt-2 text-balance landing-heading text-2xl">
+          Jadwal dan hasil <span className="accent-text italic">seminar</span>
+        </h1>
+        <p className="mt-1.5 text-sm text-st-muted">Jadwal dan hasil seminar proposal / kemajuan</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -63,7 +66,7 @@ export default function SeminarsPage() {
             <Card key={sem.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary">
+                  <div className="accent-ring flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-(--st-accent-from)/10 text-(--st-accent-to)">
                     <GraduationCap className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
@@ -104,7 +107,11 @@ export default function SeminarsPage() {
             </Card>
           ))}
           {list.length === 0 && (
-            <p className="py-10 text-center text-sm text-muted-foreground">Tidak ada seminar.</p>
+            <div className="py-12 text-center">
+              <GraduationCap className="mx-auto h-10 w-10 text-st-muted/40" />
+              <p className="mt-3 landing-heading text-lg">Tidak ada <span className="accent-text italic">seminar</span></p>
+              <p className="mt-1 text-sm text-st-muted">Jadwal seminar akan muncul di sini.</p>
+            </div>
           )}
         </div>
       )}

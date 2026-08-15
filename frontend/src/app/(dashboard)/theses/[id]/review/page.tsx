@@ -45,7 +45,7 @@ export default function ReviewThesisPage() {
         <Link href="/theses" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali ke Daftar
         </Link>
-        <h1 className="text-2xl font-bold">Review Pengajuan Skripsi</h1>
+        <h1 className="text-balance landing-heading text-2xl">Review Pengajuan <span className="accent-text italic">Skripsi</span></h1>
       </div>
 
       {thesis.isLoading ? (

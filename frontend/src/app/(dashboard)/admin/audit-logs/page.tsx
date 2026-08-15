@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
@@ -44,14 +43,11 @@ export default function AuditLogsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary">
-          <ShieldCheck className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold">Audit Log</h1>
-          <p className="text-sm text-muted-foreground">Jejak aktivitas seluruh pengguna sistem</p>
-        </div>
+      <div>
+        <p className="landing-eyebrow">Audit Log</p>
+        <h1 className="mt-2 text-balance landing-heading text-2xl">
+          Jejak aktivitas seluruh <span className="accent-text italic">pengguna</span> sistem
+        </h1>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

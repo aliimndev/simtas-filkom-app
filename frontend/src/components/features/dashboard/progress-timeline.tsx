@@ -31,7 +31,7 @@ export function ProgressTimeline({ status }: { status: string }) {
 
   return (
     <div className="w-full">
-      <h2 className="mb-4 font-display text-lg leading-none text-st-text">Progres Tugas Akhir</h2>
+      <h2 className="mb-4 landing-heading text-lg">Progres <span className="accent-text italic">Tugas Akhir</span></h2>
       {/* Desktop: horizontal */}
       <div className="hidden sm:block">
         <div className="flex items-start">

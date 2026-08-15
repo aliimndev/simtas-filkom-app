@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatCard, ViewAllLink } from '@/components/features/dashboard/stat-card'
 import { DashboardHeader } from '@/components/features/dashboard/dashboard-header'
+import { DashboardHeroBand } from '@/components/features/dashboard/dashboard-hero-band'
 import { StatusBadge } from '@/components/features/dashboard/status-badge'
 import { dashboardApi } from '@/lib/api/dashboard-api'
 import { useAuthStore } from '@/lib/stores/auth-store'
@@ -15,8 +16,8 @@ import type { ExaminerAssignment } from '@/types/dashboard'
 
 function AssignmentRow({ a }: { a: ExaminerAssignment }) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary-50 text-primary">
+    <div className="flex items-center gap-3 rounded-xl border border-st-stroke bg-st-surface-hi/60 px-4 py-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--st-accent-from)/10 text-(--st-accent-to)">
         <ClipboardCheck className="h-4 w-4" />
       </div>
       <div className="min-w-0 flex-1">
@@ -43,10 +44,12 @@ export default function ExaminerDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <DashboardHeader
-        name={user?.full_name ?? 'Penguji'}
-        subtitle={`${roleLabel(user?.role)} · NIDN ${user?.nim_nidn ?? '—'}`}
-      />
+      <DashboardHeroBand>
+        <DashboardHeader
+          name={user?.full_name ?? 'Penguji'}
+          subtitle={`${roleLabel(user?.role)} · NIDN ${user?.nim_nidn ?? '—'}`}
+        />
+      </DashboardHeroBand>
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -60,7 +63,7 @@ export default function ExaminerDashboardPage() {
         <CardContent className="p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-display text-lg leading-none text-st-text">Nilai Belum Diinput</h2>
+              <h2 className="landing-heading text-lg">Nilai <span className="accent-text italic">Belum Diinput</span></h2>
               <p className="mt-0.5 text-[13px] text-st-muted">Ujian yang menunggu penilaian Anda</p>
             </div>
             <ViewAllLink href="/defenses" label="Lihat Jadwal" />
@@ -80,7 +83,7 @@ export default function ExaminerDashboardPage() {
         <CardContent className="p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-display text-lg leading-none text-st-text">Jadwal Mendatang</h2>
+              <h2 className="landing-heading text-lg">Jadwal <span className="accent-text italic">Mendatang</span></h2>
               <p className="mt-0.5 text-[13px] text-st-muted">Ujian yang akan datang</p>
             </div>
             <ViewAllLink href="/schedules" />

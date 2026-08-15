@@ -38,8 +38,11 @@ export default function DefensesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Sidang</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Jadwal dan hasil sidang tugas akhir</p>
+        <p className="landing-eyebrow">Sidang Tugas Akhir</p>
+        <h1 className="mt-2 text-balance landing-heading text-2xl">
+          Jadwal dan hasil <span className="accent-text italic">sidang</span>
+        </h1>
+        <p className="mt-1.5 text-sm text-st-muted">Jadwal dan hasil sidang tugas akhir</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -63,7 +66,7 @@ export default function DefensesPage() {
             <Card key={d.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-success-50 text-success">
+                  <div className="accent-ring flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-success-50 text-success">
                     <ClipboardCheck className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
@@ -103,7 +106,11 @@ export default function DefensesPage() {
             </Card>
           ))}
           {list.length === 0 && (
-            <p className="py-10 text-center text-sm text-muted-foreground">Tidak ada sidang.</p>
+            <div className="py-12 text-center">
+              <ClipboardCheck className="mx-auto h-10 w-10 text-st-muted/40" />
+              <p className="mt-3 landing-heading text-lg">Tidak ada <span className="accent-text italic">sidang</span></p>
+              <p className="mt-1 text-sm text-st-muted">Jadwal sidang akan muncul di sini.</p>
+            </div>
           )}
         </div>
       )}

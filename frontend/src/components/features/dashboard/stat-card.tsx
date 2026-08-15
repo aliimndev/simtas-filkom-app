@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowUpRight, type LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { NumberTicker } from '@/components/features/landing/number-ticker'
 import { cn } from '@/lib/utils/cn'
 
 export type StatTone = 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
@@ -24,7 +25,7 @@ export interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, href, suffix, tone = 'primary' }: StatCardProps) {
   const inner = (
-    <Card className="h-full border-st-stroke bg-st-surface transition-colors group-hover:border-(--st-accent-from)/40">
+    <Card className="accent-ring h-full border-st-stroke bg-st-surface transition-colors">
       <CardContent className="p-5">
         <div className="flex items-center gap-3">
           <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', TONE_CHIP[tone])}>
@@ -33,7 +34,7 @@ export function StatCard({ title, value, icon: Icon, href, suffix, tone = 'prima
           <p className="font-mono text-[0.7rem] uppercase leading-tight tracking-[0.2em] text-st-muted">{title}</p>
         </div>
         <p className="mt-3 font-display text-3xl leading-none tabular-nums tracking-tight text-st-text">
-          {value}
+          {typeof value === 'number' ? <NumberTicker value={value} /> : value}
           {suffix && <span className="ml-1 font-body text-sm font-normal text-st-muted">{suffix}</span>}
         </p>
       </CardContent>

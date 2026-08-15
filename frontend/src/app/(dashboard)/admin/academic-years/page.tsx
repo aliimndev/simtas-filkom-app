@@ -40,8 +40,10 @@ export default function AcademicYearsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Tahun Akademik</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Kelola periode tahun akademik aktif</p>
+          <p className="landing-eyebrow">Tahun Akademik</p>
+          <h1 className="mt-2 text-balance landing-heading text-2xl">
+            Kelola periode <span className="accent-text italic">tahun akademik</span> aktif
+          </h1>
         </div>
         <Button onClick={() => setShowForm((v) => !v)}>
           <CalendarPlus className="h-4 w-4" /> Tambah Tahun Akademik
