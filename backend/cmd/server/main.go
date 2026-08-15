@@ -130,6 +130,19 @@ func main() {
 
 	engine := gin.Default()
 
+	// Trusted-proxy configuration: by default no proxy is trusted, so a client
+	// cannot spoof X-Forwarded-For to bypass the per-IP rate limits (the login
+	// endpoint is limited to 10 req/min/IP). When deploying behind nginx or
+	// another reverse proxy, set TRUSTED_PROXIES to its CIDRs so real client
+	// IPs are resolved (and rate-limited) correctly.
+	if len(cfg.TrustedProxies) > 0 {
+		if err := engine.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+			log.Fatalf("invalid TRUSTED_PROXIES: %v", err)
+		}
+	} else {
+		engine.SetTrustedProxies(nil)
+	}
+
 	// Cap multipart form memory to the configured request body limit. File
 	// uploads are additionally bounded by the document layer's own 10 MB check.
 	engine.MaxMultipartMemory = int64(cfg.MaxRequestBodyBytes)

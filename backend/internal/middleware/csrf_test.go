@@ -14,7 +14,7 @@ func TestCSRFMiddlewareExemptPaths(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	eng := gin.New()
-	eng.Use(CSRFMiddleware("/api/v1/auth/login"))
+	eng.Use(CSRFMiddleware(false, "/api/v1/auth/login"))
 	eng.POST("/api/v1/auth/login", func(c *gin.Context) { c.Status(http.StatusOK) })
 	eng.POST("/api/v1/other", func(c *gin.Context) { c.Status(http.StatusOK) })
 

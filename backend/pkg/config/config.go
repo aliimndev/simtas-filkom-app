@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -54,6 +55,12 @@ type Config struct {
 	MaxRequestBodyBytes int
 
 	CORSAllowedOrigins string
+
+	// TrustedProxies lists reverse-proxy CIDRs whose X-Forwarded-For header is
+	// honored when resolving the client IP (rate limiting, audit IPs). Empty
+	// (the default) trusts no proxy, so X-Forwarded-For can never be spoofed
+	// to bypass per-IP rate limits like the 10 req/min login limit.
+	TrustedProxies []string
 
 	// SentryDSN enables error tracking. Empty = feature disabled (no-op).
 	SentryDSN string
@@ -140,6 +147,10 @@ func Load() *Config {
 
 		CORSAllowedOrigins: getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:3000"),
 
+		// Comma-separated CIDRs, e.g. "10.0.0.0/8,172.16.0.0/12" for a private
+		// reverse proxy. Leave empty to trust no proxy.
+		TrustedProxies: getCSV("TRUSTED_PROXIES"),
+
 		SentryDSN: getEnv("SENTRY_DSN", ""),
 	}
 }
@@ -192,4 +203,21 @@ func getBool(key string, fallback bool) bool {
 		}
 	}
 	return fallback
+}
+
+// getCSV parses a comma-separated env var into a trimmed string slice
+// (empty/whitespace entries dropped). Returns nil when the var is unset.
+func getCSV(key string) []string {
+	v := os.Getenv(key)
+	if v == "" {
+		return nil
+	}
+	parts := strings.Split(v, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }

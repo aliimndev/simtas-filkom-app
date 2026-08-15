@@ -13,6 +13,13 @@ var (
 	ErrExpiredToken = errors.New("token has expired")
 )
 
+const (
+	// IssuerAccess and IssuerRefresh distinguish the two token kinds so a
+	// refresh token can never be accepted as an access token (and vice versa).
+	IssuerAccess  = "simtas-filkom"
+	IssuerRefresh = "simtas-filkom-refresh"
+)
+
 type Claims struct {
 	UserID       string `json:"user_id"`
 	Role         string `json:"role"`
@@ -50,7 +57,7 @@ func (j *JWTManager) GenerateAccessToken(userID uuid.UUID, role, email string, t
 			ExpiresAt: gojwt.NewNumericDate(time.Now().Add(j.accessTokenExpy)),
 			IssuedAt:  gojwt.NewNumericDate(time.Now()),
 			NotBefore: gojwt.NewNumericDate(time.Now()),
-			Issuer:    "simtas-filkom",
+			Issuer:    IssuerAccess,
 		},
 	}
 
@@ -75,7 +82,7 @@ func (j *JWTManager) GenerateRefreshToken(userID uuid.UUID) (string, string, err
 			ExpiresAt: gojwt.NewNumericDate(time.Now().Add(j.refreshTokenExpy)),
 			IssuedAt:  gojwt.NewNumericDate(time.Now()),
 			NotBefore: gojwt.NewNumericDate(time.Now()),
-			Issuer:    "simtas-filkom-refresh",
+			Issuer:    IssuerRefresh,
 		},
 	}
 
@@ -87,14 +94,33 @@ func (j *JWTManager) GenerateRefreshToken(userID uuid.UUID) (string, string, err
 	return signed, tokenJTI, nil
 }
 
-// ValidateToken parses and validates a JWT string
+// ValidateToken parses and validates an access-token JWT.
 func (j *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
-	token, err := gojwt.ParseWithClaims(tokenString, &Claims{}, func(token *gojwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*gojwt.SigningMethodHMAC); !ok {
-			return nil, ErrInvalidToken
-		}
-		return j.secretKey, nil
-	})
+	return j.validateToken(tokenString, IssuerAccess)
+}
+
+// ValidateRefreshToken parses and validates a refresh-token JWT.
+func (j *JWTManager) ValidateRefreshToken(tokenString string) (*Claims, error) {
+	return j.validateToken(tokenString, IssuerRefresh)
+}
+
+func (j *JWTManager) validateToken(tokenString, issuer string) (*Claims, error) {
+	token, err := gojwt.ParseWithClaims(
+		tokenString,
+		&Claims{},
+		func(token *gojwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*gojwt.SigningMethodHMAC); !ok {
+				return nil, ErrInvalidToken
+			}
+			return j.secretKey, nil
+		},
+		// WithIssuer rejects tokens with a missing/mismatched iss claim, and
+		// WithValidMethods pins the algorithm to HS256 — the only one we sign
+		// with — so a refresh token (iss=simtas-filkom-refresh) can never be
+		// presented as a Bearer access token.
+		gojwt.WithIssuer(issuer),
+		gojwt.WithValidMethods([]string{gojwt.SigningMethodHS256.Alg()}),
+	)
 
 	if err != nil {
 		if errors.Is(err, gojwt.ErrTokenExpired) {

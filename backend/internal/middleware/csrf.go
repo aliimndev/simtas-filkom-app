@@ -5,7 +5,6 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -44,7 +43,7 @@ const (
 //
 // This approach works without server-side token storage and is compatible with
 // SPA architectures.
-func CSRFMiddleware(exemptPaths ...string) gin.HandlerFunc {
+func CSRFMiddleware(secureCookies bool, exemptPaths ...string) gin.HandlerFunc {
 	// ponytail: exact registered route match (c.FullPath), so an unmatched path
 	// can never be spoofed into the exempt list. Add new unauthenticated POST
 	// routes here; keep the list as small as possible.
@@ -65,9 +64,9 @@ func CSRFMiddleware(exemptPaths ...string) gin.HandlerFunc {
 					token,
 					int(24*time.Hour.Seconds()), // 24 hour expiry
 					"/",
-					"",   // domain (same as request)
-					false, // secure — set to true behind HTTPS reverse proxy
-					false, // HttpOnly: false so frontend JS can read it
+					"",
+					secureCookies, // Secure when served over HTTPS (production)
+					false,         // HttpOnly: false so frontend JS can read it
 				)
 			}
 			c.Next()
@@ -137,15 +136,4 @@ func GetCSRFHeaderName() string {
 // GetCSRFCookieName returns the cookie name for the CSRF token (for frontend use).
 func GetCSRFCookieName() string {
 	return csrfCookieName
-}
-
-// parseCSRFToken extracts the CSRF token from the cookie string.
-func parseCSRFToken(cookieHeader string) string {
-	for _, part := range strings.Split(cookieHeader, ";") {
-		part = strings.TrimSpace(part)
-		if strings.HasPrefix(part, csrfCookieName+"=") {
-			return strings.TrimPrefix(part, csrfCookieName+"=")
-		}
-	}
-	return ""
 }

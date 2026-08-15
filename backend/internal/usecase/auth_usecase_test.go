@@ -48,9 +48,10 @@ func (f *fakeAuthRepo) FindUserByEmail(_ context.Context, email string) (*entity
 func (f *fakeAuthRepo) FindUserByID(_ context.Context, _ uuid.UUID) (*entity.User, error) {
 	return nil, nil
 }
-func (f *fakeAuthRepo) UpdateLoginAttempt(_ context.Context, _ uuid.UUID, _ int, _ *time.Time) error {
-	return nil
+func (f *fakeAuthRepo) IncrementLoginAttempt(_ context.Context, _ uuid.UUID, _ int, _ time.Duration) (int, bool, error) {
+	return 0, false, nil
 }
+func (f *fakeAuthRepo) ResetLoginAttempts(_ context.Context, _ uuid.UUID) error { return nil }
 func (f *fakeAuthRepo) UpdateLastLogin(_ context.Context, _ uuid.UUID) error { return nil }
 func (f *fakeAuthRepo) BlacklistToken(_ context.Context, _ string, _ time.Time) error {
 	return nil
@@ -123,9 +124,10 @@ func (f *authUserRepo) FindUserByID(_ context.Context, id uuid.UUID) (*entity.Us
 	}
 	return nil, errors.New("not found")
 }
-func (f *authUserRepo) UpdateLoginAttempt(_ context.Context, _ uuid.UUID, _ int, _ *time.Time) error {
-	return nil
+func (f *authUserRepo) IncrementLoginAttempt(_ context.Context, _ uuid.UUID, _ int, _ time.Duration) (int, bool, error) {
+	return 1, false, nil
 }
+func (f *authUserRepo) ResetLoginAttempts(_ context.Context, _ uuid.UUID) error { return nil }
 func (f *authUserRepo) UpdateLastLogin(_ context.Context, _ uuid.UUID) error { return nil }
 func (f *authUserRepo) BlacklistToken(_ context.Context, _ string, _ time.Time) error {
 	return nil
@@ -203,6 +205,22 @@ func TestLoginSuccessAudits(t *testing.T) {
 		t.Error("expected an access token")
 	}
 	waitForAudit(t, auditRepo.actions, audit.ActionUserLogin)
+}
+
+// TestLoginUnknownEmail — an unknown email must return the same generic
+// credentials error (after a dummy bcrypt compare) so response timing does not
+// leak which emails are registered.
+func TestLoginUnknownEmail(t *testing.T) {
+	user := newTestUser("Password123")
+	repo := &authUserRepo{user: user}
+	jwtMgr := jwt.NewJWTManager("test-secret", time.Hour, 24*time.Hour)
+	auditRepo := &chanAuditRepo{actions: make(chan string, 4)}
+	uc := NewAuthUseCase(repo, jwtMgr, audit.NewAuditService(auditRepo))
+
+	_, err := uc.Login(context.Background(), LoginRequest{Email: "nobody@example.com", Password: "Password123"}, Actor{})
+	if !errors.Is(err, ErrInvalidCredentials) {
+		t.Errorf("Login error = %v, want ErrInvalidCredentials", err)
+	}
 }
 
 func TestLoginFailedAudit(t *testing.T) {

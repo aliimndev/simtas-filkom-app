@@ -43,13 +43,39 @@ func (r *authRepository) FindUserByID(ctx context.Context, userID uuid.UUID) (*e
 	return &user, nil
 }
 
-func (r *authRepository) UpdateLoginAttempt(ctx context.Context, userID uuid.UUID, count int, lockedUntil *time.Time) error {
+func (r *authRepository) IncrementLoginAttempt(ctx context.Context, userID uuid.UUID, maxAttempts int, lockDuration time.Duration) (int, bool, error) {
+	// Single atomic UPDATE: the increment and the lock decision happen in one
+	// statement, so concurrent requests can never each read the same stale
+	// count and sneak past MaxLoginAttempts. The CAS ordering on the old
+	// value (login_attempt_count + 1) is what makes it race-free.
+	var res struct {
+		LoginAttemptCount int        `gorm:"column:login_attempt_count"`
+		LockedUntil       *time.Time `gorm:"column:locked_until"`
+	}
+	err := r.db.WithContext(ctx).Raw(`
+		UPDATE users SET
+			login_attempt_count = login_attempt_count + 1,
+			locked_until = CASE
+				WHEN login_attempt_count + 1 >= ? THEN now() + make_interval(mins => ?)
+				ELSE locked_until
+			END
+		WHERE id = ?
+		RETURNING login_attempt_count, locked_until`,
+		maxAttempts, int(lockDuration.Minutes()), userID,
+	).Scan(&res).Error
+	if err != nil {
+		return 0, false, err
+	}
+	return res.LoginAttemptCount, res.LoginAttemptCount >= maxAttempts, nil
+}
+
+func (r *authRepository) ResetLoginAttempts(ctx context.Context, userID uuid.UUID) error {
 	return r.db.WithContext(ctx).
 		Model(&entity.User{}).
 		Where("id = ?", userID).
 		Updates(map[string]interface{}{
-			"login_attempt_count": count,
-			"locked_until":        lockedUntil,
+			"login_attempt_count": 0,
+			"locked_until":        nil,
 		}).Error
 }
 

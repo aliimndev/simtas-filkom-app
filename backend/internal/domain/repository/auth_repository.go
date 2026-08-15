@@ -13,7 +13,14 @@ type AuthRepository interface {
 	FindUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	FindUserByID(ctx context.Context, userID uuid.UUID) (*entity.User, error)
 
-	UpdateLoginAttempt(ctx context.Context, userID uuid.UUID, count int, lockedUntil *time.Time) error
+	// IncrementLoginAttempt atomically bumps the failed-attempt counter (and
+	// sets locked_until once it reaches maxAttempts) in a single UPDATE, so
+	// concurrent wrong-password requests cannot each read a stale count and
+	// bypass the account lockout. Returns the new count and whether the
+	// account became locked.
+	IncrementLoginAttempt(ctx context.Context, userID uuid.UUID, maxAttempts int, lockDuration time.Duration) (count int, locked bool, err error)
+	// ResetLoginAttempts clears the failed-attempt counter on successful login.
+	ResetLoginAttempts(ctx context.Context, userID uuid.UUID) error
 	UpdateLastLogin(ctx context.Context, userID uuid.UUID) error
 
 	BlacklistToken(ctx context.Context, jti string, expiresAt time.Time) error

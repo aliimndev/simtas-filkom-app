@@ -108,7 +108,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			response.Error(c, http.StatusUnauthorized, err.Error(), err)
 			return
 		}
-		if err.Error() == "akun tidak aktif" {
+		if errors.Is(err, usecase.ErrUserInactive) {
 			response.Error(c, http.StatusForbidden, "Akun tidak aktif", err)
 			return
 		}
@@ -182,6 +182,8 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 			response.Error(c, http.StatusUnauthorized, "Refresh token tidak valid", err)
 		case errors.Is(err, usecase.ErrUserNotFound):
 			response.Error(c, http.StatusUnauthorized, "User tidak ditemukan", err)
+		case errors.Is(err, usecase.ErrUserInactive):
+			response.Error(c, http.StatusForbidden, "Akun tidak aktif", err)
 		default:
 			response.Error(c, http.StatusInternalServerError, "Terjadi kesalahan server", err)
 		}

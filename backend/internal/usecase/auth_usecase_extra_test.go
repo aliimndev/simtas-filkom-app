@@ -298,15 +298,29 @@ type lockTrackingAuthRepo struct {
 	lockedUntil  *time.Time
 }
 
-// UpdateLoginAttempt mirrors persistence: keep the in-memory user's counter in
-// sync so the next Login() call reads the updated attempt count (like a real DB
-// row would after UPDATE).
-func (f *lockTrackingAuthRepo) UpdateLoginAttempt(_ context.Context, _ uuid.UUID, count int, locked *time.Time) error {
-	f.attemptCount = count
-	f.lockedUntil = locked
+// IncrementLoginAttempt mirrors the real repository's atomic increment: bump
+// the in-memory counter, set locked_until once it reaches maxAttempts, and
+// keep the user row in sync so the next Login() call reads the updated state.
+func (f *lockTrackingAuthRepo) IncrementLoginAttempt(_ context.Context, _ uuid.UUID, maxAttempts int, lockDuration time.Duration) (int, bool, error) {
+	f.attemptCount++
+	locked := f.attemptCount >= maxAttempts
+	if locked {
+		t := time.Now().Add(lockDuration)
+		f.lockedUntil = &t
+	}
 	if f.user != nil {
-		f.user.LoginAttemptCount = count
-		f.user.LockedUntil = locked
+		f.user.LoginAttemptCount = f.attemptCount
+		f.user.LockedUntil = f.lockedUntil
+	}
+	return f.attemptCount, locked, nil
+}
+
+func (f *lockTrackingAuthRepo) ResetLoginAttempts(_ context.Context, _ uuid.UUID) error {
+	f.attemptCount = 0
+	f.lockedUntil = nil
+	if f.user != nil {
+		f.user.LoginAttemptCount = 0
+		f.user.LockedUntil = nil
 	}
 	return nil
 }

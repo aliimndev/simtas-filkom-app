@@ -34,10 +34,6 @@ func NewIPRateLimiter(limit int, window time.Duration) *ipRateLimiter {
 	return rl
 }
 
-func newIPRateLimiter(limit int, window time.Duration) *ipRateLimiter {
-	return NewIPRateLimiter(limit, window)
-}
-
 func (rl *ipRateLimiter) cleanup() {
 	ticker := time.NewTicker(5 * time.Minute)
 	for range ticker.C {
@@ -69,10 +65,11 @@ func (rl *ipRateLimiter) allow(ip string) bool {
 	return true
 }
 
-// RateLimitMiddleware limits requests per IP within a sliding window
+// RateLimitMiddleware limits requests per IP within a sliding window.
+// One limiter instance is created per call — the router calls it once per
+// route at setup time, so a single shared limiter guards that route.
 func RateLimitMiddleware(limit int, window time.Duration) gin.HandlerFunc {
-	limiter := newIPRateLimiter(limit, window)
-	return limiter.Middleware()
+	return NewIPRateLimiter(limit, window).Middleware()
 }
 
 // Middleware returns a Gin middleware that enforces the rate limit.

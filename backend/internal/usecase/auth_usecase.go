@@ -21,6 +21,7 @@ import (
 var (
 	ErrInvalidCredentials  = errors.New("email atau password salah")
 	ErrAccountLocked       = errors.New("akun terkunci")
+	ErrUserInactive        = errors.New("akun tidak aktif")
 	ErrUserNotFound        = errors.New("user tidak ditemukan")
 	ErrInvalidResetToken   = errors.New("token reset tidak valid atau sudah kadaluarsa")
 	ErrPasswordMismatch    = errors.New("password tidak cocok")
@@ -35,6 +36,17 @@ const (
 	LockDuration     = 30 * time.Minute
 	PasswordMinLen   = 8
 )
+
+// dummyPasswordHash is compared against when the submitted email does not
+// exist, so unknown-email logins take the same bcrypt time as a wrong password
+// (anti user-enumeration via response timing).
+var dummyPasswordHash = func() string {
+	h, err := bcrypt.GenerateFromPassword([]byte("dummy-password-for-timing-equalization"), 12)
+	if err != nil {
+		panic(err)
+	}
+	return string(h)
+}()
 
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
@@ -94,6 +106,9 @@ func NewAuthUseCase(authRepo domainRepo.AuthRepository, jwtManager *jwt.JWTManag
 func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest, actor Actor) (*LoginResponse, error) {
 	user, err := uc.authRepo.FindUserByEmail(ctx, req.Email)
 	if err != nil {
+		// Equalize timing: burn a bcrypt compare so unknown emails respond at
+		// the same latency as a wrong password (anti user-enumeration).
+		_ = bcrypt.CompareHashAndPassword([]byte(dummyPasswordHash), []byte(req.Password))
 		return nil, ErrInvalidCredentials
 	}
 
@@ -105,23 +120,17 @@ func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest, actor Actor)
 		return nil, fmt.Errorf("%w. Coba lagi dalam %v", ErrAccountLocked, remaining)
 	}
 
-	// Verify password
+	// Verify password. Failed attempts are counted atomically in the database
+	// (login_attempt_count = login_attempt_count + 1), so concurrent wrong
+	// passwords cannot each read the same stale count and bypass the lockout.
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		newCount := user.LoginAttemptCount + 1
-		var lockedUntil *time.Time
-
-		if newCount >= MaxLoginAttempts {
-			t := time.Now().Add(LockDuration)
-			lockedUntil = &t
-		}
-
-		_ = uc.authRepo.UpdateLoginAttempt(ctx, user.ID, newCount, lockedUntil)
+		_, locked, _ := uc.authRepo.IncrementLoginAttempt(ctx, user.ID, MaxLoginAttempts, LockDuration)
 
 		// Audit: failed login attempt (Job 13). Note: attempts against
 		// unknown emails are intentionally NOT logged (anti-enumeration).
 		uc.logAuthAudit(ctx, user.ID, audit.ActionUserLoginFailed, actor)
 
-		if lockedUntil != nil {
+		if locked {
 			return nil, fmt.Errorf("%w. Coba lagi dalam %v menit", ErrAccountLocked, LockDuration.Minutes())
 		}
 		return nil, ErrInvalidCredentials
@@ -129,11 +138,11 @@ func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest, actor Actor)
 
 	// Check if user is active
 	if !user.IsActive {
-		return nil, errors.New("akun tidak aktif")
+		return nil, ErrUserInactive
 	}
 
 	// Reset login attempts on successful login
-	_ = uc.authRepo.UpdateLoginAttempt(ctx, user.ID, 0, nil)
+	_ = uc.authRepo.ResetLoginAttempts(ctx, user.ID)
 	_ = uc.authRepo.UpdateLastLogin(ctx, user.ID)
 
 	// Generate tokens
@@ -227,7 +236,7 @@ func (uc *AuthUseCase) logAuthAudit(ctx context.Context, userID uuid.UUID, actio
 // presented JTI becomes the *old* one, and replaying it (or any family
 // member) revokes the entire family.
 func (uc *AuthUseCase) RefreshToken(ctx context.Context, refreshToken string) (*RefreshTokenResponse, error) {
-	claims, err := uc.jwtManager.ValidateToken(refreshToken)
+	claims, err := uc.jwtManager.ValidateRefreshToken(refreshToken)
 	if err != nil {
 		return nil, ErrRefreshTokenInvalid
 	}
@@ -268,7 +277,7 @@ func (uc *AuthUseCase) RefreshToken(ctx context.Context, refreshToken string) (*
 	}
 
 	if !user.IsActive {
-		return nil, errors.New("akun tidak aktif")
+		return nil, ErrUserInactive
 	}
 
 	accessToken, _, err := uc.jwtManager.GenerateAccessToken(user.ID, user.Role.Name, user.Email, user.TokenVersion)

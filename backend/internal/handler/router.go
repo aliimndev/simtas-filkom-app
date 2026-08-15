@@ -195,7 +195,11 @@ func (r *Router) Setup() {
 	// C1: login + password flows are exempt from CSRF — they are reachable
 	// before any GET has seeded the CSRF cookie (fresh browser, emailed
 	// reset-password deep link). Remaining POST routes keep the check.
+	// The CSRF cookie is marked Secure in production so it is never sent over
+	// plaintext HTTP; SameSite=Lax + the refresh cookie already cover the
+	// exempted public auth POST routes.
 	r.engine.Use(middleware.CSRFMiddleware(
+		r.cfg.AppEnv == "production",
 		"/api/v1/auth/login",
 		"/api/v1/auth/refresh",
 		"/api/v1/auth/forgot-password",

@@ -42,6 +42,17 @@ var dangerousPatterns = []string{
 // top-level JSON object, and rewrites the body for downstream handlers.
 func SanitizeMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Credential-bearing routes are never sanitized. Mangling a password
+		// (e.g. stripping a literal "<script" or "onload=" substring, which are
+		// valid password characters) would silently break login for those users
+		// — and sanitization is pointless on credentials, which are hashed, not
+		// rendered. Sanitization targets user-generated content fields only.
+		path := c.Request.URL.Path
+		if strings.HasPrefix(path, "/api/v1/auth/") || path == "/api/v1/users/me/password" {
+			c.Next()
+			return
+		}
+
 		// Only sanitize POST, PUT, PATCH requests with JSON content type.
 		method := c.Request.Method
 		if method != http.MethodPost && method != http.MethodPut && method != http.MethodPatch {
