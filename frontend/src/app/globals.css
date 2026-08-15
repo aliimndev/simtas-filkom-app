@@ -472,6 +472,15 @@ html[data-magicui-theme-vt="active"][data-magicui-theme-vt-css="active"]::view-t
   .animate-st-gradient { animation: none !important; }
 }
 
+/* No-JS fallback: .reveal starts at opacity 0 and only becomes visible when
+   the IntersectionObserver fires. Without scripting, that never happens — so
+   with scripting disabled the content must render fully visible, not stuck
+   invisible. (Content above the fold is also pre-hydration-safe: the observer
+   reveals it immediately on mount, so this only affects no-JS clients.) */
+@media (scripting: none) {
+  .reveal { opacity: 1 !important; animation: none !important; }
+}
+
 /* ── Mobile refinements ────────────────────────────────────── */
 
 /* Remove tap highlight on interactive elements for a native-app feel.

@@ -26,7 +26,13 @@ const PREVIEW_ROWS = [
 
 function DashboardPreview() {
   return (
-    <div className="grid h-full grid-cols-1 bg-st-bg text-left lg:grid-cols-[13.5rem_1fr]">
+    // The preview is a decorative product mockup: it contains fake stats,
+    // rows, and chrome that would only confuse a screen-reader user. Hide it
+    // from assistive tech; the real content is the headline + CTA below.
+    <div
+      aria-hidden="true"
+      className="grid h-full grid-cols-1 bg-st-bg text-left lg:grid-cols-[13.5rem_1fr]"
+    >
       {/* Sidebar */}
       <aside className="hidden flex-col gap-1 border-r border-st-stroke p-5 lg:flex">
         <div className="mb-4 flex items-center gap-2.5 pl-1">

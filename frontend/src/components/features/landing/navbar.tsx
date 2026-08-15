@@ -19,6 +19,9 @@ export function NavbarSection({ navLinks }: { navLinks: NavLink[] }) {
   const pathname = usePathname()
   const accessToken = useAuthStore((s) => s.accessToken)
   const { theme, setTheme } = useTheme()
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const mobileNavRef = useRef<HTMLElement>(null)
+  const wasOpenRef = useRef(false)
 
   useEffect(() => {
     const onScroll = () => {
@@ -63,6 +66,21 @@ export function NavbarSection({ navLinks }: { navLinks: NavLink[] }) {
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
+
+  // Focus management: opening the menu moves focus to its first link (so Tab
+  // continues inside the menu, not into the page behind it), and closing it
+  // returns focus to the toggle button — keyboard users never lose their
+  // place. Only restores on a real open→close cycle, not on mount.
+  useEffect(() => {
+    if (open) {
+      wasOpenRef.current = true
+      const first = mobileNavRef.current?.querySelector<HTMLElement>('a')
+      first?.focus()
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false
+      menuButtonRef.current?.focus()
+    }
+  }, [open])
 
   // Close the mobile menu with the Escape key while it is open.
   useEffect(() => {
@@ -160,6 +178,7 @@ export function NavbarSection({ navLinks }: { navLinks: NavLink[] }) {
               </Link>
             )}
             <button
+              ref={menuButtonRef}
               type="button"
               aria-label={open ? 'Tutup menu' : 'Buka menu'}
               aria-expanded={open}
@@ -185,6 +204,7 @@ export function NavbarSection({ navLinks }: { navLinks: NavLink[] }) {
             context so no safe-area offset can cover the menu items. */}
         {open && (
           <nav
+            ref={mobileNavRef}
             id="mobile-nav"
             aria-label="Navigasi mobile"
             className="absolute inset-x-0 top-full z-50 mt-2 max-h-[75dvh] overflow-y-auto rounded-2xl border border-st-stroke bg-(--st-surface)/90 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg shadow-black/10 backdrop-blur-md md:hidden"
