@@ -17,7 +17,7 @@ const TONE_CHIP: Record<StatTone, string> = {
 export interface StatCardProps {
   title: string
   value: string | number
-  icon: LucideIcon
+  icon?: LucideIcon
   href?: string
   suffix?: string
   tone?: StatTone
@@ -25,18 +25,38 @@ export interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, href, suffix, tone = 'primary' }: StatCardProps) {
   const inner = (
-    <Card className="accent-ring h-full border-st-stroke bg-st-surface transition-colors">
-      <CardContent className="p-5">
-        <div className="flex items-center gap-3">
-          <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', TONE_CHIP[tone])}>
-            <Icon className="h-4.5 w-4.5" aria-hidden />
+    <Card
+      className={cn(
+        'h-full border-st-stroke bg-st-surface transition-colors',
+        // Icon variants keep the hover gradient ring; the clean icon-free cards
+        // use a flat border so the heading style reads neatly against the edge.
+        Icon && 'accent-ring',
+      )}
+    >
+      <CardContent className={cn('p-5', !Icon && 'pt-6 sm:pt-6')}>
+        {Icon ? (
+          <>
+            <div className="flex items-center gap-3">
+              <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', TONE_CHIP[tone])}>
+                <Icon className="h-4.5 w-4.5" aria-hidden />
+              </div>
+              <p className="font-mono text-[0.7rem] uppercase leading-tight tracking-[0.2em] text-st-muted">{title}</p>
+            </div>
+            <p className="mt-3 font-display text-3xl leading-none tabular-nums tracking-tight text-st-text">
+              {typeof value === 'number' ? <NumberTicker value={value} /> : value}
+              {suffix && <span className="ml-1 font-body text-sm font-normal text-st-muted">{suffix}</span>}
+            </p>
+          </>
+        ) : (
+          // Icon-free layout: title in the section-heading style, value below.
+          <div className="flex h-full flex-col">
+            <h3 className="landing-heading text-lg">{title}</h3>
+            <p className="mt-2 font-display text-3xl leading-none tabular-nums tracking-tight text-st-text">
+              {typeof value === 'number' ? <NumberTicker value={value} /> : value}
+              {suffix && <span className="ml-1 font-body text-sm font-normal text-st-muted">{suffix}</span>}
+            </p>
           </div>
-          <p className="font-mono text-[0.7rem] uppercase leading-tight tracking-[0.2em] text-st-muted">{title}</p>
-        </div>
-        <p className="mt-3 font-display text-3xl leading-none tabular-nums tracking-tight text-st-text">
-          {typeof value === 'number' ? <NumberTicker value={value} /> : value}
-          {suffix && <span className="ml-1 font-body text-sm font-normal text-st-muted">{suffix}</span>}
-        </p>
+        )}
       </CardContent>
     </Card>
   )

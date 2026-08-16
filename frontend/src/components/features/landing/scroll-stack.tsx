@@ -56,6 +56,9 @@ export function ScrollStack({
   const stackCompletedRef = useRef(false)
   const animationFrameRef = useRef<number | null>(null)
   const lenisRef = useRef<Lenis | null>(null)
+  const nativeCleanupRef = useRef<(() => void) | null>(null)
+  const visibilityObserverRef = useRef<IntersectionObserver | null>(null)
+  const isVisibleRef = useRef(true)
   const cardsRef = useRef<HTMLElement[]>([])
   const lastTransformsRef = useRef<Map<number, { translateY: number; scale: number; rotation: number; blur: number }>>(new Map())
   const isUpdatingRef = useRef(false)
@@ -88,14 +91,18 @@ export function ScrollStack({
   }, [useWindowScroll])
 
   const getElementOffset = useCallback(
-    (element: HTMLElement) => {
+    (element: HTMLElement, scrollerTop?: number) => {
       if (useWindowScroll) {
         // offsetTop is layout-based and ignores transforms, so it does not
         // feed the card's own translate back into the next frame (no jitter).
         // Anchor it to the scroller, which is never transformed.
         const scroller = scrollerRef.current
         if (scroller) {
-          return element.offsetTop + scroller.getBoundingClientRect().top + window.scrollY
+          // scrollerTop is precomputed once per update pass; reading
+          // getBoundingClientRect per card forces layout every frame.
+          const top =
+            scrollerTop ?? scroller.getBoundingClientRect().top + window.scrollY
+          return element.offsetTop + top
         }
       }
       return element.offsetTop
@@ -105,6 +112,9 @@ export function ScrollStack({
 
   const updateCardTransforms = useCallback(() => {
     if (!cardsRef.current.length || isUpdatingRef.current) return
+    // Skip all per-card layout math while the stack is off-screen: scroll
+    // events from anywhere on the page would otherwise force layout here.
+    if (!isVisibleRef.current) return
     isUpdatingRef.current = true
 
     const { scrollTop, containerHeight } = getScrollData()
@@ -113,11 +123,16 @@ export function ScrollStack({
     const endElement = useWindowScroll
       ? document.querySelector('.scroll-stack-end')
       : scrollerRef.current?.querySelector('.scroll-stack-end')
-    const endElementTop = endElement ? getElementOffset(endElement as HTMLElement) : 0
+    const scrollerTop = scrollerRef.current
+      ? scrollerRef.current.getBoundingClientRect().top + window.scrollY
+      : undefined
+    const endElementTop = endElement
+      ? getElementOffset(endElement as HTMLElement, scrollerTop)
+      : 0
 
     cardsRef.current.forEach((card, i) => {
       if (!card) return
-      const cardTop = getElementOffset(card)
+      const cardTop = getElementOffset(card, scrollerTop)
       const triggerStart = cardTop - stackPositionPx - itemStackDistance * i
       const triggerEnd = cardTop - scaleEndPositionPx
       const pinStart = cardTop - stackPositionPx - itemStackDistance * i
@@ -131,7 +146,7 @@ export function ScrollStack({
       if (blurAmount) {
         let topCardIndex = 0
         for (let j = 0; j < cardsRef.current.length; j++) {
-          const jCardTop = getElementOffset(cardsRef.current[j])
+          const jCardTop = getElementOffset(cardsRef.current[j], scrollerTop)
           const jTriggerStart = jCardTop - stackPositionPx - itemStackDistance * j
           if (scrollTop >= jTriggerStart) {
             topCardIndex = j
@@ -208,6 +223,33 @@ export function ScrollStack({
   }, [updateCardTransforms])
 
   const setupLenis = useCallback(() => {
+    // Lenis's syncTouch hijacks native touch scrolling and drives it from a
+    // lerp + rAF loop, which stutters on mobile. Keep the smooth-wheel feel
+    // only for fine-pointer (desktop) users without a reduced-motion
+    // preference; touch devices use native scrolling with a passive,
+    // rAF-throttled listener instead.
+    const shouldUseLenis =
+      window.matchMedia('(pointer: fine)').matches &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (!shouldUseLenis) {
+      let frame = 0
+      const onScroll = () => {
+        if (frame) return
+        frame = requestAnimationFrame(() => {
+          frame = 0
+          updateCardTransforms()
+        })
+      }
+      window.addEventListener('scroll', onScroll, { passive: true })
+      nativeCleanupRef.current = () => {
+        window.removeEventListener('scroll', onScroll)
+        if (frame) cancelAnimationFrame(frame)
+        frame = 0
+      }
+      return
+    }
+
     const baseOptions = {
       duration: 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -267,7 +309,7 @@ export function ScrollStack({
       if (i < cards.length - 1) {
         card.style.marginBottom = `${itemDistance}px`
       }
-      card.style.willChange = 'transform, filter'
+      card.style.willChange = blurAmount > 0 ? 'transform, filter' : 'transform'
       card.style.transformOrigin = 'top center'
       card.style.backfaceVisibility = 'hidden'
       card.style.transform = 'translateZ(0)'
@@ -279,11 +321,27 @@ export function ScrollStack({
     setupLenis()
     updateCardTransforms()
 
+    // Pause the stack's scroll work while it is away from the viewport.
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting
+        if (entry.isIntersecting) updateCardTransforms()
+      },
+      { rootMargin: '50% 0px' },
+    )
+    visibilityObserver.observe(scroller)
+    visibilityObserverRef.current = visibilityObserver
+
     return () => {
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current)
         animationFrameRef.current = null
       }
+      visibilityObserverRef.current?.disconnect()
+      visibilityObserverRef.current = null
+      isVisibleRef.current = true
+      nativeCleanupRef.current?.()
+      nativeCleanupRef.current = null
       lenisRef.current?.destroy()
       lenisRef.current = null
       stackCompletedRef.current = false

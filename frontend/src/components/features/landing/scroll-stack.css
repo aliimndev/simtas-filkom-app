@@ -20,7 +20,7 @@ html.lenis body {
 .scroll-stack-card {
   position: relative;
   transform-origin: top center;
-  will-change: transform, filter;
+  will-change: transform;
   backface-visibility: hidden;
   height: auto;
   padding: 0;

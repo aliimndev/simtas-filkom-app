@@ -17,7 +17,7 @@ export const metadata = { title: 'FAQ — SIMTAS FILKOM' }
 export default function FaqPage() {
   return (
     <div>
-      <section className="border-b border-st-stroke">
+      <section>
         <div className="landing-container max-w-3xl pb-16 pt-36 md:pt-44">
           <Reveal><span className="landing-eyebrow">FAQ</span></Reveal>
           <Reveal delay={80}><h1 className="landing-heading mt-5 text-4xl md:text-5xl">Pertanyaan yang sering diajukan</h1></Reveal>
@@ -29,7 +29,7 @@ export default function FaqPage() {
         </div>
       </section>
 
-      <section className="landing-surface border-b border-st-stroke">
+      <section>
         <div className="landing-container max-w-3xl py-16">
           <FaqAccordion items={FAQ_ITEMS} variant="cards" />
 

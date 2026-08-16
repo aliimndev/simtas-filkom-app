@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Activity, Award, BookOpen, CalendarDays, ClipboardCheck, GraduationCap, Users } from 'lucide-react'
+import { BookOpen, CalendarDays, ClipboardCheck, GraduationCap } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatCard, ViewAllLink } from '@/components/features/dashboard/stat-card'
@@ -59,10 +59,10 @@ export default function AdminDashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Mahasiswa Aktif" value={s?.academic_summary.total_active ?? '—'} icon={Users} href="/admin/users?role=mahasiswa" />
-        <StatCard title="Total Lulus" value={s?.academic_summary.total_graduated ?? '—'} icon={Award} href="/theses?status=graduated" />
-        <StatCard title="Rata-rata Selesai" value={s?.academic_summary.avg_completion_months ?? '—'} suffix="bln" icon={BookOpen} href="/theses" />
-        <StatCard title="Login Hari Ini" value={op?.activity_stats.logins_today ?? '—'} icon={Activity} href="/admin/audit-logs" />
+        <StatCard title="Mahasiswa Aktif" value={s?.academic_summary.total_active ?? '—'} href="/admin/users?role=mahasiswa" />
+        <StatCard title="Total Lulus" value={s?.academic_summary.total_graduated ?? '—'} href="/theses?status=graduated" />
+        <StatCard title="Rata-rata Selesai" value={s?.academic_summary.avg_completion_months ?? '—'} suffix="bln" href="/theses" />
+        <StatCard title="Login Hari Ini" value={op?.activity_stats.logins_today ?? '—'} href="/admin/audit-logs" />
       </div>
 
       {/* Funnel + Pending */}

@@ -74,23 +74,13 @@ export function FeaturesSection() {
     <section
       id="fitur"
       aria-labelledby="kemampuan-title"
-      className="relative scroll-mt-24 overflow-hidden bg-st-surface"
+      className="relative scroll-mt-24 overflow-hidden"
     >
-      {/* Feather the section band: the page bg color fades out over the top
-          and bottom edge, so fitur reads as a distinct surface without a
-          hard line where hero/pipeline meet it. */}
+      {/* Soft accent wash gathering toward the content. The section keeps the
+          page background so it flows into hero/pipeline without a seam. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-linear-to-b from-st-bg to-transparent"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-st-bg to-transparent"
-      />
-      {/* Soft accent wash gathering toward the content */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-40 h-80 bg-linear-to-b from-transparent to-(--st-accent-from) opacity-[0.05]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-linear-to-b from-transparent to-(--st-accent-from) opacity-[0.05]"
       />
 
       <div className="landing-container relative py-20 md:py-28">

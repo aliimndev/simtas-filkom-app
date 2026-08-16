@@ -6,7 +6,7 @@ type NavLink = { href: string; label: string }
 
 export function FooterSection({ navLinks }: { navLinks: NavLink[] }) {
   return (
-    <footer className="border-t border-st-stroke">
+    <footer>
       <div className="landing-container grid gap-12 py-16 md:grid-cols-4">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2.5">

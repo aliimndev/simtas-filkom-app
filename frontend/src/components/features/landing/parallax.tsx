@@ -27,8 +27,10 @@ export function Parallax({
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     let frame = 0
+    let active = false
     const update = () => {
       frame = 0
+      if (!active) return
       const rect = el.getBoundingClientRect()
       const mid = rect.top + rect.height / 2 - window.innerHeight / 2
       const shift = Math.max(-72, Math.min(72, mid * (1 - speed)))
@@ -37,10 +39,22 @@ export function Parallax({
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update)
     }
-    update()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
+
+    // Only do work while the layer is near the viewport — without this the
+    // listener forces layout on every scroll frame for the whole page.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        active = entry.isIntersecting
+        if (active) update()
+      },
+      { rootMargin: '25% 0px' },
+    )
+    io.observe(el)
+
     return () => {
+      io.disconnect()
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
       if (frame) cancelAnimationFrame(frame)
