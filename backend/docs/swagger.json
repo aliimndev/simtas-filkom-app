@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API untuk Sistem Manajemen Tugas Akhir dan Skripsi Fakultas Ilmu Komputer Universitas Djuanda.",
+        "description": "API untuk Sistem Manajemen Tugas Akhir Skripsi Fakultas Ilmu Komputer Universitas Djuanda.",
         "title": "SIMTAS FILKOM API",
         "termsOfService": "https://filkom.unida.ac.id",
         "contact": {

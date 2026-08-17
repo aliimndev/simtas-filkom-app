@@ -19,7 +19,7 @@ export function UpcomingList({ items }: { items: UpcomingItem[] }) {
   if (items.length === 0) {
     return (
       <div className="py-8 text-center">
-        <CalendarDays className="mx-auto h-8 w-8 text-st-muted/40" />
+        <CalendarDays className="mx-auto h-8 w-8 text-st-muted" />
         <p className="mt-2 text-sm text-st-muted">Tidak ada agenda mendatang.</p>
       </div>
     )

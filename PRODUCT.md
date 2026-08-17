@@ -18,7 +18,7 @@ SIMTAS is a multi-role web platform; all confirmed roles carry equal weight as p
 
 ## Product Purpose
 
-SIMTAS (Sistem Manajemen Tugas Akhir dan Skripsi) manages the entire undergraduate thesis (tugas akhir/skripsi) lifecycle for the Fakultas Ilmu Komputer Universitas Djuanda — from title submission, review and supervisor assignment, guidance and document upload/approval, seminar and defense scheduling and scoring, revision, through graduation status and final digital archive.
+SIMTAS (Sistem Manajemen Tugas Akhir Skripsi) manages the entire undergraduate thesis (tugas akhir/skripsi) lifecycle for the Fakultas Ilmu Komputer Universitas Djuanda — from title submission, review and supervisor assignment, guidance and document upload/approval, seminar and defense scheduling and scoring, revision, through graduation status and final digital archive.
 
 It replaces a manual, paper-based process that suffered from lost physical documents, delayed information, hard-to-track progress, inconsistent procedures/scoring, high administrative load, and weak reporting/audit. Success is measured by full adoption, reduced approval time, complete thesis records, high user satisfaction, and high system availability.
 
@@ -57,7 +57,7 @@ Undecided (recorded, not invented): exact production storage vendor confirmation
 
 ## Brand Commitments
 
-- Official name: **SIMTAS FILKOM** (Sistem Manajemen Tugas Akhir dan Skripsi), Fakultas Ilmu Komputer Universitas Djuanda.
+- Official name: **SIMTAS FILKOM** (Sistem Manajemen Tugas Akhir Skripsi), Fakultas Ilmu Komputer Universitas Djuanda.
 - Institutional identity: FILKOM/Unida blue is used as the accent across the interface.
 - Product voice is formal, academic, and administrative (formal Indonesian).
 - Version labeling: v1.0 (Development status).

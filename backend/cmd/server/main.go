@@ -4,7 +4,7 @@ package main
 //
 //	@title           SIMTAS FILKOM API
 //	@version         1.1.0
-//	@description     API untuk Sistem Manajemen Tugas Akhir dan Skripsi Fakultas Ilmu Komputer Universitas Djuanda.
+//	@description     API untuk Sistem Manajemen Tugas Akhir Skripsi Fakultas Ilmu Komputer Universitas Djuanda.
 //	@termsOfService  https://filkom.unida.ac.id
 //
 //	@contact.name   Admin SIMTAS FILKOM

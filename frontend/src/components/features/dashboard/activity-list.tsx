@@ -40,7 +40,7 @@ export function ActivityList({ items }: { items: ActivityItem[] }) {
   if (items.length === 0) {
     return (
       <div className="py-8 text-center">
-        <FileText className="mx-auto h-8 w-8 text-st-muted/40" />
+        <FileText className="mx-auto h-8 w-8 text-st-muted" />
         <p className="mt-2 text-sm text-st-muted">Belum ada aktivitas.</p>
       </div>
     )

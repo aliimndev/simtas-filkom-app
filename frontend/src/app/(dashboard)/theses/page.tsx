@@ -112,8 +112,8 @@ export default function ThesesPage() {
             </Card>
           ))}
           {list.length === 0 && (
-            <div className="py-12 text-center">
-              <BookOpen className="mx-auto h-10 w-10 text-st-muted/40" />
+            <div className="py-12 sm:py-12 text-center">
+              <BookOpen className="mx-auto h-10 w-10 text-st-muted" />
               <p className="mt-3 landing-heading text-lg">Tidak ada <span className="accent-text italic">skripsi</span> ditemukan</p>
               <p className="mt-1 text-sm text-st-muted">Coba ubah filter atau kata kunci pencarian Anda.</p>
             </div>

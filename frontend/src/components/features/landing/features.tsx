@@ -63,10 +63,10 @@ const ROLES: { icon: LucideIcon; title: string }[] = [
 ]
 
 const STATS: { value: number; suffix?: string; label: string }[] = [
-  { value: 800, suffix: '+', label: 'Mahasiswa Terlayani' },
-  { value: 1200, suffix: '+', label: 'Dokumen Tersimpan' },
-  { value: 300, suffix: '+', label: 'Sidang Terproses' },
-  { value: 48, label: 'Dosen Terbantu' },
+  { value: 150, suffix: '+', label: 'Mahasiswa Terlayani' },
+  { value: 200, suffix: '+', label: 'Dokumen Tersimpan' },
+  { value: 100, suffix: '+', label: 'Sidang Terproses' },
+  { value: 30, suffix: '+', label: 'Dosen Terbantu' },
 ]
 
 export function FeaturesSection() {

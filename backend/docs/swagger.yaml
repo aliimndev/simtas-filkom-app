@@ -959,7 +959,7 @@ info:
   contact:
     email: admin@filkom.unida.ac.id
     name: Admin SIMTAS FILKOM
-  description: API untuk Sistem Manajemen Tugas Akhir dan Skripsi Fakultas Ilmu Komputer
+  description: API untuk Sistem Manajemen Tugas Akhir Skripsi Fakultas Ilmu Komputer
     Universitas Djuanda.
   license:
     name: MIT

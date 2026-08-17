@@ -1,6 +1,6 @@
 # SIMTAS FILKOM — Backend API
 
-RESTful API for the **Sistem Manajemen Tugas Akhir dan Skripsi** (Thesis & Final Project Management System) of the Faculty of Computer Science, Universitas Djuanda.
+RESTful API for the **Sistem Manajemen Tugas Akhir Skripsi** (Thesis & Final Project Management System) of the Faculty of Computer Science, Universitas Djuanda.
 
 Built with **Go**, **Gin**, **GORM**, and **PostgreSQL**. It powers authentication, thesis/consultation/document/seminar/defense workflows, archive management, dashboards, notifications, and audit logging consumed by the frontend.
 

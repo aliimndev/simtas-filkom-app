@@ -166,8 +166,8 @@ export default function DocumentsPage() {
           />
         ))}
         {!docs.isLoading && list.length === 0 && (
-          <div className="py-12 text-center">
-            <FileText className="mx-auto h-10 w-10 text-st-muted/40" />
+          <div className="py-12 sm:py-12 text-center">
+            <FileText className="mx-auto h-10 w-10 text-st-muted" />
             <p className="mt-3 landing-heading text-lg">Belum ada <span className="accent-text italic">dokumen</span></p>
             <p className="mt-1 text-sm text-st-muted">Unggah dokumen skripsi pertama Anda untuk memulai.</p>
           </div>

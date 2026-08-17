@@ -106,8 +106,8 @@ export default function DefensesPage() {
             </Card>
           ))}
           {list.length === 0 && (
-            <div className="py-12 text-center">
-              <ClipboardCheck className="mx-auto h-10 w-10 text-st-muted/40" />
+            <div className="py-12 sm:py-12 text-center">
+              <ClipboardCheck className="mx-auto h-10 w-10 text-st-muted" />
               <p className="mt-3 landing-heading text-lg">Tidak ada <span className="accent-text italic">sidang</span></p>
               <p className="mt-1 text-sm text-st-muted">Jadwal sidang akan muncul di sini.</p>
             </div>

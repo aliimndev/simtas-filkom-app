@@ -39,8 +39,8 @@ export default function SchedulesPage() {
       {upcoming.isLoading ? (
         <ListSkeleton count={5} label="Memuat jadwal…" />
       ) : items.length === 0 ? (
-        <div className="py-12 text-center">
-          <CalendarDays className="mx-auto h-10 w-10 text-st-muted/40" />
+        <div className="py-12 sm:py-12 text-center">
+          <CalendarDays className="mx-auto h-10 w-10 text-st-muted" />
           <p className="mt-3 landing-heading text-lg">Tidak ada <span className="accent-text italic">jadwal mendatang</span></p>
           <p className="mt-1 text-sm text-st-muted">Jadwal ujian akan muncul di sini.</p>
         </div>

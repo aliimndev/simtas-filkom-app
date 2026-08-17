@@ -5925,7 +5925,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "SIMTAS FILKOM API",
-	Description:      "API untuk Sistem Manajemen Tugas Akhir dan Skripsi Fakultas Ilmu Komputer Universitas Djuanda.",
+	Description:      "API untuk Sistem Manajemen Tugas Akhir Skripsi Fakultas Ilmu Komputer Universitas Djuanda.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
