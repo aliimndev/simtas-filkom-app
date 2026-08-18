@@ -37,7 +37,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	_ "github.com/aliimndev/simtas-filkom-app/backend/docs" // generated OpenAPI docs
+	_ "github.com/aliimndev/simtas-filkom-app/backend/docs" 
 	"github.com/aliimndev/simtas-filkom-app/backend/internal/handler"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/config"
 	"github.com/aliimndev/simtas-filkom-app/backend/pkg/database"

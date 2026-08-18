@@ -1,0 +1,7 @@
+ALTER TABLE users
+  DROP COLUMN IF EXISTS place_of_birth,
+  DROP COLUMN IF EXISTS address,
+  DROP COLUMN IF EXISTS phone,
+  DROP COLUMN IF EXISTS birth_date,
+  DROP COLUMN IF EXISTS faculty,
+  DROP COLUMN IF EXISTS semester;

@@ -30,6 +30,12 @@ type UserResponse struct {
 	Role               string     `json:"role"`
 	NimNidn            *string    `json:"nim_nidn,omitempty"`
 	StudyProgram       *string    `json:"study_program,omitempty"`
+	PlaceOfBirth       *string    `json:"place_of_birth,omitempty"`
+	Address            *string    `json:"address,omitempty"`
+	Phone              *string    `json:"phone,omitempty"`
+	BirthDate          *string    `json:"birth_date,omitempty"`
+	Faculty            *string    `json:"faculty,omitempty"`
+	Semester           *int       `json:"semester,omitempty"`
 	ProfilePhotoURL    *string    `json:"profile_photo_url,omitempty"`
 	IsActive           bool       `json:"is_active"`
 	MustChangePassword bool       `json:"must_change_password"`
@@ -46,6 +52,12 @@ func toUserResponse(u *entity.User) UserResponse {
 		Role:               u.Role.Name,
 		NimNidn:            u.NimNidn,
 		StudyProgram:       u.StudyProgram,
+		PlaceOfBirth:       u.PlaceOfBirth,
+		Address:            u.Address,
+		Phone:              u.Phone,
+		BirthDate:          u.BirthDate,
+		Faculty:            u.Faculty,
+		Semester:           u.Semester,
 		ProfilePhotoURL:    u.ProfilePhotoURL,
 		IsActive:           u.IsActive,
 		MustChangePassword: u.MustChangePassword,
@@ -228,7 +240,40 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	response.Success(c, http.StatusOK, toUserResponse(user))
 }
 
-// DeleteUser godoc
+// UpdateMyProfile godoc
+// @Summary      Update profil sendiri
+// @Description  Memperbarui data profil pengguna yang sedang login (Nama, NIM, jurusan, dll). Email & role tidak dapat diubah.
+// @Tags         User Management
+// @Accept       json
+// @Produce      json
+// @Param        body body usecase.UpdateUserRequest true "Data profil"
+// @Success      200  {object}  response.APIResponse "Profil diperbarui"
+// @Security     BearerAuth
+// @Router       /users/me [patch]
+func (h *UserHandler) UpdateMyProfile(c *gin.Context) {
+	actor := actorFromContext(c)
+	if actor.UserID == uuid.Nil {
+		response.Error(c, http.StatusUnauthorized, "Sesi tidak valid", nil)
+		return
+	}
+
+	var req usecase.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Request tidak valid")
+		return
+	}
+
+	user, err := h.userUseCase.Update(c.Request.Context(), actor.UserID, req, actor)
+	if err != nil {
+		if errors.Is(err, usecase.ErrUserNotFound) {
+			response.NotFound(c, "User tidak ditemukan")
+			return
+		}
+		response.InternalError(c, "Gagal memperbarui profil")
+		return
+	}
+	response.Success(c, http.StatusOK, toUserResponse(user))
+}
 // @Summary      Hapus user (soft delete)
 // @Description  Menghapus user secara soft delete (Admin only)
 // @Tags         User Management

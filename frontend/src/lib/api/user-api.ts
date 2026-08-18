@@ -16,6 +16,12 @@ export interface UpdateUserRequest {
   role?: string
   nim_nidn?: string
   study_program?: string
+  place_of_birth?: string
+  address?: string
+  phone?: string
+  birth_date?: string
+  faculty?: string
+  semester?: number
 }
 
 export interface AcademicYear {
@@ -51,6 +57,12 @@ export const userApi = {
 
   async update(id: string, data: UpdateUserRequest): Promise<User> {
     const res = await apiClient.put(`/admin/users/${id}`, data)
+    return res.data.data
+  },
+
+  /** Update profil sendiri (PATCH /users/me). */
+  async updateMe(data: UpdateUserRequest): Promise<User> {
+    const res = await apiClient.patch('/users/me', data)
     return res.data.data
   },
 

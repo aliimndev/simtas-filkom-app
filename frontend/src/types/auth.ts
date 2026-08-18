@@ -12,6 +12,12 @@ export interface User {
   role: string
   nim_nidn?: string
   study_program?: string
+  place_of_birth?: string
+  address?: string
+  phone?: string
+  birth_date?: string
+  faculty?: string
+  semester?: number
   is_active?: boolean
   must_change_password?: boolean
   created_at?: string

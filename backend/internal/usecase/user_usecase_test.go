@@ -399,3 +399,55 @@ func TestChangeMyPasswordNotComplex(t *testing.T) {
 		t.Errorf("expected ErrPasswordNotComplex, got %v", err)
 	}
 }
+
+// TestUpdatePersistsProfileFields — Job: profile CRUD. Update must persist the
+// new self-editable fields (place_of_birth, address, phone, birth_date,
+// faculty, semester) alongside the existing ones.
+func TestUpdatePersistsProfileFields(t *testing.T) {
+	uc, repo := newTestUserUseCase()
+	target := &entity.User{Email: "mhs@example.com", FullName: "Lama", RoleID: 3}
+	_ = repo.Create(context.Background(), target)
+
+	semester := 5
+	updated, err := uc.Update(context.Background(), target.ID, UpdateUserRequest{
+		FullName:     strPtr("Ali Imannudin"),
+		NimNidn:      strPtr("1.24100306"),
+		StudyProgram: strPtr("Imza Komputer"),
+		PlaceOfBirth: strPtr("Bogor"),
+		Address:      strPtr("Jl. Contoh No. 1"),
+		Phone:        strPtr("08123456789"),
+		BirthDate:    strPtr("2002-05-20"),
+		Faculty:      strPtr("Fakultas Ilmu Komputer"),
+		Semester:     &semester,
+	}, Actor{UserID: uuid.New()})
+	if err != nil {
+		t.Fatalf("Update returned error: %v", err)
+	}
+
+	if updated.FullName != "Ali Imannudin" || derefStr(updated.NimNidn) != "1.24100306" {
+		t.Errorf("base fields not updated: %+v", updated)
+	}
+	if derefStr(updated.PlaceOfBirth) != "Bogor" {
+		t.Errorf("place_of_birth = %v, want Bogor", updated.PlaceOfBirth)
+	}
+	if derefStr(updated.Address) != "Jl. Contoh No. 1" {
+		t.Errorf("address = %v, want Jl. Contoh No. 1", updated.Address)
+	}
+	if derefStr(updated.Phone) != "08123456789" {
+		t.Errorf("phone = %v, want 08123456789", updated.Phone)
+	}
+	if derefStr(updated.BirthDate) != "2002-05-20" {
+		t.Errorf("birth_date = %v, want 2002-05-20", updated.BirthDate)
+	}
+	if derefStr(updated.Faculty) != "Fakultas Ilmu Komputer" {
+		t.Errorf("faculty = %v, want Fakultas Ilmu Komputer", updated.Faculty)
+	}
+	if derefInt(updated.Semester) != 5 {
+		t.Errorf("semester = %v, want 5", updated.Semester)
+	}
+
+	stored := repo.users[target.ID]
+	if stored == nil || derefInt(stored.Semester) != 5 {
+		t.Errorf("profile fields not persisted to repo: %+v", stored)
+	}
+}

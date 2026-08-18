@@ -36,12 +36,18 @@ type CreateUserRequest struct {
 	StudyProgram string `json:"study_program"`
 }
 
-// UpdateUserRequest is the payload for PUT /admin/users/:id.
+// UpdateUserRequest is the payload for PUT /admin/users/:id and PATCH /users/me.
 // Email and role cannot be changed via this endpoint.
 type UpdateUserRequest struct {
 	FullName        *string `json:"full_name"`
 	NimNidn         *string `json:"nim_nidn"`
 	StudyProgram    *string `json:"study_program"`
+	PlaceOfBirth    *string `json:"place_of_birth"`
+	Address         *string `json:"address"`
+	Phone           *string `json:"phone"`
+	BirthDate       *string `json:"birth_date"`
+	Faculty         *string `json:"faculty"`
+	Semester        *int    `json:"semester"`
 	ProfilePhotoURL *string `json:"profile_photo_url"`
 }
 
@@ -189,6 +195,24 @@ func (uc *UserUseCase) Update(ctx context.Context, id uuid.UUID, req UpdateUserR
 	}
 	if req.StudyProgram != nil {
 		user.StudyProgram = req.StudyProgram
+	}
+	if req.PlaceOfBirth != nil {
+		user.PlaceOfBirth = req.PlaceOfBirth
+	}
+	if req.Address != nil {
+		user.Address = req.Address
+	}
+	if req.Phone != nil {
+		user.Phone = req.Phone
+	}
+	if req.BirthDate != nil {
+		user.BirthDate = req.BirthDate
+	}
+	if req.Faculty != nil {
+		user.Faculty = req.Faculty
+	}
+	if req.Semester != nil {
+		user.Semester = req.Semester
 	}
 	if req.ProfilePhotoURL != nil {
 		user.ProfilePhotoURL = req.ProfilePhotoURL
@@ -401,8 +425,14 @@ func (uc *UserUseCase) ChangeMyPassword(ctx context.Context, userID uuid.UUID, r
 // userSnapshot builds a safe map of editable fields for audit diffing.
 func userSnapshot(u *entity.User) map[string]interface{} {
 	snap := map[string]interface{}{
-		"full_name":     u.FullName,
-		"study_program": derefStr(u.StudyProgram),
+		"full_name":           u.FullName,
+		"study_program":       derefStr(u.StudyProgram),
+		"place_of_birth":      derefStr(u.PlaceOfBirth),
+		"address":             derefStr(u.Address),
+		"phone":               derefStr(u.Phone),
+		"birth_date":          derefStr(u.BirthDate),
+		"faculty":             derefStr(u.Faculty),
+		"semester":            derefInt(u.Semester),
 	}
 	if u.NimNidn != nil {
 		snap["nim_nidn"] = *u.NimNidn
@@ -418,6 +448,13 @@ func derefStr(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+func derefInt(i *int) int {
+	if i == nil {
+		return 0
+	}
+	return *i
 }
 
 // Actor describes who performed an admin action (for audit logs).

@@ -71,7 +71,6 @@ func main() {
 	log.Println("seed selesai. Akun yang baru dibuat dicetak di atas dengan password sementara (must_change_password=true).")
 }
 
-// seedUser membuat akun jika belum ada. Mengembalikan apakah akun baru dibuat.
 func seedUser(db *gorm.DB, fullName, email string, roleID int, dev bool) {
 	var count int64
 	if err := db.Model(&entity.User{}).Where("email = ?", email).Count(&count).Error; err != nil {

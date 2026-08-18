@@ -252,6 +252,7 @@ func (r *Router) Setup() {
 	me := v1.Group("/users/me", r.authMid.Authenticate())
 	{
 		me.PUT("/password", r.userHandler.ChangeMyPassword)
+		me.PATCH("", r.userHandler.UpdateMyProfile)
 	}
 
 	// ── Academic years ────────────────────────────────────────────────────

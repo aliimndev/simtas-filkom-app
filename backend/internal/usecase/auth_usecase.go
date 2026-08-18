@@ -65,6 +65,14 @@ type UserDTO struct {
 	Email              string    `json:"email"`
 	FullName           string    `json:"full_name"`
 	Role               string    `json:"role"`
+	NimNidn            *string   `json:"nim_nidn,omitempty"`
+	StudyProgram       *string   `json:"study_program,omitempty"`
+	PlaceOfBirth       *string   `json:"place_of_birth,omitempty"`
+	Address            *string   `json:"address,omitempty"`
+	Phone              *string   `json:"phone,omitempty"`
+	BirthDate          *string   `json:"birth_date,omitempty"`
+	Faculty            *string   `json:"faculty,omitempty"`
+	Semester           *int      `json:"semester,omitempty"`
 	MustChangePassword bool      `json:"must_change_password"`
 }
 
@@ -181,6 +189,14 @@ func (uc *AuthUseCase) Login(ctx context.Context, req LoginRequest, actor Actor)
 			Email:              user.Email,
 			FullName:           user.FullName,
 			Role:               user.Role.Name,
+			NimNidn:            user.NimNidn,
+			StudyProgram:       user.StudyProgram,
+			PlaceOfBirth:       user.PlaceOfBirth,
+			Address:            user.Address,
+			Phone:              user.Phone,
+			BirthDate:          user.BirthDate,
+			Faculty:            user.Faculty,
+			Semester:           user.Semester,
 			MustChangePassword: user.MustChangePassword,
 		},
 	}, nil
@@ -327,6 +343,14 @@ func (uc *AuthUseCase) GetMe(ctx context.Context, userID uuid.UUID) (*UserDTO, e
 		Email:              user.Email,
 		FullName:           user.FullName,
 		Role:               user.Role.Name,
+		NimNidn:            user.NimNidn,
+		StudyProgram:       user.StudyProgram,
+		PlaceOfBirth:       user.PlaceOfBirth,
+		Address:            user.Address,
+		Phone:              user.Phone,
+		BirthDate:          user.BirthDate,
+		Faculty:            user.Faculty,
+		Semester:           user.Semester,
 		MustChangePassword: user.MustChangePassword,
 	}, nil
 }

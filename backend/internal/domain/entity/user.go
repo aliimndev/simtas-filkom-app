@@ -16,6 +16,12 @@ type User struct {
 	RoleID             int            `gorm:"not null" json:"role_id"`
 	Role               Role           `gorm:"foreignKey:RoleID" json:"role"`
 	StudyProgram       *string        `gorm:"type:varchar(100)" json:"study_program,omitempty"`
+	PlaceOfBirth       *string        `gorm:"type:varchar(100)" json:"place_of_birth,omitempty"`
+	Address            *string        `gorm:"type:text" json:"address,omitempty"`
+	Phone              *string        `gorm:"type:varchar(30)" json:"phone,omitempty"`
+	BirthDate          *string        `gorm:"type:varchar(10)" json:"birth_date,omitempty"`
+	Faculty            *string        `gorm:"type:varchar(100)" json:"faculty,omitempty"`
+	Semester           *int           `gorm:"type:integer" json:"semester,omitempty"`
 	ProfilePhotoURL    *string        `gorm:"type:text" json:"profile_photo_url,omitempty"`
 	IsActive           bool           `gorm:"not null;default:true" json:"is_active"`
 	MustChangePassword bool           `gorm:"not null;default:true" json:"must_change_password"`
