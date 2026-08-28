@@ -2,7 +2,11 @@
   import { BookOpen } from "lucide-svelte";
   import { api } from "$lib/api";
   import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
-  import { thesisStatusProps } from "$lib/components/dashboard/thesis-status";
+  import Pagination from "$lib/components/ui/Pagination.svelte";
+  import { thesisStatusProps } from "$lib/constants/statuses";
+  import { formatDate } from "$lib/utils/format";
+
+  const PAGE_SIZE = 10;
 
   let q = $state("");
   let status = $state("");
@@ -16,7 +20,7 @@
     loading = true;
     error = "";
     try {
-      const query: Record<string, string> = { page: String(page), per_page: "10" };
+      const query: Record<string, string> = { page: String(page), per_page: String(PAGE_SIZE) };
       if (q) query.q = q;
       if (status) query.status = status;
       const res = await api.api.v1.theses.$get({ query });
@@ -34,15 +38,6 @@
     q; status; page;
     load();
   });
-
-  function formatDate(s?: string) {
-    if (!s) return "—";
-    try {
-      return new Date(s).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
-    } catch {
-      return s;
-    }
-  }
 </script>
 
 <div class="space-y-6">
@@ -132,27 +127,5 @@
     </div>
   {/if}
 
-  {#if total > 10}
-    <div class="flex items-center justify-between pt-2">
-      <p class="text-sm text-st-muted">Total {total} skripsi · Halaman {page}</p>
-      <div class="flex gap-2">
-        <button
-          type="button"
-          disabled={page <= 1}
-          onclick={() => (page -= 1)}
-          class="inline-flex h-8 items-center rounded-md border border-st-stroke bg-st-surface px-3 text-sm text-st-text hover:bg-st-surface-hi disabled:opacity-50"
-        >
-          Sebelumnya
-        </button>
-        <button
-          type="button"
-          disabled={page >= Math.ceil(total / 10)}
-          onclick={() => (page += 1)}
-          class="inline-flex h-8 items-center rounded-md border border-st-stroke bg-st-surface px-3 text-sm text-st-text hover:bg-st-surface-hi disabled:opacity-50"
-        >
-          Berikutnya
-        </button>
-      </div>
-    </div>
-  {/if}
+  <Pagination {total} {page} pageSize={PAGE_SIZE} onPage={(next) => (page = next)} />
 </div>

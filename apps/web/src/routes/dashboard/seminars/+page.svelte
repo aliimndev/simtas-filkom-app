@@ -4,8 +4,13 @@
   import { auth } from "$lib/auth.store";
   import StatCard from "$lib/components/ui/StatCard.svelte";
   import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
-  import { thesisStatusProps } from "$lib/components/dashboard/thesis-status";
+  import Pagination from "$lib/components/ui/Pagination.svelte";
+  import { thesisStatusProps, seminarStatusProps } from "$lib/constants/statuses";
+  import { formatDateTime, toDatetimeLocalValue, minDatetimeLocalValue } from "$lib/utils/format";
+  import { readError } from "$lib/utils/errors";
   import Reveal from "$lib/components/landing/Reveal.svelte";
+
+  const PAGE_SIZE = 10;
 
   let status = $state("");
   let page = $state(1);
@@ -37,7 +42,7 @@
     loading = true;
     error = "";
     try {
-      const query: Record<string, string> = { page: String(page), per_page: "10" };
+      const query: Record<string, string> = { page: String(page), per_page: String(PAGE_SIZE) };
       if (status) query.status = status;
       const res = await api.api.v1.seminars.$get({ query });
       const json: any = res.ok ? await res.json() : null;
@@ -60,23 +65,9 @@
     }
   }
 
-  function minScheduleDateTime() {
-    const date = new Date(Date.now() + MIN_LEAD_MS);
-    const offset = date.getTimezoneOffset();
-    return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16);
-  }
-
-  function inputDateTime(value?: string | null) {
-    if (!value) return "";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-    const offset = date.getTimezoneOffset();
-    return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16);
-  }
-
   function openScheduling(sem: any) {
     schedulingId = sem.id;
-    schedulingAt = inputDateTime(sem.scheduledAt ?? sem.scheduled_at);
+    schedulingAt = toDatetimeLocalValue(sem.scheduledAt ?? sem.scheduled_at);
     schedulingRoom = sem.room ?? "";
     schedulingExaminerIds = (sem.examiners ?? []).map((examiner: any) => examiner.id);
     schedulingError = "";
@@ -116,9 +107,8 @@
           examiner_ids: schedulingExaminerIds,
         },
       });
-      const json: any = res.ok ? await res.json() : await res.json().catch(() => ({}));
       if (!res.ok) {
-        schedulingError = json?.error?.message ?? "Gagal menyimpan jadwal Seminar.";
+        schedulingError = await readError(res, "Gagal menyimpan jadwal Seminar.");
         return;
       }
       schedulingSuccess = "Jadwal Seminar berhasil disimpan.";
@@ -139,31 +129,6 @@
   $effect(() => {
     if (canSchedule) loadExaminers();
   });
-
-  function seminarStatusProps(s: string): { variant: "pending" | "approved" | "rejected" | "draft" | "in_progress" | "completed"; label: string } {
-    switch (s) {
-      case "passed": return { variant: "completed", label: "Lulus" };
-      case "failed": return { variant: "rejected", label: "Tidak Lulus" };
-      case "scheduled": return { variant: "in_progress", label: "Terjadwal" };
-      case "pending": return { variant: "pending", label: "Diajukan" };
-      default: return { variant: "draft", label: s ? s.replace(/_/g, " ") : "—" };
-    }
-  }
-
-  function formatDateTime(s?: string) {
-    if (!s) return "—";
-    try {
-      return new Date(s).toLocaleString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return s;
-    }
-  }
 
   let stats = $derived(() => {
     const total_ = list.length;
@@ -279,7 +244,7 @@
                     Waktu Seminar
                     <input
                       type="datetime-local"
-                      min={minScheduleDateTime()}
+                      min={minDatetimeLocalValue(MIN_LEAD_MS)}
                       bind:value={schedulingAt}
                       class="mt-1 w-full rounded-md border border-st-stroke bg-st-surface px-3 py-2 text-sm text-st-text"
                     />
@@ -356,27 +321,5 @@
     </div>
   {/if}
 
-  {#if total > 10}
-    <div class="flex items-center justify-between pt-2">
-      <p class="text-sm text-st-muted">Total {total} seminar · Halaman {page}</p>
-      <div class="flex gap-2">
-        <button
-          type="button"
-          disabled={page <= 1}
-          onclick={() => (page -= 1)}
-          class="inline-flex h-8 items-center rounded-md border border-st-stroke bg-st-surface px-3 text-sm text-st-text hover:bg-st-surface-hi disabled:opacity-50"
-        >
-          Sebelumnya
-        </button>
-        <button
-          type="button"
-          disabled={page >= Math.ceil(total / 10)}
-          onclick={() => (page += 1)}
-          class="inline-flex h-8 items-center rounded-md border border-st-stroke bg-st-surface px-3 text-sm text-st-text hover:bg-st-surface-hi disabled:opacity-50"
-        >
-          Berikutnya
-        </button>
-      </div>
-    </div>
-  {/if}
+  <Pagination {total} {page} pageSize={PAGE_SIZE} onPage={(next) => (page = next)} />
 </div>

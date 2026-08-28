@@ -106,10 +106,12 @@
   function openCancel(req: any) {
     cancelError = null;
     cancelTarget = req;
+    cancelOpen = true;
   }
 
   function closeCancel() {
     cancelTarget = null;
+    cancelOpen = false;
   }
 
   async function onSubmitChange() {
@@ -432,7 +434,42 @@
   </form>
 </Dialog>
 
-<Dialog bind:open={cancelOpenDerived} labelledBy="cancel-title" initialFocus="button:not([disabled])">
-  {#snippet _unused()}
-  {/snippet}
+<Dialog bind:open={cancelOpen} labelledBy="cancel-title" initialFocus="button:not([disabled])">
+  <h2 id="cancel-title" class="text-lg font-semibold text-st-text">
+    Batalkan Permintaan Perubahan Judul?
+  </h2>
+  <p class="mt-1 text-sm text-st-muted">
+    Permintaan yang sedang diproses akan ditarik dan tidak dapat dikembalikan.
+  </p>
+
+  <div class="mt-4 space-y-4">
+    <div class="rounded-lg bg-st-bg p-3 text-sm">
+      <p class="text-xs font-medium text-st-muted">Judul yang diajukan</p>
+      <p class="mt-0.5 text-st-text">
+        {cancelTarget?.requestedTitle ?? cancelTarget?.requested_title}
+      </p>
+    </div>
+    {#if cancelError}
+      <div role="alert" class="rounded-md border border-danger-700/40 bg-danger-50 px-3 py-2 text-sm text-danger-700">
+        {cancelError}
+      </div>
+    {/if}
+    <div class="flex flex-wrap justify-end gap-2">
+      <button
+        type="button"
+        onclick={closeCancel}
+        class="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-st-text transition-colors hover:bg-st-surface-hi"
+      >
+        Kembali
+      </button>
+      <button
+        type="button"
+        disabled={cancelling}
+        onclick={confirmCancel}
+        class="inline-flex h-9 items-center rounded-md border border-danger-700/40 bg-danger-50 px-3 text-sm font-medium text-danger-700 transition-colors hover:bg-danger-100 disabled:opacity-50"
+      >
+        {cancelling ? "Membatalkan…" : "Ya, Batalkan"}
+      </button>
+    </div>
+  </div>
 </Dialog>
