@@ -29,6 +29,7 @@ let otherStudentId: string;
 let kaprodiId: string;
 let supervisorId: string;
 let ayId: string;
+let ownsAcademicYear = false;
 let roleIdMhs: number;
 let roleIdKaprodi: number;
 let roleIdDosen: number;
@@ -66,12 +67,20 @@ beforeAll(async () => {
   kaprodiId = await makeUser(uniq("kaprodi@filkom.ac.id"), "Kaprodi Test", roleIdKaprodi);
   supervisorId = await makeUser(uniq("dosen@filkom.ac.id"), "Dosen Pembimbing Test", roleIdDosen);
 
-  const [ay] = await db
+  const [activeYear] = await db
     .select()
     .from(schema.academicYears)
     .where(eq(schema.academicYears.isActive, true));
-  if (!ay) throw new Error("seeded active academic year not found");
-  ayId = ay.id;
+  if (activeYear) {
+    ayId = activeYear.id;
+  } else {
+    const [createdYear] = await db
+      .insert(schema.academicYears)
+      .values({ name: "2025/2026", semester: "genap", startDate: "2026-01-01", endDate: "2026-06-30", isActive: true })
+      .returning();
+    ayId = createdYear.id;
+    ownsAcademicYear = true;
+  }
 });
 
 afterAll(async () => {
@@ -83,6 +92,9 @@ afterAll(async () => {
   await db.delete(schema.notifications).where(eq(schema.notifications.userId, kaprodiId));
   await db.delete(schema.auditLogs).where(eq(schema.auditLogs.userId, kaprodiId));
   await db.delete(schema.auditLogs).where(eq(schema.auditLogs.userId, studentId));
+  if (ownsAcademicYear) {
+    await db.delete(schema.academicYears).where(eq(schema.academicYears.id, ayId));
+  }
   await db.delete(schema.users).where(eq(schema.users.id, studentId));
   await db.delete(schema.users).where(eq(schema.users.id, otherStudentId));
   await db.delete(schema.users).where(eq(schema.users.id, kaprodiId));
