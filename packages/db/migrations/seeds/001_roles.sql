@@ -8,3 +8,11 @@ INSERT INTO roles (id, name) VALUES
     (4, 'dosen_pembimbing'),
     (5, 'dosen_penguji')
 ON CONFLICT (name) DO NOTHING;
+
+-- Keep the SERIAL sequence ahead of the explicit seed IDs so later inserts get
+-- a fresh role ID instead of retrying the seeded value 1.
+SELECT setval(
+    pg_get_serial_sequence('roles', 'id'),
+    COALESCE((SELECT MAX(id) FROM roles), 1),
+    true
+);
