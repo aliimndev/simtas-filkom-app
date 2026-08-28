@@ -104,7 +104,7 @@ jobs:
 
       - name: Integration tests — API
         run: |
-          for test_file in test/*.integration.test.ts; do
+          for test_file in apps/api/test/*.integration.test.ts; do
             echo "== running $test_file"
             bun test "$test_file"
           done
