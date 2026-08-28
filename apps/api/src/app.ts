@@ -17,7 +17,7 @@ import { dashboardRoutes } from "./routes/dashboard";
 import { notificationsRoutes } from "./routes/notifications";
 import { auditLogsRoutes } from "./routes/auditLogs";
 import { emailLogsRoutes } from "./routes/emailLogs";
-import { seminarSubmissionRoutes, seminarsRoutes } from "./routes/seminars";
+import { seminarSubmissionRoutes, seminarsRoutes } from "./modules/seminars";
 import { rateLimit } from "./middleware/rateLimit";
 import { errorHandler } from "./middleware/error";
 import { requestId, logger } from "./middleware/logger";

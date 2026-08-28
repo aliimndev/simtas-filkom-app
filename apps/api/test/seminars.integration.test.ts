@@ -5,7 +5,7 @@ import { loadConfig } from "../src/config";
 import { getDb } from "../src/db";
 import { signAccessToken } from "../src/services/token";
 import { schema } from "@sims/db";
-import { seminarSubmissionRoutes, seminarsRoutes } from "../src/routes/seminars";
+import { seminarSubmissionRoutes, seminarsRoutes } from "../src/modules/seminars";
 
 const TEST_DB_URL = process.env.DATABASE_URL ?? "postgres://postgres@localhost:5433/simtas";
 const cfg = loadConfig({ ...process.env, NODE_ENV: "test", DATABASE_URL: TEST_DB_URL } as any);

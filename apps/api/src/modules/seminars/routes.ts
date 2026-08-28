@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { Authenticate } from "../middleware/auth";
-import { SeminarError, getSeminar, listSeminars, submitSeminar } from "../services/seminars";
+import { Authenticate } from "../../middleware/auth";
+import { SeminarError, getSeminar, listSeminars, scheduleSeminar, submitSeminar } from "./service";
 
 export const seminarsRoutes = new Hono();
 export const seminarSubmissionRoutes = new Hono();
@@ -26,6 +26,11 @@ function fail(c: any, error: unknown) {
 }
 
 const uuid = z.string().uuid();
+const scheduleSchema = z.object({
+  scheduled_at: z.string().min(1),
+  room: z.string().trim().min(1).max(100),
+  examiner_ids: z.array(uuid).min(2),
+});
 
 // GET /seminars — role-scoped Seminar list.
 seminarsRoutes.get("/", async (c: any) => {
@@ -47,6 +52,32 @@ seminarsRoutes.get("/", async (c: any) => {
     return fail(c, error);
   }
 });
+
+// PUT /seminars/:id/schedule — Kaprodi/Admin schedules and assigns Penguji.
+seminarsRoutes.put("/:id/schedule", async (c: any) => {
+  try {
+    const parsedId = uuid.safeParse(c.req.param("id"));
+    if (!parsedId.success) return c.json({ error: { code: "VALIDATION", message: "id Seminar tidak valid" } }, 400);
+    const body = await c.req.json().catch(() => null);
+    const parsedBody = scheduleSchema.safeParse(body);
+    if (!parsedBody.success) {
+      return c.json({ error: { code: "VALIDATION", message: "scheduled_at, room, dan minimal 2 examiner_ids wajib diisi" } }, 422);
+    }
+    const data = await scheduleSeminar(
+      parsedId.data,
+      {
+        scheduledAt: parsedBody.data.scheduled_at,
+        room: parsedBody.data.room,
+        examinerIds: parsedBody.data.examiner_ids,
+      },
+      actorFrom(c),
+    );
+    return c.json({ data }, 200);
+  } catch (error) {
+    return fail(c, error);
+  }
+});
+
 
 // GET /seminars/:id — role-scoped Seminar detail.
 seminarsRoutes.get("/:id", async (c: any) => {
