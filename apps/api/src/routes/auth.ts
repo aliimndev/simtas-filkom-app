@@ -6,8 +6,10 @@ import { loadConfig } from "../config";
 import { schema } from "@sims/db";
 import { issueTokens, rotateRefresh, revokeRefreshFamily, verifyJwt } from "../services/token";
 import { verifyPassword } from "../services/password";
+import { rateLimit } from "../middleware/rateLimit";
 
 export const authRoutes = new Hono();
+authRoutes.use("/login", rateLimit({ windowMs: 60_000, max: 10 }));
 
 authRoutes.post("/login", async (c) => {
   const body = await c.req.json().catch(() => null);

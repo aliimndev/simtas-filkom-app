@@ -4,9 +4,14 @@ import type { Config } from "./config";
 import { getDb } from "./db";
 import { authRoutes } from "./routes/auth";
 import { meRoutes } from "./routes/me";
+import { rateLimit } from "./middleware/rateLimit";
+import { errorHandler } from "./middleware/error";
 
 export function createApp(cfg: Config) {
   const app = new Hono();
+
+  app.onError(errorHandler);
+  app.use("*", rateLimit({ windowMs: 60_000, max: 100 }));
 
   // CORS via native middleware (ponytail: native). Allowlist supports comma-separated CORS_ORIGIN in prod.
   const allowlist = cfg.corsOrigin.split(",").map((s) => s.trim());
