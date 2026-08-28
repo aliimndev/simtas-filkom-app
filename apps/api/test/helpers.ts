@@ -52,3 +52,22 @@ export async function clearTestUser() {
   } catch {}
   await db.delete(schema.users).where(eq(schema.users.email, TEST_USER.email));
 }
+
+// Reset lock counters so lockout tests start deterministically.
+export async function resetTestUserLock() {
+  const cfg = loadConfig({ ...process.env, NODE_ENV: "test", DATABASE_URL: TEST_DB_URL } as any);
+  const db = getDb(cfg.databaseUrl);
+  await db
+    .update(schema.users)
+    .set({ loginAttemptCount: 0, lockedUntil: null } as any)
+    .where(eq(schema.users.email, TEST_USER.email));
+}
+
+export async function setTestUserActive(active: boolean) {
+  const cfg = loadConfig({ ...process.env, NODE_ENV: "test", DATABASE_URL: TEST_DB_URL } as any);
+  const db = getDb(cfg.databaseUrl);
+  await db
+    .update(schema.users)
+    .set({ isActive: active } as any)
+    .where(eq(schema.users.email, TEST_USER.email));
+}

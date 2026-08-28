@@ -44,3 +44,5 @@ node_modules
 *.tsbuildinfo
 apps/api/.env
 apps/web/.env
+.svelte-kit
+apps/web/.svelte-kit

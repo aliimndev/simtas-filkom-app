@@ -1,8 +1,14 @@
 import { createDb, type Db } from "@sims/db";
 
-let shared: Db | undefined;
+// ponytail: cache one connection per URL so health can probe an alternate DB
+// (e.g. an unreachable URL in tests) instead of reusing the first caller's pool.
+const pool = new Map<string, Db>();
 
 export function getDb(url: string): Db {
-  if (!shared) shared = createDb(url);
-  return shared;
+  let db = pool.get(url);
+  if (!db) {
+    db = createDb(url);
+    pool.set(url, db);
+  }
+  return db;
 }

@@ -11,18 +11,18 @@ Each row is a scenario ported from the Go suite (`backend/internal/handler/*_tes
 | 1 | auth | login success (valid email + password) | `POST /api/v1/auth/login` | 200 + `{accessToken, refreshToken, user}` with correct role | Green |
 | 2 | auth | login wrong password | `POST /api/v1/auth/login` | 401 `UNAUTHORIZED` | Green |
 | 3 | auth | login unknown email (timing-equalized) | `POST /api/v1/auth/login` | 401 no enumeration leak | Ported |
-| 4 | auth | login locked account (locked_until in future) | `POST /api/v1/auth/login` | 423 `LOCKED` | Ported |
-| 5 | auth | login lockout after 5 failures (increment + locked_until) | `POST /api/v1/auth/login` | 5th failure → 423, 6th still 423 | Ported |
-| 6 | auth | login inactive user (`is_active=false`) | `POST /api/v1/auth/login` | 403 | Ported |
+| 4 | auth | login locked account (locked_until in future) | `POST /api/v1/auth/login` | 423 `LOCKED` | Green |
+| 5 | auth | login lockout after 5 failures (increment + locked_until) | `POST /api/v1/auth/login` | 5th failure → 423, 6th still 423 | Green |
+| 6 | auth | login inactive user (`is_active=false`) | `POST /api/v1/auth/login` | 403 | Green |
 | 7 | auth | `GET /auth/me` with valid Bearer | `GET /api/v1/auth/me` | 200 `{id,email,fullName,role}` | Green |
-| 8 | auth | `GET /auth/me` with bad Bearer / missing | `GET /api/v1/auth/me` | 401 `UNAUTHORIZED` | Ported |
+| 8 | auth | `GET /auth/me` with bad Bearer / missing | `GET /api/v1/auth/me` | 401 `UNAUTHORIZED` | Green |
 | 9 | auth | refresh rotation (present current jti) | `POST /api/v1/auth/refresh` | 200 new pair, old jti revoked | Green |
-| 10 | auth | refresh reuse (replay stale jti) | `POST /api/v1/auth/refresh` | 401 `TOKEN_REUSE` + family revoked | Ported |
+| 10 | auth | refresh reuse (replay stale jti) | `POST /api/v1/auth/refresh` | 401 `TOKEN_REUSE` + family revoked | Green |
 | 11 | auth | logout (revoke family) | `POST /api/v1/auth/logout` | 204, subsequent refresh → 401 | Green |
 | 12 | auth | health DB up/down | `GET /api/v1/health` | 200 `healthy` / 503 `unreachable` | Green |
-| 13 | rbac | RequireRole matrix (route × role) | middleware `RequireRole` | 403 on wrong role, 401 on no token | Ported |
-| 14 | rate-limit | global 100/min | `*` | 429 after 100 | Ported |
-| 15 | rate-limit | login 10/min | `POST /api/v1/auth/login` | 429 after 10 | Ported |
+| 13 | rbac | RequireRole matrix (route × role) | middleware `RequireRole` | 403 on wrong role, 401 on no token | Green |
+| 14 | rate-limit | global 100/min | `*` | 429 after 100 | Green |
+| 15 | rate-limit | login 10/min | `POST /api/v1/auth/login` | 429 after 10 | Green |
 | 16 | error | envelope shape | all errors | `{error:{code,message}}` + correct status (400/401/403/404/409/423/429) | Green |
 | 17 | validation | loginSchema email format, password min 8 | shared | Zod rejects, handler returns 400 | Green |
 | 18 | pagination | paginationSchema (Phase N) | shared | `page, limit, sort` reused across modules | Pending |

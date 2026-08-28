@@ -7,6 +7,8 @@ import { schema } from "@sims/db";
 import { issueTokens, rotateRefresh, revokeRefreshFamily, verifyJwt } from "../services/token";
 import { verifyPassword } from "../services/password";
 import { rateLimit } from "../middleware/rateLimit";
+import { Authenticate } from "../middleware/auth";
+import { RequireRole } from "../middleware/rbac";
 
 export const authRoutes = new Hono();
 authRoutes.use("/login", rateLimit({ windowMs: 60_000, max: 10 }));
@@ -22,13 +24,16 @@ authRoutes.post("/login", async (c) => {
 
   const users = await db.select().from(schema.users).where(eq(schema.users.email, parsed.data.email));
   const user: any = users[0];
+  // Timing-equalize: even an unknown email runs a bcrypt compare so response time
+  // doesn't reveal whether the email exists (anti-enumeration).
+  const DUMMY_HASH = "$2a$12$qMPO1EgF0zmpDh4W49ERVOfOxF28jsItEaiKEKZCWOL9NoKX3U7iC";
+  const ok = user ? await verifyPassword(parsed.data.password, user.passwordHash) : await verifyPassword(parsed.data.password, DUMMY_HASH);
   if (!user) return c.json({ error: { code: "UNAUTHORIZED", message: "Invalid credentials" } }, 401);
 
   if (user.lockedUntil && new Date(user.lockedUntil).getTime() > Date.now()) {
     return c.json({ error: { code: "LOCKED", message: "Account locked" } }, 423);
   }
 
-  const ok = await verifyPassword(parsed.data.password, user.passwordHash);
   if (!ok) {
     const attempts = (user.loginAttemptCount ?? 0) + 1;
     if (attempts >= 5) {
@@ -104,3 +109,6 @@ authRoutes.post("/logout", async (c) => {
   }
   return c.body(null, 204);
 });
+
+// Minimal RBAC demonstration: admin-only. 401 without token (Authenticate), 403 on wrong role (RequireRole).
+authRoutes.get("/admin/ping", Authenticate(), RequireRole("ADMIN_FAKULTAS"), (c: any) => c.json({ ok: true }, 200));

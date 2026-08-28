@@ -2,7 +2,8 @@ import { describe, expect, it } from "bun:test";
 import { createApp } from "../src/app";
 import { loadConfig } from "../src/config";
 
-const app = createApp(loadConfig({ NODE_ENV: "test" }));
+const TEST_DB_URL = process.env.DATABASE_URL ?? "postgres://postgres@localhost:5433/simtas";
+const app = createApp(loadConfig({ NODE_ENV: "test", DATABASE_URL: TEST_DB_URL } as any));
 
 describe("health", () => {
   it("returns 200 status ok", async () => {

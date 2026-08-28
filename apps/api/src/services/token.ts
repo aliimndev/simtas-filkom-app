@@ -74,8 +74,10 @@ export async function issueTokens(input: {
   return { accessToken, refreshToken };
 }
 
-// Rotate: the presented refresh token must be the current unrevoked jti.
-// Reuse of an old jti => revoke the whole family (TOKEN_REUSE).
+// Rotate: the presented refresh token must be the current valid jti for its family.
+// Reuse of an already-rotated jti => revoke the whole family (TOKEN_REUSE).
+// ponytail: schema has no revoked column (see migration 000015); rotation keeps exactly one
+// current jti per family by deleting the used row before minting the next. Replay then finds no row.
 export async function rotateRefresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
   const cfg = loadConfig();
   const db = getDb(cfg.databaseUrl);
@@ -84,47 +86,42 @@ export async function rotateRefresh(refreshToken: string): Promise<{ accessToken
   if (!claims?.sub || !claims.familyId || !claims.jti) {
     throw { code: "INVALID_REFRESH" };
   }
+  const familyId = claims.familyId as string;
+  const jti = claims.jti as string;
 
+  // The only valid row is the current jti. If it's gone, this token was already used/rotated.
   const current = await db
     .select()
     .from(schema.refreshTokenFamilies)
-    .where(
-      and(
-        eq(schema.refreshTokenFamilies.familyId, claims.familyId as string),
-        eq(schema.refreshTokenFamilies.tokenJti, claims.jti as string),
-      ),
-    );
+    .where(and(eq(schema.refreshTokenFamilies.familyId, familyId), eq(schema.refreshTokenFamilies.tokenJti, jti)));
 
-  // Our simplified schema has no revoked column; we detect reuse by checking if the presented jti is NOT the latest.
-  // If the family has no matching jti with the presented one, we treat it as reuse if family exists at all.
-  // Full revoked-column logic is deferred to DB with revoked column; here we just check existence.
   if (current.length === 0) {
-    // No matching row — check if family exists at all; if so, it's reuse.
     const familyRows = await db
       .select()
       .from(schema.refreshTokenFamilies)
-      .where(eq(schema.refreshTokenFamilies.familyId, claims.familyId as string));
+      .where(eq(schema.refreshTokenFamilies.familyId, familyId));
     if (familyRows.length > 0) {
-      await revokeRefreshFamily(claims.familyId as string);
+      await revokeRefreshFamily(familyId);
       throw { code: "TOKEN_REUSE" };
     }
     throw { code: "INVALID_REFRESH" };
   }
 
-  // For rotation, we insert a new row and delete the old jti's row is not needed; we just insert new jti.
-  // To keep family rotation visible, we insert new jti; old row remains but will be considered stale on next reuse.
-  // In a full impl with revoked column, we'd UPDATE revoked=true on old jti.
+  // Rotate: drop the presented (now-spent) jti, mint a fresh one for the same family.
+  await db
+    .delete(schema.refreshTokenFamilies)
+    .where(and(eq(schema.refreshTokenFamilies.familyId, familyId), eq(schema.refreshTokenFamilies.tokenJti, jti)));
   const newJti = crypto.randomUUID();
   await db.insert(schema.refreshTokenFamilies).values({
     userId: claims.sub,
-    familyId: claims.familyId as string,
+    familyId,
     tokenJti: newJti,
     expiresAt: new Date(Date.now() + cfg.refreshTtlSec * 1000),
   });
 
   const [accessToken, newRefreshToken] = await Promise.all([
     signAccessToken(claims.sub, claims.role, claims.tokenVersion),
-    signRefreshToken(claims.familyId as string, newJti, claims.sub, claims.role, claims.tokenVersion),
+    signRefreshToken(familyId, newJti, claims.sub, claims.role, claims.tokenVersion),
   ]);
   return { accessToken, refreshToken: newRefreshToken };
 }
