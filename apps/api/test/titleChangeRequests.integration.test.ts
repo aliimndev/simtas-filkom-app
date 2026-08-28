@@ -87,7 +87,7 @@ async function seedFixtures() {
     semester: "ganjil",
     startDate: "2025-09-01",
     endDate: "2026-01-31",
-    isActive: true,
+    isActive: false,
   } as any);
 
   await db.delete(schema.theses).where(eq(schema.theses.id, THESIS_ID));

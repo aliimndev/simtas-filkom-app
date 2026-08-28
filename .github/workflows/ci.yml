@@ -103,7 +103,11 @@ jobs:
           done
 
       - name: Integration tests — API
-        run: bun run --cwd apps/api test
+        run: |
+          for test_file in test/*.integration.test.ts; do
+            echo "== running $test_file"
+            bun test "$test_file"
+          done
 
   build:
     name: Build (web)
