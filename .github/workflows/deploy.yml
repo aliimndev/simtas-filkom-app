@@ -1,0 +1,46 @@
+name: Deploy (Staging)
+
+# Staged rollout: merge to main → deploy to staging (auto on dispatch).
+# Production promotion is a separate, manual step after staging verification.
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy-staging:
+    name: Deploy API + Web to staging VPS
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH (docker compose)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd ${{ secrets.STAGING_APP_DIR }}
+            git fetch --all
+            git reset --hard ${{ github.sha }}
+            bun install --frozen-lockfile
+            bun run build
+            docker compose -f deploy/docker-compose.prod.yml up -d --build
+            # Post-deploy smoke check
+            sleep 5
+            curl -fsS http://localhost:3001/api/v1/health
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "::error::Staging deploy failed - roll back with docker compose up -d --build at the previous commit"

@@ -2,7 +2,13 @@
 
 ## API smoke/load tests
 
-Requires [k6](https://k6.io/docs/get-started/installation/).
+Requires [k6](https://k6.io/docs/get-started/installation/). The source tests are TypeScript; build the local JavaScript runtime artifacts first:
+
+```bash
+bun run build:k6
+```
+
+Then run the generated local artifacts:
 
 ```bash
 k6 run tests/k6/api-smoke.js \

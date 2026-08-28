@@ -30,7 +30,40 @@
   let submitting = $state(false);
   let pendingDecision = $state<"approve" | "reject" | null>(null);
   let submitError = $state("");
+  let reviewDialog = $state<HTMLElement>();
+  let reviewReturnFocus: HTMLElement | null = null;
   let toast = $state<{ kind: "success" | "danger"; title: string; description: string } | null>(null);
+
+  function handleReviewKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+      closeReview();
+      return;
+    }
+    if (event.key !== "Tab" || !reviewDialog) return;
+
+    const focusable = Array.from(
+      reviewDialog.querySelectorAll<HTMLElement>(
+        "a[href], button:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])",
+      ),
+    );
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function restoreReviewFocus() {
+    const target = reviewReturnFocus;
+    reviewReturnFocus = null;
+    requestAnimationFrame(() => target?.focus());
+  }
 
   async function load() {
     loading = true;
@@ -53,6 +86,7 @@
   });
 
   function openReview(r: TcrItem) {
+    reviewReturnFocus = document.activeElement as HTMLElement | null;
     reviewTarget = r;
     notes = "";
     notesTouched = false;
@@ -60,14 +94,28 @@
     pendingDecision = null;
   }
 
-  function closeReview() {
-    if (submitting) return;
+  function closeReview(force = false) {
+    if (submitting && !force) return;
     reviewTarget = null;
     notes = "";
     notesTouched = false;
     submitError = "";
     pendingDecision = null;
+    restoreReviewFocus();
   }
+
+  $effect(() => {
+    if (!reviewTarget || !reviewDialog) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const frame = requestAnimationFrame(() => {
+      reviewDialog?.querySelector<HTMLElement>("#review-notes, button:not([disabled])")?.focus();
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      document.body.style.overflow = previousOverflow;
+    };
+  });
 
   async function runReview(decision: "approve" | "reject") {
     if (!reviewTarget) return;
@@ -98,10 +146,7 @@
             ? "Judul skripsi telah diperbarui dan mahasiswa akan menerima notifikasi email."
             : "Mahasiswa akan menerima notifikasi email beserta catatan Anda.",
       };
-      reviewTarget = null;
-      notes = "";
-      notesTouched = false;
-      pendingDecision = null;
+      closeReview(true);
       await load();
       setTimeout(() => (toast = null), 4000);
     } catch (e: any) {
@@ -198,17 +243,22 @@
 </div>
 
 {#if reviewTarget}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div
+    bind:this={reviewDialog}
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    role="dialog"
+    tabindex="-1"
+    aria-modal="true"
+    aria-labelledby="review-title"
+    onkeydown={handleReviewKeydown}
+  >
     <button
       type="button"
       class="absolute inset-0 bg-black/50"
       aria-label="Tutup dialog"
-      onclick={closeReview}
+      onclick={() => closeReview()}
     ></button>
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="review-title"
       class="relative z-10 w-full max-w-lg rounded-2xl border border-st-stroke bg-st-surface p-6 shadow-xl"
     >
       <h2 id="review-title" class="landing-heading text-lg">
@@ -260,7 +310,7 @@
       <div class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-st-stroke pt-4">
         <button
           type="button"
-          onclick={closeReview}
+          onclick={() => closeReview()}
           disabled={submitting}
           class="inline-flex h-8 items-center rounded-md px-3 text-sm text-st-muted hover:bg-st-surface-hi disabled:opacity-50"
         >

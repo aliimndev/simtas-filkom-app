@@ -9,6 +9,8 @@
   let error = $state<string | null>(null);
   let loading = $state(false);
   let errors = $state<{ email?: string; password?: string }>({});
+  let emailInput = $state<HTMLInputElement>();
+  let passwordInput = $state<HTMLInputElement>();
 
   const year = new Date().getFullYear();
 
@@ -19,12 +21,18 @@
     if (!email) errors.email = "Email wajib diisi";
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) errors.email = "Format email tidak valid";
     if (!password) errors.password = "Password wajib diisi";
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) {
+      requestAnimationFrame(() => {
+        if (errors.email) emailInput?.focus();
+        else if (errors.password) passwordInput?.focus();
+      });
+      return;
+    }
 
     loading = true;
     try {
       await login(email, password);
-      goto("/");
+      goto("/dashboard");
     } catch (err) {
       error = err instanceof Error ? err.message : "Login gagal. Periksa email dan password Anda.";
     } finally {
@@ -34,10 +42,14 @@
 </script>
 
 <svelte:head>
-  <title>Autentikasi — SIMTAS FILKOM</title>
+  <title>Masuk ke Sistem — SIMTAS FILKOM</title>
+  <meta
+    name="description"
+    content="Masuk ke SIMTAS FILKOM untuk mengelola proses Tugas Akhir Skripsi."
+  />
 </svelte:head>
 
-<div class="grid min-h-screen lg:grid-cols-2">
+<main id="main-content" class="grid min-h-screen lg:grid-cols-2">
   <!-- Brand panel (left, desktop only) -->
   <div
     class="relative hidden overflow-hidden border-r border-border bg-background lg:flex lg:flex-col lg:justify-between lg:p-12"
@@ -106,6 +118,7 @@
       {#if error}
         <div
           role="alert"
+          aria-live="assertive"
           class="mb-4 rounded-md border border-danger-700/40 bg-danger-50 px-3 py-2 text-sm text-danger-700"
         >
           {error}
@@ -119,14 +132,17 @@
           >
           <input
             id="email"
+            bind:this={emailInput}
             type="email"
             bind:value={email}
             placeholder="nama@unida.ac.id"
             autocomplete="email"
-            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+            aria-invalid={errors.email ? "true" : undefined}
+            aria-describedby={errors.email ? "email-error" : undefined}
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-base text-foreground outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
           />
           {#if errors.email}
-            <p class="mt-1 text-xs text-danger-700">{errors.email}</p>
+            <p id="email-error" class="mt-1 text-xs text-danger-700">{errors.email}</p>
           {/if}
         </div>
 
@@ -144,23 +160,27 @@
           </div>
           <input
             id="password"
+            bind:this={passwordInput}
             type="password"
             bind:value={password}
             placeholder="••••••••"
             autocomplete="current-password"
-            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+            aria-invalid={errors.password ? "true" : undefined}
+            aria-describedby={errors.password ? "password-error" : undefined}
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-base text-foreground outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring sm:text-sm"
           />
           {#if errors.password}
-            <p class="mt-1 text-xs text-danger-700">{errors.password}</p>
+            <p id="password-error" class="mt-1 text-xs text-danger-700">{errors.password}</p>
           {/if}
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          class="flex w-full items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary-700 active:scale-[0.98] disabled:opacity-60"
+          aria-busy={loading}
+          class="flex w-full items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary-700 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
         >
-          {loading ? "Masuk..." : "Masuk"}
+          {loading ? "Memeriksa kredensial…" : "Masuk"}
           <ArrowRight class="h-4 w-4" />
         </button>
       </form>
@@ -172,4 +192,4 @@
       </p>
     </div>
   </div>
-</div>
+</main>

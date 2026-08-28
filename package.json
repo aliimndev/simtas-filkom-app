@@ -9,7 +9,9 @@
     "build": "bun run --cwd apps/web build",
     "check": "bun run --cwd apps/web check",
     "test": "bun run --cwd apps/api test && bun run --cwd apps/web test && bun run --cwd packages/shared test",
-    "typecheck": "bun run --cwd apps/api typecheck"
+    "typecheck": "bun run --cwd apps/api typecheck",
+    "verify:vercel-env": "bun scripts/verify-vercel-env.ts",
+    "build:k6": "bun scripts/build-k6.ts"
   },
   "devDependencies": { "typescript": "^5.5.0", "@types/bun": "latest" }
 }

@@ -5,7 +5,13 @@
   let dark = $state(false);
 
   onMount(() => {
-    dark = document.documentElement.classList.contains("dark");
+    try {
+      const saved = localStorage.getItem("theme");
+      dark = saved ? saved === "dark" : document.documentElement.classList.contains("dark");
+    } catch {
+      dark = document.documentElement.classList.contains("dark");
+    }
+    document.documentElement.classList.toggle("dark", dark);
   });
 
   function toggle() {

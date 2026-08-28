@@ -62,26 +62,26 @@
     <div class="mt-6 border-t border-st-stroke pt-4">
       <div class="space-y-0.5">
         <a
-          href="/profile"
+          href="/dashboard/profile"
           onclick={onNavigate}
           class="flex items-center gap-2.5 rounded-full px-3 py-1.5 text-[13px] font-medium text-st-muted transition-colors hover:bg-st-surface-hi hover:text-st-text"
         >
           <Settings size={16} /> Pengaturan
         </a>
-        <button
-          type="button"
-          class="flex w-full items-center gap-2.5 rounded-full px-3 py-1.5 text-[13px] font-medium text-st-muted transition-colors hover:bg-st-surface-hi hover:text-st-text"
-          aria-label="Bantuan"
+        <a
+          href="/faq"
+          onclick={onNavigate}
+          class="flex items-center gap-2.5 rounded-full px-3 py-1.5 text-[13px] font-medium text-st-muted transition-colors hover:bg-st-surface-hi hover:text-st-text"
         >
           <HelpCircle size={16} /> Bantuan
-        </button>
+        </a>
       </div>
     </div>
   </nav>
 
   <div class="border-t border-st-stroke px-3 py-2">
     <a
-      href="/profile"
+      href="/dashboard/profile"
       onclick={onNavigate}
       class="accent-ring flex items-center gap-2.5 rounded-full px-2.5 py-2 text-sm transition-colors hover:bg-st-surface-hi"
     >

@@ -61,7 +61,7 @@
         throw new Error(j?.error?.message ?? `HTTP ${res.status}`);
       }
       void $auth;
-      await goto("/theses");
+      await goto("/dashboard/theses");
     } catch (e: any) {
       submitError = e?.message ?? "Gagal menyimpan keputusan review.";
     } finally {
@@ -74,7 +74,7 @@
   <Reveal>
     <div>
       <a
-        href="/theses"
+        href="/dashboard/theses"
         class="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-st-muted transition-colors hover:text-st-text"
       >
         <ArrowLeft size={16} aria-hidden="true" /> Kembali ke Daftar
@@ -186,7 +186,7 @@
             <button
               type="button"
               disabled={submitting}
-              onclick={() => goto("/theses")}
+              onclick={() => goto("/dashboard/theses")}
               class="inline-flex h-10 items-center justify-center rounded-md border border-st-stroke bg-st-surface px-4 text-sm font-medium text-st-text transition-colors hover:bg-st-surface-hi"
             >
               Batal

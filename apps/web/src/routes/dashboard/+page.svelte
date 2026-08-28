@@ -14,21 +14,24 @@
   let summary = $state<any>(null);
   let recent = $state<any[]>([]);
   let loading = $state(true);
+  let error = $state("");
 
   async function load() {
     loading = true;
+    error = "";
     try {
       if (role === "ADMIN_FAKULTAS" || role === "KAPRODI") {
         const r = await api.api.v1.dashboard.summary.$get();
-        if (r.ok) summary = await r.json();
+        if (!r.ok) throw new Error(`summary:${r.status}`);
+        summary = await r.json();
       }
       const t = await api.api.v1.theses.$get({ query: { page: "1", per_page: "5" } });
-      if (t.ok) {
-        const j = await t.json();
-        recent = j.data ?? [];
-      }
-    } catch {}
-    finally {
+      if (!t.ok) throw new Error(`theses:${t.status}`);
+      const j = await t.json();
+      recent = j.data ?? [];
+    } catch {
+      error = "Data dashboard belum dapat dimuat. Periksa koneksi Anda lalu coba lagi.";
+    } finally {
       loading = false;
     }
   }
@@ -47,12 +50,26 @@
       : "Kelola proses Tugas Akhir Skripsi mahasiswa."}
   />
 
+  {#if error}
+    <div role="alert" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-danger-700/40 bg-danger-50 px-4 py-3 text-sm text-danger-700">
+      <span>{error}</span>
+      <button
+        type="button"
+        onclick={load}
+        class="inline-flex h-8 items-center rounded-md border border-danger-700/40 px-3 font-medium transition hover:bg-danger-100 disabled:opacity-50"
+        disabled={loading}
+      >
+        {loading ? "Memuat…" : "Coba lagi"}
+      </button>
+    </div>
+  {/if}
+
   {#if role === "ADMIN_FAKULTAS" || role === "KAPRODI" || role === "admin_fakultas" || role === "kaprodi"}
     <section class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <StatCard title="Judul Diproses" value={summary?.thesisPending ?? 0} icon={BookOpen} href="/theses" tone="primary" />
-      <StatCard title="Bimbingan Aktif" value={summary?.supervisionsActive ?? 0} icon={MessagesSquare} href="/supervision" tone="primary" />
-      <StatCard title="Seminar Terjadwal" value={summary?.seminarsUpcoming ?? 0} icon={GraduationCap} href="/seminars" tone="primary" />
-      <StatCard title="Sidang Bulan Ini" value={summary?.defensesThisMonth ?? 0} icon={GraduationCap} href="/defenses" tone="primary" />
+      <StatCard title="Judul Diproses" value={summary?.thesisPending ?? 0} icon={BookOpen} href="/dashboard/theses" tone="primary" />
+      <StatCard title="Bimbingan Aktif" value={summary?.supervisionsActive ?? 0} icon={MessagesSquare} href="/dashboard/supervision" tone="primary" />
+      <StatCard title="Seminar Terjadwal" value={summary?.seminarsUpcoming ?? 0} icon={GraduationCap} href="/dashboard/seminars" tone="primary" />
+      <StatCard title="Sidang Bulan Ini" value={summary?.defensesThisMonth ?? 0} icon={GraduationCap} href="/dashboard/defenses" tone="primary" />
     </section>
   {/if}
 
@@ -60,15 +77,15 @@
     <h2 class="landing-heading text-xl">Aksi Cepat</h2>
     <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
       {#if role === "MAHASISWA" || role === "mahasiswa"}
-        <StatCard title="Tugas Akhir" value="Saya" icon={FileText} href="/thesis" />
-        <StatCard title="Bimbingan" value="Catat" icon={MessagesSquare} href="/supervision" />
+        <StatCard title="Tugas Akhir" value="Buka" icon={FileText} href="/dashboard/thesis" />
+        <StatCard title="Bimbingan" value="Buka" icon={MessagesSquare} href="/dashboard/supervision" />
       {:else if role === "DOSEN_PEMBIMBING" || role === "dosen_pembimbing"}
-        <StatCard title="Bimbingan" value="Antrean" icon={MessagesSquare} href="/supervision" />
-        <StatCard title="Dokumen" value="Review" icon={BookOpen} href="/documents" />
+        <StatCard title="Bimbingan" value="Review" icon={MessagesSquare} href="/dashboard/supervision" />
+        <StatCard title="Dokumen" value="Review" icon={BookOpen} href="/dashboard/documents" />
       {:else}
-        <StatCard title="Daftar Skripsi" value="Kelola" icon={BookOpen} href="/theses" />
-        <StatCard title="Pengguna" value="Kelola" icon={Users} href="/admin/users" />
-        <StatCard title="Arsip" value="Lihat" icon={Archive} href="/archives" />
+        <StatCard title="Daftar Skripsi" value="Buka" icon={BookOpen} href="/dashboard/theses" />
+        <StatCard title="Pengguna" value="Kelola" icon={Users} href="/dashboard/admin/users" />
+        <StatCard title="Arsip" value="Buka" icon={Archive} href="/dashboard/archives" />
       {/if}
     </div>
   </section>
@@ -76,7 +93,7 @@
   <section>
     <div class="flex items-center justify-between">
       <h2 class="landing-heading text-xl">Aktivitas Terbaru</h2>
-      <a href="/theses" class="inline-flex items-center gap-1 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-(--st-accent-to) hover:text-(--st-accent-from)">
+      <a href="/dashboard/theses" class="inline-flex items-center gap-1 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-(--st-accent-to) hover:text-(--st-accent-from)">
         Lihat semua
       </a>
     </div>

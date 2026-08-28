@@ -16,8 +16,46 @@
   let progress = $state(0);
   let menuButton = $state<HTMLButtonElement>();
   let mobileNav = $state<HTMLElement>();
+  let menuReturnFocus: HTMLElement | null = null;
 
   const loggedIn = $derived(!!$auth.accessToken);
+
+  function closeMenu() {
+    open = false;
+    const target = menuReturnFocus;
+    menuReturnFocus = null;
+    requestAnimationFrame(() => target?.focus());
+  }
+
+  function toggleMenu() {
+    if (open) {
+      closeMenu();
+      return;
+    }
+    menuReturnFocus = document.activeElement as HTMLElement | null;
+    open = true;
+  }
+
+  function handleMenuKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+      closeMenu();
+      return;
+    }
+    if (event.key !== "Tab" || !mobileNav) return;
+
+    const focusable = Array.from(mobileNav.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"));
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
   function onScroll() {
     const y = window.scrollY;
@@ -50,14 +88,8 @@
       sections.forEach((s) => io!.observe(s));
     }
 
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") open = false;
-    };
-    window.addEventListener("keydown", onKey);
-
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("keydown", onKey);
       io?.disconnect();
     };
   });
@@ -65,6 +97,19 @@
   function isActive(href: string) {
     return href.startsWith("/#") ? activeSection === href.slice(1) : false;
   }
+
+  $effect(() => {
+    if (!open || !mobileNav) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const frame = requestAnimationFrame(() => {
+      mobileNav?.querySelector<HTMLElement>("a[href], button:not([disabled])")?.focus();
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      document.body.style.overflow = previousOverflow;
+    };
+  });
 </script>
 
 <header class="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4 md:pt-6">
@@ -109,7 +154,7 @@
         <ThemeToggle />
         {#if loggedIn}
           <a
-            href="/"
+            href="/dashboard"
             class="accent-ring hidden items-center gap-1.5 rounded-full border border-st-stroke bg-st-surface-hi px-4 py-1.5 text-sm text-st-text transition hover:text-st-text md:inline-flex"
           >
             Dashboard <ArrowRight size={14} />
@@ -128,7 +173,7 @@
           aria-label={open ? "Tutup menu" : "Buka menu"}
           aria-expanded={open}
           aria-controls="mobile-nav"
-          onclick={() => (open = !open)}
+          onclick={toggleMenu}
           class="inline-flex h-9 w-9 items-center justify-center rounded-full text-st-muted transition hover:bg-st-surface-hi hover:text-st-text md:hidden"
         >
           {#if open}<X size={20} />{:else}<Menu size={20} />{/if}
@@ -139,37 +184,43 @@
     {#if open}
       <div
         aria-hidden="true"
-        onclick={() => (open = false)}
+        onclick={closeMenu}
         class="fixed inset-0 z-40 bg-transparent md:hidden"
       ></div>
     {/if}
 
     {#if open}
-      <nav
-        bind:this={mobileNav}
-        id="mobile-nav"
-        aria-label="Navigasi mobile"
+      <div
         class="absolute inset-x-0 top-full z-50 mt-2 max-h-[75dvh] overflow-y-auto rounded-2xl border border-st-stroke bg-(--st-surface)/90 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg shadow-black/10 backdrop-blur-md md:hidden"
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-label="Navigasi mobile"
+        onkeydown={handleMenuKeydown}
       >
-        {#each navLinks as l}
+        <nav bind:this={mobileNav} id="mobile-nav" aria-label="Navigasi mobile">
+          {#each navLinks as l}
+            <a
+              href={l.href}
+              onclick={closeMenu}
+              aria-current={isActive(l.href) ? "page" : undefined}
+              class="block rounded-xl px-4 py-3 text-sm transition {isActive(l.href)
+                ? 'bg-st-surface-hi font-medium text-st-text'
+                : 'text-st-muted hover:bg-st-surface-hi hover:text-st-text'}"
+            >
+              {l.label}
+            </a>
+          {/each}
           <a
-            href={l.href}
-            aria-current={isActive(l.href) ? "page" : undefined}
-            class="block rounded-xl px-4 py-3 text-sm transition {isActive(l.href)
-              ? 'bg-st-surface-hi font-medium text-st-text'
-              : 'text-st-muted hover:bg-st-surface-hi hover:text-st-text'}"
+            href={loggedIn ? "/dashboard" : "/login"}
+            onclick={closeMenu}
+            class="mt-1 flex items-center justify-between rounded-xl bg-st-text px-4 py-3 text-sm font-medium text-st-bg"
           >
-            {l.label}
+            {loggedIn ? "Buka Dashboard" : "Masuk ke Sistem"}
+            <ArrowRight size={16} />
           </a>
-        {/each}
-        <a
-          href={loggedIn ? "/" : "/login"}
-          class="mt-1 flex items-center justify-between rounded-xl bg-st-text px-4 py-3 text-sm font-medium text-st-bg"
-        >
-          {loggedIn ? "Buka Dashboard" : "Masuk ke Sistem"}
-          <ArrowRight size={16} />
-        </a>
-      </nav>
+        </nav>
+      </div>
     {/if}
   </div>
 </header>

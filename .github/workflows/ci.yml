@@ -1,0 +1,147 @@
+name: CI
+
+# Quality gates for the Vercel frontend and its workspace dependencies.
+# Vercel handles deployment; GitHub Actions validates every change before merge.
+# API integration tests remain here because the repository is a full-stack monorepo,
+# but they do not deploy the frontend.
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: Type Check (api + web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck API (tsc --noEmit)
+        run: bun run typecheck
+
+      - name: Check Web (svelte-kit sync + svelte-check)
+        run: bun run check
+
+  unit-tests:
+    name: Unit Tests (api + web + shared)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Unit tests — API (no DB required)
+        run: bun run --cwd apps/api test:unit
+
+      - name: Unit tests — Web
+        run: bun run --cwd apps/web test
+
+      - name: Unit tests — Shared
+        run: bun run --cwd packages/shared test
+
+  integration-tests:
+    name: Integration Tests (api + Postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: simtas
+          POSTGRES_USER: ci_user
+          POSTGRES_PASSWORD: simtas-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgres://ci_user:simtas-ci@localhost:5432/simtas
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run database migrations (all *.up.sql, in order)
+        run: |
+          for f in packages/db/migrations/*.up.sql; do
+            echo "== applying $f"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
+          done
+          for f in packages/db/migrations/seeds/*.sql; do
+            echo "== seeding $f"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
+          done
+
+      - name: Integration tests — API
+        run: bun run --cwd apps/api test
+
+  build:
+    name: Build (web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build Web (same command as Vercel)
+        env:
+          # The frontend only needs an absolute origin at build time. The real
+          # value is configured separately in Vercel Preview/Production envs.
+          VITE_API_ORIGIN: https://api.ci.invalid
+        run: bun run verify:vercel-env && bun run --cwd apps/web build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: apps/web/build
+          retention-days: 7
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Audit dependencies (high severity and above)
+        run: bun audit --level high
+        continue-on-error: true # advisory-only until first triage; flip to blocking after baseline is clean
