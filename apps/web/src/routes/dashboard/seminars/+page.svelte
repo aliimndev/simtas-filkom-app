@@ -16,11 +16,10 @@
 
   const STATUSES = [
     { value: "", label: "Semua" },
-    { value: "submitted", label: "submitted" },
-    { value: "scheduled", label: "scheduled" },
-    { value: "in_revision", label: "in revision" },
-    { value: "passed", label: "passed" },
-    { value: "failed", label: "failed" },
+    { value: "pending", label: "Diajukan" },
+    { value: "scheduled", label: "Terjadwal" },
+    { value: "passed", label: "Lulus" },
+    { value: "failed", label: "Tidak Lulus" },
   ];
 
   async function load() {
@@ -29,7 +28,7 @@
     try {
       const query: Record<string, string> = { page: String(page), per_page: "10" };
       if (status) query.status = status;
-      const res = await api.api.v1.theses.$get({ query });
+      const res = await api.api.v1.seminars.$get({ query });
       const json: any = res.ok ? await res.json() : null;
       list = json?.data ?? [];
       total = json?.meta?.total ?? 0;
@@ -49,9 +48,9 @@
     switch (s) {
       case "passed": return { variant: "completed", label: "Lulus" };
       case "failed": return { variant: "rejected", label: "Tidak Lulus" };
-      case "in_revision": return { variant: "pending", label: "Revisi" };
       case "scheduled": return { variant: "in_progress", label: "Terjadwal" };
-      default: return { variant: "draft", label: "Diajukan" };
+      case "pending": return { variant: "pending", label: "Diajukan" };
+      default: return { variant: "draft", label: s ? s.replace(/_/g, " ") : "—" };
     }
   }
 
@@ -72,10 +71,10 @@
 
   let stats = $derived(() => {
     const total_ = list.length;
+    const pending = list.filter((s) => s.status === "pending").length;
     const scheduled = list.filter((s) => s.status === "scheduled").length;
     const passed = list.filter((s) => s.status === "passed").length;
-    const revision = list.filter((s) => s.status === "in_revision").length;
-    return { total: total_, scheduled, passed, revision };
+    return { total: total_, pending, scheduled, passed };
   });
 </script>
 
@@ -95,7 +94,7 @@
       <StatCard title="Total" value={stats().total} icon={GraduationCap} tone="primary" />
       <StatCard title="Terjadwal" value={stats().scheduled} icon={CalendarDays} tone="secondary" />
       <StatCard title="Lulus" value={stats().passed} icon={Star} tone="success" />
-      <StatCard title="Revisi" value={stats().revision} icon={MapPin} tone="warning" />
+      <StatCard title="Diajukan" value={stats().pending} icon={MapPin} tone="warning" />
     </div>
   </Reveal>
 

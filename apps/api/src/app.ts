@@ -17,6 +17,7 @@ import { dashboardRoutes } from "./routes/dashboard";
 import { notificationsRoutes } from "./routes/notifications";
 import { auditLogsRoutes } from "./routes/auditLogs";
 import { emailLogsRoutes } from "./routes/emailLogs";
+import { seminarSubmissionRoutes, seminarsRoutes } from "./routes/seminars";
 import { rateLimit } from "./middleware/rateLimit";
 import { errorHandler } from "./middleware/error";
 import { requestId, logger } from "./middleware/logger";
@@ -83,6 +84,8 @@ export function createApp(cfg: Config) {
   app.route("/api/v1/notifications", notificationsRoutes);
   app.route("/api/v1/audit-logs", auditLogsRoutes);
   app.route("/api/v1/email-logs", emailLogsRoutes);
+  app.route("/api/v1/seminars", seminarsRoutes);
+  app.route("/api/v1/theses", seminarSubmissionRoutes);
 
   return app;
 }
