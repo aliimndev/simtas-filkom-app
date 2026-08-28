@@ -14,16 +14,17 @@ INSERT INTO users (
     is_active,
     must_change_password
 )
-VALUES (
+SELECT
     'b0000000-0000-0000-0000-000000000002',
     'kaprodi@filkom.unida.ac.id',
     '$2a$12$OsM3GlIn7P.cRHl/hqE09eYFlntL6MVTEPEKJKgW03ZxHUIZ6i/NW',
     'Kepala Program Studi FILKOM',
     NULL,
-    2,   -- kaprodi
+    roles.id,
     'Teknik Informatika',
     TRUE,
     TRUE
-)
+FROM roles
+WHERE roles.name = 'kaprodi'
 ON CONFLICT (email) DO UPDATE SET
     password_hash = EXCLUDED.password_hash;

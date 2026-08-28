@@ -124,7 +124,9 @@
 
   <div class="flex flex-wrap items-center gap-3">
     {#if !isStudent}
+      <label for="supervision-thesis" class="sr-only">Filter berdasarkan Thesis ID</label>
       <input
+        id="supervision-thesis"
         type="search"
         placeholder="Thesis ID (UUID)…"
         bind:value={thesisId}
@@ -132,7 +134,9 @@
         class="w-full max-w-xs rounded-md border border-st-stroke bg-st-surface px-3 py-2 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
       />
     {/if}
+    <label for="supervision-status" class="sr-only">Filter status bimbingan</label>
     <select
+      id="supervision-status"
       bind:value={status}
       onchange={() => (page = 1)}
       class="w-44 rounded-md border border-st-stroke bg-st-surface px-3 py-2 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"

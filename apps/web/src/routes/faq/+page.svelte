@@ -11,16 +11,20 @@
 </script>
 
 <svelte:head>
-  <title>FAQ — SIMTAS FILKOM</title>
+  <title>Pusat Bantuan — SIMTAS FILKOM</title>
+  <meta
+    name="description"
+    content="Temukan jawaban tentang penggunaan SIMTAS FILKOM, pengajuan judul, bimbingan, dan pemulihan password."
+  />
 </svelte:head>
 
 <div class="simtas-dark flex min-h-screen flex-col">
   <Navbar />
 
-  <main class="flex-1">
+  <main id="main-content" class="flex-1">
     <section class="landing-container py-32 md:py-40">
-      <span class="landing-eyebrow">FAQ</span>
-      <h1 class="landing-heading mt-5 text-3xl md:text-5xl">Pertanyaan yang sering ditanyakan.</h1>
+      <span class="landing-eyebrow">Pusat Bantuan</span>
+      <h1 class="landing-heading mt-5 text-3xl md:text-5xl">Jawaban untuk langkah penting di SIMTAS.</h1>
       <div class="mt-10 max-w-3xl space-y-3">
         {#each FAQ as item}
           <details class="rounded-2xl border border-st-stroke bg-st-surface p-5">

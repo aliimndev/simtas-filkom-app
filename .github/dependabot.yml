@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # Bump the GitHub Actions used in workflows (setup-bun, upload-artifact, ssh-action, ...)
+  #
+  # Note: Dependabot does not yet support bun.lock, so JS dependency updates are
+  # handled manually or via Renovate (which supports bun). Only Actions versions
+  # are automated here.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

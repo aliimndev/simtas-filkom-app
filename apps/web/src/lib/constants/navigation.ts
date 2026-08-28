@@ -34,12 +34,12 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: "Tugas Akhir Skripsi",
     items: [
-      { href: "/thesis", label: "Tugas Akhir Skripsi Saya", icon: FileText, roles: ["mahasiswa"] },
-      { href: "/theses", label: "Daftar Tugas Akhir Skripsi", icon: BookOpen, roles: ["admin_fakultas", "kaprodi"] },
-      { href: "/supervision", label: "Bimbingan", icon: MessagesSquare, roles: ["mahasiswa", "dosen_pembimbing"] },
-      { href: "/documents", label: "Dokumen", icon: FolderOpen, roles: ["mahasiswa", "dosen_pembimbing"] },
+      { href: "/dashboard/thesis", label: "Tugas Akhir Skripsi Saya", icon: FileText, roles: ["mahasiswa"] },
+      { href: "/dashboard/theses", label: "Daftar Tugas Akhir Skripsi", icon: BookOpen, roles: ["admin_fakultas", "kaprodi"] },
+      { href: "/dashboard/supervision", label: "Bimbingan", icon: MessagesSquare, roles: ["mahasiswa", "dosen_pembimbing"] },
+      { href: "/dashboard/documents", label: "Dokumen", icon: FolderOpen, roles: ["mahasiswa", "dosen_pembimbing"] },
       {
-        href: "/title-change-reviews",
+        href: "/dashboard/title-change-reviews",
         label: "Review Perubahan Judul",
         icon: FilePen,
         roles: ["dosen_pembimbing"],
@@ -50,27 +50,27 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "Ujian",
     items: [
       {
-        href: "/seminars",
+        href: "/dashboard/seminars",
         label: "Seminar",
         icon: GraduationCap,
         roles: ["admin_fakultas", "kaprodi", "dosen_penguji", "mahasiswa", "dosen_pembimbing"],
       },
       {
-        href: "/defenses",
+        href: "/dashboard/defenses",
         label: "Sidang",
         icon: ClipboardCheck,
         roles: ["admin_fakultas", "kaprodi", "dosen_penguji", "mahasiswa", "dosen_pembimbing"],
       },
-      { href: "/schedules", label: "Jadwal", icon: CalendarRange, roles: ["admin_fakultas", "kaprodi"] },
+      { href: "/dashboard/schedules", label: "Jadwal", icon: CalendarRange, roles: ["admin_fakultas", "kaprodi"] },
     ],
   },
   {
     title: "Administrasi",
     items: [
-      { href: "/admin/users", label: "Manajemen Pengguna", icon: Users, roles: ["admin_fakultas"] },
-      { href: "/admin/academic-years", label: "Tahun Akademik", icon: CalendarRange, roles: ["admin_fakultas"] },
-      { href: "/admin/audit-logs", label: "Audit Log", icon: ShieldCheck, roles: ["admin_fakultas"] },
-      { href: "/archives", label: "Arsip", icon: Archive, roles: ["admin_fakultas", "kaprodi"] },
+      { href: "/dashboard/admin/users", label: "Manajemen Pengguna", icon: Users, roles: ["admin_fakultas"] },
+      { href: "/dashboard/admin/academic-years", label: "Tahun Akademik", icon: CalendarRange, roles: ["admin_fakultas"] },
+      { href: "/dashboard/admin/audit-logs", label: "Audit Log", icon: ShieldCheck, roles: ["admin_fakultas"] },
+      { href: "/dashboard/archives", label: "Arsip", icon: Archive, roles: ["admin_fakultas", "kaprodi"] },
     ],
   },
 ];

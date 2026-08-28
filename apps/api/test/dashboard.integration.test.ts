@@ -48,7 +48,7 @@ async function seed() {
     semester: "ganjil",
     startDate: "2024-09-01",
     endDate: "2025-01-31",
-    isActive: true,
+    isActive: false,
   } as any);
 
   await db.insert(schema.users).values({

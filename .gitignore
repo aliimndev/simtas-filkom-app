@@ -30,3 +30,21 @@ apps/web/vite.config.ts.timestamp-*.mjs
 Thumbs.db
 .vercel/
 .agents/skills/
+
+# Agent skills / AI tooling (local only, do not push)
+.github/skills/
+.github/agents/
+.github/hooks/
+.agents/
+.impeccable/
+skills-lock.json
+docs/superpowers/
+
+# Local shell scripts are never committed
+*.sh
+*.bash
+*.zsh
+
+# k6 runtime artifacts are generated from the TypeScript sources
+tests/k6/*.js
+tests/k6/sample.pdf

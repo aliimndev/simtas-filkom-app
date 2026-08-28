@@ -78,7 +78,9 @@
         class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-st-muted"
         aria-hidden="true"
       />
+      <label for="archive-search" class="sr-only">Cari arsip berdasarkan judul atau mahasiswa</label>
       <input
+        id="archive-search"
         type="search"
         placeholder="Cari judul / mahasiswa…"
         bind:value={q}

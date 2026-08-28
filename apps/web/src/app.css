@@ -52,7 +52,13 @@
 
   --danger: #dc2626;
   --danger-foreground: #ffffff;
+  --danger-50: #fef2f2;
   --danger-700: #b91c1c;
+  --success: #15803d;
+  --success-50: #f0fdf4;
+  --warning: #b45309;
+  --warning-50: #fffbeb;
+  --secondary-50: #fffbeb;
 
   /* SIMTAS public light editorial identity */
   --st-bg: #f7f8fa;
@@ -103,7 +109,13 @@
 
   --danger: #dc2626;
   --danger-foreground: #ffffff;
+  --danger-50: #450a0a;
   --danger-700: #fca5a5;
+  --success: #4ade80;
+  --success-50: #052e16;
+  --warning: #fbbf24;
+  --warning-50: #451a03;
+  --secondary-50: #451a03;
 
   /* SIMTAS public dark */
   --st-bg: #0f1115;
@@ -149,9 +161,11 @@
   --color-danger-foreground: var(--destructive-foreground);
   --color-danger-700: var(--danger-700);
   --color-danger-50: var(--danger-50);
-  --color-secondary-50: var(--secondary-50);
+  --color-success: var(--success);
   --color-success-50: var(--success-50);
+  --color-warning: var(--warning);
   --color-warning-50: var(--warning-50);
+  --color-secondary-50: var(--secondary-50);
 
   --color-st-bg: var(--st-bg);
   --color-st-surface: var(--st-surface);
@@ -243,6 +257,24 @@ body {
 }
 
 /* Public/editorial surface (ported from @frontend globals.css) */
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: 999px;
+  background: var(--st-text);
+  color: var(--st-bg);
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: transform 150ms ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 .simtas-dark {
   background: var(--st-bg);
   color: var(--st-text);
@@ -264,11 +296,10 @@ body {
   margin-inline: auto;
   padding-inline: 1.5rem;
 }
-.landing-grid-bg {
-  background-image:
-    linear-gradient(to right, rgba(7, 162, 182, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(7, 162, 182, 0.05) 1px, transparent 1px);
-  background-size: 44px 44px;
+.hero-surface {
+  background:
+    radial-gradient(circle at 18% 8%, color-mix(in srgb, var(--st-accent-from) 10%, transparent), transparent 38%),
+    var(--st-surface);
 }
 
 /* Press feedback on public/editorial surfaces (no layout shift). */

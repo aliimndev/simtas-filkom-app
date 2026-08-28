@@ -23,6 +23,84 @@
   let newTitle = $state("");
   let newReason = $state("");
   let titleError = $state<string | null>(null);
+  let submitDialog = $state<HTMLElement>();
+  let cancelDialog = $state<HTMLElement>();
+  let dialogReturnFocus: HTMLElement | null = null;
+
+  function handleDialogKeydown(event: KeyboardEvent, dialog: HTMLElement | undefined, close: () => void) {
+    if (event.key === "Escape") {
+      close();
+      return;
+    }
+    if (event.key !== "Tab" || !dialog) return;
+
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        "a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex='-1'])",
+      ),
+    );
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function restoreDialogFocus() {
+    const target = dialogReturnFocus;
+    dialogReturnFocus = null;
+    requestAnimationFrame(() => target?.focus());
+  }
+
+  function openSubmit() {
+    dialogReturnFocus = document.activeElement as HTMLElement | null;
+    newTitle = "";
+    newReason = "";
+    titleError = null;
+    actionError = null;
+    submitOpen = true;
+  }
+
+  function closeSubmit() {
+    submitOpen = false;
+    restoreDialogFocus();
+  }
+
+  function openCancel(req: any) {
+    dialogReturnFocus = document.activeElement as HTMLElement | null;
+    cancelError = null;
+    cancelTarget = req;
+  }
+
+  function closeCancel() {
+    cancelTarget = null;
+    restoreDialogFocus();
+  }
+
+  $effect(() => {
+    const dialog = submitOpen ? submitDialog : cancelTarget ? cancelDialog : undefined;
+    if (!dialog) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const frame = requestAnimationFrame(() => {
+      const target = submitOpen
+        ? dialog.querySelector<HTMLElement>("#requested-title")
+        : dialog.querySelector<HTMLElement>("button:not([disabled])");
+      target?.focus();
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      document.body.style.overflow = previousOverflow;
+    };
+  });
 
   function errorMessage(err: any, fallback: string): string {
     return err?.error?.message ?? err?.message ?? fallback;
@@ -104,18 +182,6 @@
       !hasPending,
   );
 
-  function openSubmit() {
-    newTitle = "";
-    newReason = "";
-    titleError = null;
-    actionError = null;
-    submitOpen = true;
-  }
-
-  function closeSubmit() {
-    submitOpen = false;
-  }
-
   function validateTitle(value: string): string | null {
     const v = value.trim();
     if (!v) return "Judul baru wajib diisi";
@@ -147,22 +213,13 @@
         const body = await res.json().catch(() => null);
         throw new Error((body as any)?.error?.message ?? "Gagal mengajukan perubahan judul.");
       }
-      submitOpen = false;
+      closeSubmit();
       await loadRequests(thesis.id);
     } catch (e: any) {
       actionError = errorMessage(e, "Gagal mengajukan perubahan judul.");
     } finally {
       submitting = false;
     }
-  }
-
-  function openCancel(req: any) {
-    cancelError = null;
-    cancelTarget = req;
-  }
-
-  function closeCancel() {
-    cancelTarget = null;
   }
 
   async function confirmCancel() {
@@ -175,7 +232,7 @@
         const body = await res.json().catch(() => null);
         throw new Error((body as any)?.error?.message ?? "Gagal membatalkan permintaan.");
       }
-      cancelTarget = null;
+      closeCancel();
       if (thesis?.id) await loadRequests(thesis.id);
     } catch (e: any) {
       cancelError = errorMessage(e, "Gagal membatalkan permintaan.");
@@ -205,8 +262,8 @@
           </button>
         {/if}
         <a
-          href="/thesis/new"
-          class="inline-flex h-9 items-center justify-center rounded-md border border-st-stroke bg-st-surface px-3 text-sm font-medium text-st-text transition-colors hover:bg-st-surface-hi"
+          href="/dashboard/thesis/new"
+          class="inline-flex h-9 items-center justify-center rounded-md border border-st-stroke bg-st-surface px-3 py-2 text-sm font-medium text-st-text transition-colors hover:bg-st-surface-hi"
         >
           Ajukan Judul Baru
         </a>
@@ -235,7 +292,7 @@
           </p>
         </div>
         <a
-          href="/thesis/new"
+          href="/dashboard/thesis/new"
           class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-700"
         >
           Ajukan Judul Skripsi
@@ -391,7 +448,15 @@
 </div>
 
 {#if submitOpen}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="submit-title">
+  <div
+    bind:this={submitDialog}
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    role="dialog"
+    tabindex="-1"
+    aria-modal="true"
+    aria-labelledby="submit-title"
+    onkeydown={(event) => handleDialogKeydown(event, submitDialog, closeSubmit)}
+  >
     <button
       type="button"
       class="absolute inset-0 bg-black/40"
@@ -471,7 +536,15 @@
 {/if}
 
 {#if cancelTarget}
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="cancel-title">
+  <div
+    bind:this={cancelDialog}
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    role="dialog"
+    tabindex="-1"
+    aria-modal="true"
+    aria-labelledby="cancel-title"
+    onkeydown={(event) => handleDialogKeydown(event, cancelDialog, closeCancel)}
+  >
     <button
       type="button"
       class="absolute inset-0 bg-black/40"

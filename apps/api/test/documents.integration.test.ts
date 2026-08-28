@@ -35,7 +35,7 @@ beforeAll(async () => {
     semester: "genap",
     startDate: "2026-01-01",
     endDate: "2026-06-30",
-    isActive: true,
+    isActive: false,
   } as any);
 
   studentId = crypto.randomUUID();

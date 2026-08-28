@@ -1,5 +1,5 @@
 {
   "installCommand": "bun install --frozen-lockfile",
-  "buildCommand": "bun run --cwd apps/web build",
+  "buildCommand": "bun run verify:vercel-env && bun run --cwd apps/web build",
   "outputDirectory": "apps/web/build"
 }

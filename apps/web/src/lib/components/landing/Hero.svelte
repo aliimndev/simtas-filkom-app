@@ -34,10 +34,22 @@
         Satu sistem untuk seluruh perjalanan{' '}
         <span class="accent-text italic md:text-7xl md:leading-[1.1]">Tugas Akhir Skripsi.</span>
       </h1>
+      <p class="mx-auto mt-6 max-w-2xl text-sm leading-7 text-st-muted md:text-base">
+        Kelola pengajuan judul, bimbingan, seminar, sidang, hingga arsip dalam satu alur yang jelas dan terdokumentasi.
+      </p>
+      <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <LandingButton href="/login">Masuk ke Sistem <ArrowRight size={16} /></LandingButton>
+        <a
+          href="/#alur"
+          class="inline-flex h-12 items-center justify-center rounded-full border border-st-stroke bg-st-surface px-6 text-sm font-medium text-st-text transition hover:bg-st-surface-hi"
+        >
+          Lihat alur proses
+        </a>
+      </div>
     </div>
 
     <!-- Decorative product mockup (hidden from assistive tech) -->
-    <div aria-hidden="true" class="landing-grid-bg mt-14 overflow-hidden rounded-3xl border border-st-stroke bg-st-surface shadow-xl shadow-black/5">
+    <div aria-hidden="true" class="hero-surface mt-14 overflow-hidden rounded-3xl border border-st-stroke bg-st-surface shadow-xl shadow-black/5">
       <div class="grid h-full grid-cols-1 text-left lg:grid-cols-[13.5rem_1fr]">
         <aside class="hidden flex-col gap-1 border-r border-st-stroke p-5 lg:flex">
           <div class="mb-4 flex items-center gap-2.5 pl-1">
@@ -91,10 +103,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="pb-20 text-center md:pb-28">
-      <LandingButton href="/login">Masuk ke Sistem <ArrowRight size={16} /></LandingButton>
     </div>
   </div>
 </section>

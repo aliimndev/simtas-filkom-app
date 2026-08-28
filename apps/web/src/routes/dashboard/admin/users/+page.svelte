@@ -173,34 +173,50 @@
         {/if}
 
         <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <input
-            type="text"
-            placeholder="Nama lengkap"
-            bind:value={form.full_name}
-            required
-            class="h-10 rounded-md border border-st-stroke bg-st-bg px-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            bind:value={form.email}
-            required
-            class="h-10 rounded-md border border-st-stroke bg-st-bg px-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          <input
-            type="text"
-            placeholder="NIM / NIDN"
-            bind:value={form.nim_nidn}
-            class="h-10 rounded-md border border-st-stroke bg-st-bg px-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          <select
-            bind:value={form.role}
-            class="h-10 rounded-md border border-st-stroke bg-st-bg px-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {#each ROLE_OPTIONS as r (r.value)}
-              <option value={r.value}>{r.label}</option>
-            {/each}
-          </select>
+          <div>
+            <label for="user-full-name" class="sr-only">Nama lengkap</label>
+            <input
+              id="user-full-name"
+              type="text"
+              placeholder="Nama lengkap"
+              bind:value={form.full_name}
+              required
+              class="h-10 w-full rounded-md border border-st-stroke bg-st-bg px-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+          <div>
+            <label for="user-email" class="sr-only">Email pengguna</label>
+            <input
+              id="user-email"
+              type="email"
+              placeholder="Email"
+              bind:value={form.email}
+              required
+              class="h-10 w-full rounded-md border border-st-stroke bg-st-bg px-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+          <div>
+            <label for="user-nim-nidn" class="sr-only">NIM atau NIDN</label>
+            <input
+              id="user-nim-nidn"
+              type="text"
+              placeholder="NIM / NIDN"
+              bind:value={form.nim_nidn}
+              class="h-10 w-full rounded-md border border-st-stroke bg-st-bg px-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </div>
+          <div>
+            <label for="user-role" class="sr-only">Peran pengguna</label>
+            <select
+              id="user-role"
+              bind:value={form.role}
+              class="h-10 w-full rounded-md border border-st-stroke bg-st-bg px-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {#each ROLE_OPTIONS as r (r.value)}
+                <option value={r.value}>{r.label}</option>
+              {/each}
+            </select>
+          </div>
           <div class="flex gap-2 sm:col-span-2 lg:col-span-3">
             <button
               type="submit"
@@ -231,7 +247,9 @@
   <div class="flex flex-wrap items-center gap-3">
     <div class="relative w-full max-w-xs">
       <Search size={16} class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-st-muted" aria-hidden="true" />
+      <label for="user-search" class="sr-only">Cari pengguna berdasarkan nama, email, atau NIM</label>
       <input
+        id="user-search"
         type="search"
         placeholder="Cari nama / email / NIM…"
         bind:value={q}
@@ -239,7 +257,9 @@
         class="h-10 w-full rounded-md border border-st-stroke bg-st-surface pl-9 pr-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
       />
     </div>
+    <label for="user-role-filter" class="sr-only">Filter berdasarkan peran</label>
     <select
+      id="user-role-filter"
       bind:value={role}
       onchange={() => (page = 1)}
       class="h-10 w-44 rounded-md border border-st-stroke bg-st-surface px-3 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"

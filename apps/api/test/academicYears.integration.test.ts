@@ -34,8 +34,12 @@ const adminTok = await signAccessToken(adminId, "ADMIN_FAKULTAS", 0);
 const mhsTok = await signAccessToken(mhsId, "MAHASISWA", 0);
 
 const createdYearIds: string[] = [];
+let initialActiveYearId: string | undefined;
 
 beforeAll(async () => {
+  const activeYears = await db.select().from(schema.academicYears).where(eq(schema.academicYears.isActive, true));
+  initialActiveYearId = activeYears[0]?.id;
+
   await db.insert(schema.users).values([
     {
       id: adminId,
@@ -59,6 +63,12 @@ afterAll(async () => {
     for (const id of createdYearIds) {
       await db.delete(schema.academicYears).where(eq(schema.academicYears.id, id));
     }
+  }
+  if (initialActiveYearId) {
+    await db
+      .update(schema.academicYears)
+      .set({ isActive: true, updatedAt: new Date() } as any)
+      .where(eq(schema.academicYears.id, initialActiveYearId));
   }
   await db.delete(schema.users).where(eq(schema.users.id, adminId));
   await db.delete(schema.users).where(eq(schema.users.id, mhsId));

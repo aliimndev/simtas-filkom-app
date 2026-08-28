@@ -1,6 +1,6 @@
 const processes = [
-  Bun.spawn(["bun", "--cwd", "apps/api", "run", "dev"], { stdout: "inherit", stderr: "inherit" }),
-  Bun.spawn(["bun", "--cwd", "apps/web", "run", "dev"], { stdout: "inherit", stderr: "inherit" }),
+  Bun.spawn(["bun", "run", "dev"], { cwd: "apps/api", stdout: "inherit", stderr: "inherit" }),
+  Bun.spawn(["bun", "run", "dev"], { cwd: "apps/web", stdout: "inherit", stderr: "inherit" }),
 ];
 
 const shutdown = () => {

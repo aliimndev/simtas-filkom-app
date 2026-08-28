@@ -37,5 +37,12 @@ bun run build
 
 ## Production
 
-The Docker Compose production stack uses Bun images for both application
-services. See [`deploy/README.md`](deploy/README.md).
+The frontend is deployed through Vercel's Git integration:
+
+- Pull requests create Preview Deployments.
+- Production deploys come from the protected `main` branch.
+- GitHub Actions runs the quality gates in `.github/workflows/ci.yml`.
+- Configure `VITE_API_ORIGIN` in Vercel for both Preview and Production environments. Local development can use `VITE_API_ORIGIN=http://localhost:3001` in `.env.local`.
+
+The Docker Compose production stack remains available for the API/VPS deployment.
+See [`deploy/README.md`](deploy/README.md) and [`docs/VERCEL.md`](docs/VERCEL.md).

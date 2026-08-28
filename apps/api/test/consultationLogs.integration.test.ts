@@ -51,7 +51,7 @@ beforeAll(async () => {
 
   const [ay] = await db
     .insert(schema.academicYears)
-    .values({ name: "2026/2027", semester: "ganjil", startDate: "2026-08-01", endDate: "2026-12-31", isActive: true } as any)
+    .values({ name: "2026/2027", semester: "ganjil", startDate: "2026-08-01", endDate: "2026-12-31", isActive: false } as any)
     .returning();
   academicYearId = (ay as any).id;
 

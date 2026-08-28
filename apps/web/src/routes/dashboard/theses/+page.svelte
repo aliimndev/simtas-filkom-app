@@ -54,14 +54,18 @@
   </div>
 
   <div class="flex flex-wrap items-center gap-3">
+    <label for="thesis-search" class="sr-only">Cari judul atau mahasiswa</label>
     <input
+      id="thesis-search"
       type="search"
       placeholder="Cari judul / mahasiswa…"
       bind:value={q}
       oninput={() => (page = 1)}
       class="w-full max-w-xs rounded-md border border-st-stroke bg-st-surface px-3 py-2 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
     />
+    <label for="thesis-status" class="sr-only">Filter status skripsi</label>
     <select
+      id="thesis-status"
       bind:value={status}
       onchange={() => (page = 1)}
       class="w-44 rounded-md border border-st-stroke bg-st-surface px-3 py-2 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
@@ -110,10 +114,10 @@
           </div>
           <div class="flex gap-2">
             {#if t.status === "submitted"}
-              <a href="/theses/{t.id}/review" class="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary-700">Review</a>
+              <a href="/dashboard/theses/{t.id}/review" class="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary-700">Review</a>
             {/if}
             {#if t.status === "approved" || t.status === "in_progress"}
-              <a href="/theses/{t.id}/assign" class="inline-flex h-8 items-center justify-center rounded-md border border-st-stroke bg-st-surface px-3 text-sm font-medium text-st-text hover:bg-st-surface-hi">Atur Pembimbing</a>
+              <a href="/dashboard/theses/{t.id}/assign" class="inline-flex h-8 items-center justify-center rounded-md border border-st-stroke bg-st-surface px-3 text-sm font-medium text-st-text hover:bg-st-surface-hi">Atur Pembimbing</a>
             {/if}
           </div>
         </article>

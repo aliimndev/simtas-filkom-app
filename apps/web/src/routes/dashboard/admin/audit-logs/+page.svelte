@@ -71,7 +71,9 @@
   </div>
 
   <div class="flex flex-wrap items-center gap-3">
+    <label for="audit-action" class="sr-only">Filter aksi audit</label>
     <select
+      id="audit-action"
       bind:value={action}
       onchange={() => (page = 1)}
       class="w-56 rounded-md border border-st-stroke bg-st-surface px-3 py-2 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
