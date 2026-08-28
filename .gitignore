@@ -38,3 +38,9 @@ Thumbs.db
 .vercel
 .env*
 .agents/skills/
+
+# TypeScript rewrite (Phase 1)
+node_modules
+*.tsbuildinfo
+apps/api/.env
+apps/web/.env

@@ -1,0 +1,8 @@
+{
+  "name": "simtas-ts",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": { "dev": "bash scripts/dev.sh" },
+  "devDependencies": { "typescript": "^5.5.0", "@types/bun": "latest" }
+}
