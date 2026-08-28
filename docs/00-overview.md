@@ -15,6 +15,7 @@ thesis, audit log, dan notifikasi email.
 Dokumen berikut merepresentasikan cara kerja dan pekerjaan yang tersisa menuju release:
 
 - [ENGINEERING-WORKFLOW.md](./ENGINEERING-WORKFLOW.md) — workflow engineering A–Z untuk membangun, menguji, merilis, dan mengoperasikan SIMTAS
+- [AGENT-EXECUTION-LOOP.md](./AGENT-EXECUTION-LOOP.md) — protocol agent untuk frontier ticket, self-correction, verification, dan safety stop
 - [ROADMAP.md](./ROADMAP.md) — rencana kerja menuju go-live (berlaku saat ini)
 - [VERCEL.md](./VERCEL.md) — konfigurasi deployment frontend dan pemisahan API
 - [superpowers/plans/2026-07-28-ts-rewrite-cutover-governance.md](./superpowers/plans/2026-07-28-ts-rewrite-cutover-governance.md) — governance cutover dan parity gate
