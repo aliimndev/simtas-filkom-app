@@ -1,0 +1,5 @@
+# Keep the GitHub language breakdown focused on application source.
+* linguist-detectable=false
+
+*.ts linguist-detectable=true linguist-language=TypeScript
+*.svelte linguist-detectable=true linguist-language=Svelte
