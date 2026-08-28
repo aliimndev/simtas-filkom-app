@@ -10,7 +10,7 @@ Each row is a scenario ported from the Go suite (`backend/internal/handler/*_tes
 |---|--------|----------------------|---------------|----------|--------|
 | 1 | auth | login success (valid email + password) | `POST /api/v1/auth/login` | 200 + `{accessToken, refreshToken, user}` with correct role | Green |
 | 2 | auth | login wrong password | `POST /api/v1/auth/login` | 401 `UNAUTHORIZED` | Green |
-| 3 | auth | login unknown email (timing-equalized) | `POST /api/v1/auth/login` | 401 no enumeration leak | Ported |
+| 3 | auth | login unknown email (timing-equalized) | `POST /api/v1/auth/login` | 401 no enumeration leak | Green |
 | 4 | auth | login locked account (locked_until in future) | `POST /api/v1/auth/login` | 423 `LOCKED` | Green |
 | 5 | auth | login lockout after 5 failures (increment + locked_until) | `POST /api/v1/auth/login` | 5th failure → 423, 6th still 423 | Green |
 | 6 | auth | login inactive user (`is_active=false`) | `POST /api/v1/auth/login` | 403 | Green |
@@ -75,6 +75,12 @@ bunx drizzle-kit check --config packages/db/drizzle.config.ts
 ```
 
 All must be green before merge to `develop`.
+
+**Status (Phase 1):** tsc (base + api) ✅, svelte-check ✅, `bun test` (17 passing) ✅.
+`drizzle-kit check` is **deferred**: the schema is an intentional partial mirror (6 of ~20 tables) per the
+walking-skeleton plan, and the installed `drizzle-kit@0.28`/`drizzle-orm@0.36` pair refuses to run `check`
+("Please install latest version of drizzle-orm"). Full introspection via `drizzle-kit pull` happens in Phase N
+when the remaining 14 modules are ported; until then this gate item is a known, documented exception.
 
 ## 5. Links
 

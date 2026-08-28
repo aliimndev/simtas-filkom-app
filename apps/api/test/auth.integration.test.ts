@@ -15,8 +15,17 @@ afterAll(async () => {
   await clearTestUser();
 });
 
+// Each request gets a unique IP so the per-IP rate limiters don't accumulate across
+// tests. The dedicated rate-limit tests below pass an explicit shared xff to prove the limit.
+let seq = 0;
+const req = (path: string, init: Record<string, any> = {}) =>
+  app.request(path, {
+    ...init,
+    headers: { "x-forwarded-for": `parity-${seq++}`, ...(init.headers ?? {}) },
+  });
+
 const login = (body: unknown, headers: Record<string, string> = {}) =>
-  app.request("/api/v1/auth/login", {
+  req("/api/v1/auth/login", {
     method: "POST",
     headers: { "content-type": "application/json", ...headers },
     body: JSON.stringify(body),
@@ -30,10 +39,10 @@ describe("auth parity", () => {
     expect(accessToken).toBeDefined();
     expect(refreshToken).toBeDefined();
 
-    const me = await app.request("/api/v1/auth/me", { headers: { authorization: `Bearer ${accessToken}` } });
+    const me = await req("/api/v1/auth/me", { headers: { authorization: `Bearer ${accessToken}` } });
     expect(me.status).toBe(200);
 
-    const refresh = await app.request("/api/v1/auth/refresh", {
+    const refresh = await req("/api/v1/auth/refresh", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ refreshToken }),
@@ -42,7 +51,7 @@ describe("auth parity", () => {
     const refreshBody = (await refresh.json()) as any;
     expect(refreshBody.accessToken).toBeDefined();
 
-    const logout = await app.request("/api/v1/auth/logout", {
+    const logout = await req("/api/v1/auth/logout", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ refreshToken: refreshBody.refreshToken ?? refreshToken }),
@@ -55,6 +64,11 @@ describe("auth parity", () => {
     expect(res.status).toBe(401);
   });
 
+  it("returns 401 for an unknown email (timing-equalized path runs)", async () => {
+    const res = await login({ email: "definitely-not-here@filkom.ac.id", password: "WrongPass1!" });
+    expect(res.status).toBe(401);
+  });
+
   it("rejects an inactive account with 403", async () => {
     await setTestUserActive(false);
     const res = await login({ email: TEST_USER.email, password: TEST_USER.password });
@@ -63,10 +77,8 @@ describe("auth parity", () => {
   });
 
   it("rejects /me without or with a bad token (401)", async () => {
-    expect((await app.request("/api/v1/auth/me")).status).toBe(401);
-    expect(
-      (await app.request("/api/v1/auth/me", { headers: { authorization: "Bearer not-a-jwt" } })).status,
-    ).toBe(401);
+    expect((await req("/api/v1/auth/me")).status).toBe(401);
+    expect((await req("/api/v1/auth/me", { headers: { authorization: "Bearer not-a-jwt" } })).status).toBe(401);
   });
 
   it("locks after 5 failures and stays locked (423)", async () => {
@@ -82,9 +94,10 @@ describe("auth parity", () => {
 
   it("refreshes once, then reuse of the old token revokes the family (TOKEN_REUSE)", async () => {
     const res = await login({ email: TEST_USER.email, password: TEST_USER.password });
+    expect(res.status).toBe(200);
     const { refreshToken } = (await res.json()) as any;
 
-    const refresh = await app.request("/api/v1/auth/refresh", {
+    const refresh = await req("/api/v1/auth/refresh", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ refreshToken }),
@@ -93,7 +106,7 @@ describe("auth parity", () => {
     const { refreshToken: nextRefresh } = (await refresh.json()) as any;
 
     // Replay the spent token -> family must be revoked.
-    const replay = await app.request("/api/v1/auth/refresh", {
+    const replay = await req("/api/v1/auth/refresh", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ refreshToken }),
@@ -102,7 +115,7 @@ describe("auth parity", () => {
     expect((await replay.json() as any).error.code).toBe("TOKEN_REUSE");
 
     // The rotated token is now also dead (family revoked).
-    const after = await app.request("/api/v1/auth/refresh", {
+    const after = await req("/api/v1/auth/refresh", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ refreshToken: nextRefresh }),
@@ -114,31 +127,34 @@ describe("auth parity", () => {
     const adminTok = await signAccessToken("admin-1", "ADMIN_FAKULTAS", 0);
     const mhsTok = await signAccessToken("mhs-1", "MAHASISWA", 0);
 
-    const ok = await app.request("/api/v1/auth/admin/ping", { headers: { authorization: `Bearer ${adminTok}` } });
+    const ok = await req("/api/v1/auth/admin/ping", { headers: { authorization: `Bearer ${adminTok}` } });
     expect(ok.status).toBe(200);
 
-    const forbidden = await app.request("/api/v1/auth/admin/ping", { headers: { authorization: `Bearer ${mhsTok}` } });
+    const forbidden = await req("/api/v1/auth/admin/ping", { headers: { authorization: `Bearer ${mhsTok}` } });
     expect(forbidden.status).toBe(403);
 
-    const noTok = await app.request("/api/v1/auth/admin/ping");
+    const noTok = await req("/api/v1/auth/admin/ping");
     expect(noTok.status).toBe(401);
   });
 
   it(
     "login rate limit: 429 after 10 requests/min (unknown email avoids lockout)",
     async () => {
-    for (let i = 1; i <= 11; i++) {
-      const res = await login({ email: "nobody@filkom.ac.id", password: "WrongPass1!" }, { "x-forwarded-for": "login-rl" });
-      if (i === 11) expect(res.status).toBe(429);
-      else expect(res.status).toBe(401);
-    }
-  },
+      for (let i = 1; i <= 11; i++) {
+        const res = await login(
+          { email: "nobody@filkom.ac.id", password: "WrongPass1!" },
+          { "x-forwarded-for": "login-rl" },
+        );
+        if (i === 11) expect(res.status).toBe(429);
+        else expect(res.status).toBe(401);
+      }
+    },
     { timeout: 30000 },
   );
 
   it("global rate limit: 429 after 100 requests/min", async () => {
     for (let i = 1; i <= 101; i++) {
-      const res = await app.request("/api/v1/health", { headers: { "x-forwarded-for": "global-rl" } });
+      const res = await req("/api/v1/health", { headers: { "x-forwarded-for": "global-rl" } });
       if (i === 101) expect(res.status).toBe(429);
       else expect(res.status).toBe(200);
     }

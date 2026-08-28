@@ -20,5 +20,5 @@ export function errorHandler(err: any, c: Context) {
     RATE_LIMIT: 429,
     VALIDATION: 400,
   };
-  return c.json({ error: { code, message } } satisfies ApiErrorBody, (status[code] ?? 500) as any);
+  return c.json({ error: { code, message }, requestId: c.get("requestId") } as any, (status[code] ?? 500) as any);
 }

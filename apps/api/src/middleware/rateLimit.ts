@@ -1,7 +1,11 @@
 export const rateLimit = ({ windowMs, max }: { windowMs: number; max: number }) => {
   const hits = new Map<string, { count: number; resetAt: number }>();
   return async (c: any, next: any) => {
-    const ip = c.req.header("x-forwarded-for")?.split(",")[0] ?? "unknown";
+    // ponytail: trust the proxy-provided IP; prefer Cloudflare's header, then x-forwarded-for.
+    const ip =
+      c.req.header("cf-connecting-ip") ??
+      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
+      "unknown";
     const now = Date.now();
     const rec = hits.get(ip);
     if (!rec || now > rec.resetAt) {
