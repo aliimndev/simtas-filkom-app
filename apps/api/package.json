@@ -1,0 +1,19 @@
+{
+  "name": "@sims/api",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "test": "bun test test/",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.5.0",
+    "postgres": "^3.4.4",
+    "jose": "^5.9.0",
+    "bcryptjs": "^2.4.3",
+    "@sims/db": "workspace:*",
+    "@sims/shared": "workspace:*"
+  },
+  "devDependencies": { "@types/bun": "latest", "typescript": "^5.5.0", "@types/bcryptjs": "^2.4.6" }
+}
