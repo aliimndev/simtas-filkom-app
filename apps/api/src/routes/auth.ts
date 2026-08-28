@@ -4,7 +4,7 @@ import { loginSchema } from "@sims/shared";
 import { getDb } from "../db";
 import { loadConfig } from "../config";
 import { schema } from "@sims/db";
-import { issueTokens, rotateRefresh, revokeRefreshFamily, verifyJwt } from "../services/token";
+import { issueTokens, rotateRefresh, revokeRefreshFamily, verifyJwt, blacklistAccessToken } from "../services/token";
 import { verifyPassword } from "../services/password";
 import { rateLimit } from "../middleware/rateLimit";
 import { Authenticate } from "../middleware/auth";
@@ -102,6 +102,12 @@ authRoutes.post("/refresh", async (c) => {
 });
 
 authRoutes.post("/logout", async (c) => {
+  // Revoke the access token (blacklist its jti) — parity with Go logout.
+  const authHeader = c.req.header("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    await blacklistAccessToken(authHeader.slice(7));
+  }
+  // Revoke the refresh-token family so the long-lived session is fully dead.
   const body = await c.req.json().catch(() => null);
   if (body?.refreshToken) {
     const claims = await verifyJwt(body.refreshToken, loadConfig().jwtRefreshSecret);

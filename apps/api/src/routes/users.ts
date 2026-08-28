@@ -81,7 +81,7 @@ usersRoutes.put("/:id", async (c) => {
 });
 
 // Self-profile update (Go: PATCH /users/me). Declared before /:id so it wins the match.
-usersRoutes.patch("/me", async (c) => {
+usersRoutes.patch("/me", async (c: any) => {
   const body = await c.req.json().catch(() => null);
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) return c.json({ error: { code: "VALIDATION", message: "Invalid request" } }, 400);

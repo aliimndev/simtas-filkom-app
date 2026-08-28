@@ -108,7 +108,7 @@ describe("notifications", () => {
   });
 
   it("marks one notification read", async () => {
-    const list: any[] = await (await req(base, { headers: auth(ownerToken) })).json();
+    const list: any[] = (await (await req(base, { headers: auth(ownerToken) })).json()) as any[];
     const id = list[0].id;
     const res = await req(`${base}/${id}/read`, { method: "PATCH", headers: auth(ownerToken) });
     expect(res.status).toBe(200);
@@ -126,7 +126,7 @@ describe("notifications", () => {
   });
 
   it("returns 404 when reading another user's notification (ownership enforced)", async () => {
-    const other: any[] = await (await req(base, { headers: auth(otherToken) })).json();
+    const other: any[] = (await (await req(base, { headers: auth(otherToken) })).json()) as any[];
     const otherId = other[0].id;
     expect((await req(`${base}/${otherId}`, { headers: auth(ownerToken) })).status).toBe(404);
     expect(

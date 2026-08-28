@@ -17,7 +17,7 @@ const actorFrom = (c: any): Actor => ({
 thesesRoutes.use("*", Authenticate());
 
 // GET / — role-scoped list
-thesesRoutes.get("/", async (c) => {
+thesesRoutes.get("/", async (c: any) => {
   try {
     const u = c.get("user");
     const result = await listTheses(u.id, u.role, c.req.query());
@@ -28,7 +28,7 @@ thesesRoutes.get("/", async (c) => {
 });
 
 // GET /:id — role-scoped detail
-thesesRoutes.get("/:id", async (c) => {
+thesesRoutes.get("/:id", async (c: any) => {
   try {
     const u = c.get("user");
     const detail = await getThesis(c.req.param("id"), u.id, u.role);
@@ -45,7 +45,7 @@ const createSchema = z.object({
   fieldOfStudy: z.string().optional(),
   thesisType: z.string().min(1),
 });
-thesesRoutes.post("/", RequireRole("MAHASISWA"), async (c) => {
+thesesRoutes.post("/", RequireRole("MAHASISWA"), async (c: any) => {
   try {
     const body = await c.req.json().catch(() => null);
     const parsed = createSchema.safeParse(body);

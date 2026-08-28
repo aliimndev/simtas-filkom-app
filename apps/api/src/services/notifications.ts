@@ -59,11 +59,12 @@ export async function unreadCount(db: Db, userId: string): Promise<number> {
 
 // MarkRead returns false when no owned row matched (404 in Go).
 export async function markRead(db: Db, userId: string, id: string): Promise<boolean> {
-  const res = await db
+  const updated = await db
     .update(schema.notifications)
     .set({ isRead: true, readAt: new Date() } as any)
-    .where(and(eq(schema.notifications.userId, userId), eq(schema.notifications.id, id)));
-  return (res.rowCount ?? 0) > 0;
+    .where(and(eq(schema.notifications.userId, userId), eq(schema.notifications.id, id)))
+    .returning({ id: schema.notifications.id });
+  return updated.length > 0;
 }
 
 export async function markAllRead(db: Db, userId: string): Promise<void> {

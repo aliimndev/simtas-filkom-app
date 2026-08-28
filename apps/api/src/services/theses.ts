@@ -129,7 +129,13 @@ export async function createThesis(input: any, studentId: string, actor: Actor):
     })
     .returning();
 
-  // notify all kaprodi (non-fatal)
+  // notify all kaprodi (non-fatal). The inserted row only has studentId, so
+  // resolve the student's full name for the notification body.
+  const studentRow = (await db
+    .select({ fullName: schema.users.fullName })
+    .from(schema.users)
+    .where(eq(schema.users.id, studentId)))[0];
+  const studentName = studentRow?.fullName ?? "";
   const kaprodiRole = (await db.select().from(schema.roles).where(eq(schema.roles.name, "kaprodi")))[0];
   if (kaprodiRole) {
     const kap = await db.select().from(schema.users).where(eq(schema.users.roleId, kaprodiRole.id));
@@ -137,7 +143,7 @@ export async function createThesis(input: any, studentId: string, actor: Actor):
       await db.insert(schema.notifications).values({
         userId: k.id,
         title: "Pengajuan Judul Skripsi Baru",
-        message: `${thesis.student?.fullName ?? ""} mengajukan judul skripsi baru.`,
+        message: `${studentName} mengajukan judul skripsi baru.`,
         type: "thesis",
         link: `/theses/${thesis.id}`,
       });

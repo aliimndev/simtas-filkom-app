@@ -16,7 +16,10 @@ export interface JwtClaims extends JWTPayload {
 
 export async function signAccessToken(userId: string, role: string, tokenVersion: number): Promise<string> {
   const cfg = loadConfig();
-  return new SignJWT({ role, tokenVersion })
+  // Access tokens carry a jti so they can be blacklisted on logout (Ticket 4;
+  // parity with Go's GenerateAccessToken which mints a token JTI).
+  const jti = crypto.randomUUID();
+  return new SignJWT({ role, tokenVersion, jti })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(userId)
     .setIssuedAt()
@@ -132,4 +135,22 @@ export async function revokeRefreshFamily(familyId: string): Promise<void> {
   // Without revoked column, deletion is the revoke mechanism for this simplified schema.
   // Full impl would UPDATE revoked=true.
   await db.delete(schema.refreshTokenFamilies).where(eq(schema.refreshTokenFamilies.familyId, familyId));
+}
+
+// Blacklist an access-token jti so it can no longer authenticate (ticket 4,
+// parity with Go logout which revokes the access token's JTI).
+export async function blacklistAccessToken(accessToken: string): Promise<void> {
+  const cfg = loadConfig();
+  const claims = await verifyJwt(accessToken, cfg.jwtAccessSecret);
+  if (!claims?.jti) return;
+  const db = getDb(cfg.databaseUrl);
+  const existing = await db
+    .select({ id: schema.tokenBlacklist.id })
+    .from(schema.tokenBlacklist)
+    .where(eq(schema.tokenBlacklist.tokenJti, claims.jti));
+  if (existing.length > 0) return; // idempotent
+  await db.insert(schema.tokenBlacklist).values({
+    tokenJti: claims.jti,
+    expiresAt: new Date(Date.now() + cfg.accessTtlSec * 1000),
+  });
 }

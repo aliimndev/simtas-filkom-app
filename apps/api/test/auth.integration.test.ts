@@ -2,6 +2,9 @@ import { beforeAll, afterAll, describe, expect, it } from "bun:test";
 import { createApp } from "../src/app";
 import { loadConfig } from "../src/config";
 import { signAccessToken } from "../src/services/token";
+import { getDb } from "../src/db";
+import { eq } from "drizzle-orm";
+import { schema } from "@sims/db";
 import { seedTestUser, clearTestUser, resetTestUserLock, setTestUserActive, TEST_USER } from "./helpers";
 
 // Use temp DB URL if not set
@@ -168,5 +171,45 @@ describe("health parity", () => {
     );
     const res = await badApp.request("/api/v1/health");
     expect(res.status).toBe(503);
+  });
+});
+
+describe("access-token revocation (ticket 4)", () => {
+  it("blacklists the access token on logout so /me returns 401 afterwards", async () => {
+    const res = await login({ email: TEST_USER.email, password: TEST_USER.password });
+    expect(res.status).toBe(200);
+    const { accessToken } = (await res.json()) as any;
+
+    const before = await req("/api/v1/auth/me", { headers: { authorization: `Bearer ${accessToken}` } });
+    expect(before.status).toBe(200);
+
+    const logout = await req("/api/v1/auth/logout", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({}),
+    });
+    expect(logout.status).toBe(204);
+
+    const after = await req("/api/v1/auth/me", { headers: { authorization: `Bearer ${accessToken}` } });
+    expect(after.status).toBe(401);
+    expect((await after.json() as any).error.code).toBe("UNAUTHORIZED");
+  });
+
+  it("rejects a token whose token_version no longer matches the user (session bump)", async () => {
+    const cfg = loadConfig({ ...process.env, NODE_ENV: "test", DATABASE_URL: TEST_DB_URL } as any);
+    const db = getDb(cfg.databaseUrl);
+
+    // seedTestUser writes token_version 0; sign a token claiming version 99.
+    // The real row stays at 0, so Authenticate must reject the mismatch.
+    const staleTok = await signAccessToken("00000000-0000-0000-0000-000000000001", "ADMIN_FAKULTAS", 99);
+    const res = await req("/api/v1/auth/me", { headers: { authorization: `Bearer ${staleTok}` } });
+    expect(res.status).toBe(401);
+    expect((await res.json() as any).error.code).toBe("UNAUTHORIZED");
+
+    // Restore the user's token_version for downstream tests.
+    await db
+      .update(schema.users)
+      .set({ tokenVersion: 0 })
+      .where(eq(schema.users.id, "00000000-0000-0000-0000-000000000001" as any));
   });
 });

@@ -49,3 +49,6 @@ apps/web/.svelte-kit
 apps/web/build
 apps/api/_dbg.ts
 apps/api/dbg_tmp.ts
+apps/api/test/dbg.test.ts
+apps/web/vite.config.ts.timestamp-*.mjs
+*.timestamp-*.mjs

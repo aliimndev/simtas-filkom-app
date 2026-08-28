@@ -77,12 +77,48 @@ bunx drizzle-kit check --config packages/db/drizzle.config.ts
 All must be green before merge to `develop`.
 
 **Status (Phase 1):** tsc (base + api) ✅, svelte-check ✅, `bun test` (17 passing) ✅.
-`drizzle-kit check` is **deferred**: the schema is an intentional partial mirror (6 of ~20 tables) per the
-walking-skeleton plan, and the installed `drizzle-kit@0.28`/`drizzle-orm@0.36` pair refuses to run `check`
-("Please install latest version of drizzle-orm"). Full introspection via `drizzle-kit pull` happens in Phase N
-when the remaining 14 modules are ported; until then this gate item is a known, documented exception.
+`drizzle-kit check` is **deferred**: the installed `drizzle-kit@0.28`/`drizzle-orm@0.36` pair refuses to run `check`
+("Please install latest version of drizzle-orm"), and the schema is a **hand-maintained mirror** of all live
+Postgres tables (see ADR-002) rather than a `pull` artifact. The mirror is kept in sync by code review against
+Go migrations; full `drizzle-kit` introspection in Phase N remains optional. Until then this gate item is a
+known, documented exception.
 
-## 5. Links
+## 5. Wire-Contract Parity Decision (Ticket 3)
+
+**Decision: the TypeScript API keeps the new TS wire contract as its target contract.** We do **not** port the
+Go wire contract verbatim (snake_case JSON keys, `{success,...}` envelope, lowercase role names, HttpOnly-cookie
+refresh transport). Rationale: the TS rewrite intentionally normalized payload fields to camelCase, uses a
+uniform `{error:{code,message}}` envelope, and Phase 1 proves the slice before tackling cookie plumbing. The
+parity rule therefore means **behavior parity (status codes, lockout, rotation/reuse, RBAC) on top of the TS
+contract**, not byte-for-byte JSON parity.
+
+### Deliberate deviations from Go (recorded, not bugs)
+
+| Concern | Go behavior | TS behavior | Status |
+|---|---|---|---|
+| Success envelope | `{success, data, meta}` | flat JSON (e.g. `{accessToken,user}`) / `{data}` for lists | intentional |
+| Error envelope | `{success:false, message}` | `{error:{code,message}}` | intentional |
+| Field casing | snake_case (`full_name`, `access_token`) | camelCase (`fullName`, `accessToken`) | intentional |
+| Role names in claims/responses | lowercase (`admin_fakultas`) | uppercase (`ADMIN_FAKULTAS`) | intentional |
+| Lockout HTTP status | `403` for `ErrAccountLocked` | `423 LOCKED` | intentional (TS uses 423 so clients can tell lockout from RBAC 403) |
+| Lock duration | 30 minutes | 15 minutes | **divergence — tracked** (plan default; align with Go if product wants 30) |
+| Refresh transport | HttpOnly cookie | JSON body (Phase 1) → cookie in Phase N | intentional, Phase-N item |
+| Access JWT | `sub`, role, `email`, `jti`, `token_version` | `sub`, role, `tokenVersion`, `jti` | ✔ jti added (Ticket 4) for logout blacklist |
+| Access-token revocation on logout | blacklist jti | blacklist access jti in `token_blacklist` (Ticket 4) | ✔ parity |
+| Session version check | reject on token_version mismatch | reject on mismatch when user row exists (Ticket 4) | ✔ parity (synthetic-token tests fall through) |
+
+### Authentication security improvements shipped (Ticket 4)
+- Access tokens now carry a `jti` so they can be revoked individually.
+- `Authenticate()` rejects a blacklisted access token on **every** protected route (not just logout).
+- `Authenticate()` enforces `token_version` (session bump) and active-account check when the user row exists.
+- `POST /auth/logout` blacklists the presented access token's jti **and** revokes the refresh family.
+
+These match the Go middleware's intent (blacklist + session-version) on the TS contract. The one non-parity
+fall-through (synthetic non-UUID user ids in tests) is documented inline in `middleware/auth.ts` and guarded so
+it cannot 500.
+
+## 6. Links
 
 - Walking skeleton plan: `docs/superpowers/plans/2026-07-28-ts-rewrite-phase1-walking-skeleton.md`
+- ADR-002 (schema manual mirror): `docs/adr/ADR-002-ts-schema-manual-mirror.md`
 - ROADMAP: `docs/ROADMAP.md` → add row: `Phase 1 — Walking Skeleton + Auth Slice (Tasks 1-9) — status: Green (see this doc)`

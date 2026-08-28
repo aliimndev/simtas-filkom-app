@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
 import { getDb } from "../db";
 import { loadConfig } from "../config";
 import { schema } from "@sims/db";
@@ -33,7 +34,7 @@ passwordRoutes.post("/forgot", async (c) => {
 
   // Anti-enumeration: always 200; only when the email exists do we mint a token + email log.
   if (users[0]) {
-    const token = crypto.randomBytes(32).toString("hex");
+    const token = randomBytes(32).toString("hex");
     await d.insert(schema.passwordResetTokens).values({
       userId: users[0].id,
       token,
