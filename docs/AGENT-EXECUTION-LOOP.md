@@ -4,6 +4,29 @@ Dokumen ini adalah protocol eksekusi untuk AI agent. `docs/ENGINEERING-WORKFLOW.
 
 ## 1. Cara menjalankan
 
+### Shorthand maintainer: `continue job`
+
+Jika maintainer hanya mengirim:
+
+```text
+continue job
+```
+
+agent harus otomatis:
+
+1. membaca `AGENTS.md`, `CONTEXT.md`, `PRODUCT.md`, `docs/ENGINEERING-WORKFLOW.md`, dan dokumen ini;
+2. menemukan map Wayfinder terbuka untuk pekerjaan SIMTAS;
+3. mencari child issue frontier pertama yang berlabel `ready-for-agent`, tidak terblokir, dan belum di-claim;
+4. jika frontier memerlukan keputusan manusia, menanyakan **satu pertanyaan keputusan saja**;
+5. jika frontier siap dikerjakan, meng-claim dan menjalankan execution loop sampai selesai atau safety stop;
+6. menyimpan evidence dan status di GitHub Issue agar invocation berikutnya dapat melanjutkan tanpa konteks manual.
+
+Agent tidak boleh meminta maintainer mengulang nomor issue, scope, atau rencana yang sudah ada di map/issue. Agent hanya meminta input jika memang ada keputusan HITL, akses, secret, atau safety stop yang belum tersedia.
+
+Jika tidak ada map terbuka, agent mencari issue `ready-for-agent` paling relevan berdasarkan dependency dan roadmap. Jika tidak ada ticket yang siap, agent melaporkan blocker dan tidak mengarang pekerjaan baru.
+
+### Invocation lengkap (opsional)
+
 AI agent tidak berjalan sebagai daemon otomatis setelah satu jawaban. Jalankan setiap session dengan instruksi eksplisit berikut:
 
 ```text
