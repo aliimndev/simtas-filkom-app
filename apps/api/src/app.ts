@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Config } from "./config";
 import { getDb } from "./db";
+import { authRoutes } from "./routes/auth";
+import { meRoutes } from "./routes/me";
 
 export function createApp(cfg: Config) {
   const app = new Hono();
@@ -33,6 +35,9 @@ export function createApp(cfg: Config) {
       }
     }),
   );
+
+  app.route("/api/v1/auth", authRoutes);
+  app.route("/api/v1/auth", meRoutes);
 
   return app;
 }
