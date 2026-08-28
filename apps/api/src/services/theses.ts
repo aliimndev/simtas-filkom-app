@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { getDb } from "../db";
 import { loadConfig } from "../config";
 import { schema } from "@sims/db";
@@ -78,6 +79,11 @@ async function getDetail(db: any, thesis: any): Promise<ThesisDetail> {
   };
 }
 
+function validIp(value?: string | null): string | null {
+  const candidate = value?.split(",")[0]?.trim();
+  return candidate && isIP(candidate) ? candidate : null;
+}
+
 async function logAudit(db: any, actor: Actor, action: string, entityId: string, oldValue?: any, newValue?: any) {
   await db.insert(schema.auditLogs).values({
     userId: actor.userId,
@@ -86,7 +92,7 @@ async function logAudit(db: any, actor: Actor, action: string, entityId: string,
     entityId,
     oldValue: oldValue ?? null,
     newValue: newValue ?? null,
-    ipAddress: actor.ipAddress || null,
+    ipAddress: validIp(actor.ipAddress),
     userAgent: actor.userAgent || null,
   });
 }

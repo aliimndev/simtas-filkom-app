@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { Archive, CalendarCheck, FileText, MessagesSquare, SearchCheck, UserCheck, type LucideIcon } from "lucide-svelte";
+  import { Archive, CalendarCheck, FileText, MessagesSquare, SearchCheck, UserCheck } from "lucide-svelte";
+
+  type IconComponent = typeof FileText;
   import Reveal from "./Reveal.svelte";
 
-  const STAGES: { step: string; title: string; desc: string; icon: LucideIcon; span: string }[] = [
+  const STAGES: { step: string; title: string; desc: string; icon: IconComponent; span: string }[] = [
     { step: "01", title: "Pengajuan Judul", desc: "Mahasiswa mengajukan judul Tugas Akhir Skripsi secara digital.", icon: FileText, span: "lg:col-span-4" },
     { step: "02", title: "Review Judul", desc: "Kaprodi menyetujui atau menolak beserta catatan.", icon: SearchCheck, span: "lg:col-span-2" },
     { step: "03", title: "Penugasan Pembimbing", desc: "Dosen pembimbing ditetapkan untuk mendampingi.", icon: UserCheck, span: "lg:col-span-2" },

@@ -95,11 +95,7 @@ const otherTok = () => signAccessToken(otherStudentId, "MAHASISWA", 0);
 
 const longTitle =
   "Analisis dan implementasi sistem pendukung keputusan berbasis metode profile matching untuk seleksi beasiswa mahasiswa";
-const longAbstract =
-  "Abstrak penelitian ini membahas tentang perancangan dan implementasi sebuah sistem yang dapat membantu pihak " +
-  "kampus dalam menyeleksi penerima beasiswa secara lebih objektif dan terukur dengan menggunakan metode profile " +
-  "matching serta berbagai kriteria penilaian yang telah ditetapkan oleh panitia beasiswa setiap periode penerimaan " +
-  "mahasiswa baru di lingkungan fakultas ilmu komputer secara konsisten dan dapat dipertanggungjawabkan dengan baik.";
+const longAbstract = Array(110).fill("Abstrak penelitian ini menjelaskan perancangan implementasi evaluasi sistem informasi akademik secara terukur").join(" ");
 
 describe("theses integration", () => {
   let thesisId: string;

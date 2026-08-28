@@ -1,16 +1,36 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { sql } from "drizzle-orm";
-import type { Config } from "./config";
+import { setRuntimeConfig, type Config } from "./config";
 import { getDb } from "./db";
 import { authRoutes } from "./routes/auth";
 import { meRoutes } from "./routes/me";
+import { passwordRoutes } from "./routes/password";
+import { usersRoutes } from "./routes/users";
+import { rolesRoutes } from "./routes/roles";
+import { academicYearsRoutes } from "./routes/academicYears";
+import { thesesRoutes } from "./routes/theses";
+import { documentsRoutes } from "./routes/documents";
+import { titleChangeRequestsRoutes } from "./routes/titleChangeRequests";
+import { consultationLogsRoutes } from "./routes/consultationLogs";
+import { dashboardRoutes } from "./routes/dashboard";
+import { notificationsRoutes } from "./routes/notifications";
+import { auditLogsRoutes } from "./routes/auditLogs";
+import { emailLogsRoutes } from "./routes/emailLogs";
 import { rateLimit } from "./middleware/rateLimit";
 import { errorHandler } from "./middleware/error";
 import { requestId, logger } from "./middleware/logger";
 
 export function createApp(cfg: Config) {
+  setRuntimeConfig(cfg);
   const app = new Hono();
+
+  // Keep the legacy loadConfig() callers aligned with this app instance even when
+  // multiple app instances are created in the same process (for example in tests).
+  app.use("*", async (_c, next) => {
+    setRuntimeConfig(cfg);
+    await next();
+  });
 
   app.onError(errorHandler);
   app.use("*", requestId);
@@ -47,6 +67,18 @@ export function createApp(cfg: Config) {
 
   app.route("/api/v1/auth", authRoutes);
   app.route("/api/v1/auth", meRoutes);
+  app.route("/api/v1/auth/password", passwordRoutes);
+  app.route("/api/v1/users", usersRoutes);
+  app.route("/api/v1/roles", rolesRoutes);
+  app.route("/api/v1/academic-years", academicYearsRoutes);
+  app.route("/api/v1/theses", thesesRoutes);
+  app.route("/api/v1/documents", documentsRoutes);
+  app.route("/api/v1/title-change-requests", titleChangeRequestsRoutes);
+  app.route("/api/v1/consultation-logs", consultationLogsRoutes);
+  app.route("/api/v1/dashboard", dashboardRoutes);
+  app.route("/api/v1/notifications", notificationsRoutes);
+  app.route("/api/v1/audit-logs", auditLogsRoutes);
+  app.route("/api/v1/email-logs", emailLogsRoutes);
 
   return app;
 }

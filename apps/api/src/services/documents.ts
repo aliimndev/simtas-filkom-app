@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { eq, and, desc, sql, isNull } from "drizzle-orm";
 import { getDb } from "../db";
 import { loadConfig } from "../config";
@@ -83,6 +84,11 @@ function toDetail(d: any): DocumentDetail {
   };
 }
 
+function validIp(value?: string | null): string | null {
+  const candidate = value?.split(",")[0]?.trim();
+  return candidate && isIP(candidate) ? candidate : null;
+}
+
 async function audit(params: {
   userId: string | null;
   action: string;
@@ -101,7 +107,7 @@ async function audit(params: {
     entityId: params.entityId,
     newValue: params.newValue ?? null,
     oldValue: params.oldValue ?? null,
-    ipAddress: (params.ipAddress ?? null) as any,
+    ipAddress: validIp(params.ipAddress),
     userAgent: params.userAgent ?? null,
   } as any);
 }
@@ -246,7 +252,7 @@ export async function upload(input: UploadInput): Promise<DocumentDetail> {
     action: "document_uploaded",
     entityId: doc.id,
     newValue: { document_type: documentType, version, file_name: input.fileName },
-    ipAddress: input.actor.ipAddress,
+    ipAddress: validIp(input.actor.ipAddress),
     userAgent: input.actor.userAgent,
   });
 
@@ -341,7 +347,7 @@ export async function review(input: ReviewInput): Promise<DocumentDetail> {
     entityId: doc.id,
     oldValue: { status: PENDING_REVIEW },
     newValue: { status, notes: input.notes ?? null },
-    ipAddress: input.actor.ipAddress,
+    ipAddress: validIp(input.actor.ipAddress),
     userAgent: input.actor.userAgent,
   });
 

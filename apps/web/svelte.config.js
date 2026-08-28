@@ -6,6 +6,7 @@ export default {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter({ fallback: "index.html" }),
+    prerender: { handleUnseenRoutes: "ignore" },
     alias: {
       $lib: "./src/lib",
       "@sims/api": "../api/src/index.ts",

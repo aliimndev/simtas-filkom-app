@@ -14,9 +14,9 @@ export interface NotificationDetail {
   message: string;
   type: string;
   link: string | null;
-  isRead: boolean;
-  readAt: string | null;
-  createdAt: string;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
 }
 
 // ponytail: Go clamps limit to [1,100] with default 20; mirror it.
@@ -81,8 +81,8 @@ function toDetail(n: any): NotificationDetail {
     message: n.message,
     type: n.type,
     link: n.link ?? null,
-    isRead: Boolean(n.isRead),
-    readAt: n.readAt ? new Date(n.readAt).toISOString() : null,
-    createdAt: n.createdAt ? new Date(n.createdAt).toISOString() : "",
+    is_read: Boolean(n.isRead),
+    read_at: n.readAt ? new Date(n.readAt).toISOString() : null,
+    created_at: n.createdAt ? new Date(n.createdAt).toISOString() : "",
   };
 }

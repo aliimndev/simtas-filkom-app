@@ -6,7 +6,7 @@ import { schema } from "@sims/db";
 import { Authenticate } from "../middleware/auth";
 
 export const meRoutes = new Hono();
-meRoutes.use("*", Authenticate());
+meRoutes.use("/me", Authenticate());
 meRoutes.get("/me", async (c: any) => {
   const u = c.get("user") as any;
   const db = getDb(loadConfig().databaseUrl);

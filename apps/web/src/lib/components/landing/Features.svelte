@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { Archive, Bell, CalendarCheck, FileText, GraduationCap, LayoutDashboard, MessagesSquare, ShieldCheck, UserCheck, Users, type LucideIcon } from "lucide-svelte";
+  import { Archive, Bell, CalendarCheck, FileText, GraduationCap, LayoutDashboard, MessagesSquare, ShieldCheck, UserCheck, Users } from "lucide-svelte";
+
+  type IconComponent = typeof FileText;
   import Reveal from "./Reveal.svelte";
   import NumberTicker from "./NumberTicker.svelte";
 
-  const FEATURES: { icon: LucideIcon; title: string; desc: string }[] = [
+  const FEATURES: { icon: IconComponent; title: string; desc: string }[] = [
     { icon: FileText, title: "Pengajuan Judul", desc: "Ajukan judul dan dapatkan review dari kaprodi secara digital." },
     { icon: MessagesSquare, title: "Bimbingan Online", desc: "Catat log bimbingan dan menunggu validasi dosen pembimbing." },
     { icon: CalendarCheck, title: "Seminar & Sidang", desc: "Penjadwalan, penguji, dan penilaian dalam satu alur." },
@@ -12,7 +14,7 @@
     { icon: Bell, title: "Notifikasi Email", desc: "Pemberitahuan penting terkirim ke pemangku kepentingan." },
   ];
 
-  const ROLES: { icon: LucideIcon; title: string }[] = [
+  const ROLES: { icon: IconComponent; title: string }[] = [
     { icon: GraduationCap, title: "Mahasiswa" },
     { icon: UserCheck, title: "Dosen Pembimbing" },
     { icon: Users, title: "Dosen Penguji" },

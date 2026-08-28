@@ -14,8 +14,8 @@
   let scrolled = $state(false);
   let activeSection = $state<string | null>(null);
   let progress = $state(0);
-  let menuButton: HTMLButtonElement;
-  let mobileNav: HTMLElement;
+  let menuButton = $state<HTMLButtonElement>();
+  let mobileNav = $state<HTMLElement>();
 
   const loggedIn = $derived(!!$auth.accessToken);
 

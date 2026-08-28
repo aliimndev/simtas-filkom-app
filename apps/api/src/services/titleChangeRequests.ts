@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import { eq, and, desc } from "drizzle-orm";
 import { getDb } from "../db";
 import { loadConfig } from "../config";
@@ -43,6 +44,11 @@ function validateTitleChange(title: string): void {
   if (title.length > 500) throw ErrTitleChangeTitleTooLong();
 }
 
+function validIp(value?: string | null): string | null {
+  const candidate = value?.split(",")[0]?.trim();
+  return candidate && isIP(candidate) ? candidate : null;
+}
+
 async function logAudit(
   db: Db,
   actor: Actor,
@@ -58,7 +64,7 @@ async function logAudit(
     entityId,
     oldValue: oldValue ?? null,
     newValue: newValue ?? null,
-    ipAddress: (actor.ipAddress ?? null) as any,
+    ipAddress: validIp(actor.ipAddress),
     userAgent: actor.userAgent ?? null,
   });
 }

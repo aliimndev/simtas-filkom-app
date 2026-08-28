@@ -1,4 +1,4 @@
-import { and, desc, eq, sql, count } from "drizzle-orm";
+import { and, desc, eq, sql, count, inArray } from "drizzle-orm";
 import { getDb } from "../db";
 import { loadConfig } from "../config";
 import { schema } from "@sims/db";
@@ -122,7 +122,7 @@ async function toDetail(rows: any[]) {
     const users = await db()
       .select({ id: schema.users.id, fullName: schema.users.fullName })
       .from(schema.users)
-      .where(sql`${schema.users.id} = ANY(${list}::uuid[])`);
+      .where(inArray(schema.users.id, list));
     for (const u of users) userMap.set(u.id, u);
   }
   return rows.map((r) => ({
