@@ -11,5 +11,5 @@
     "types": ["bun"],
     "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["frontend", "backend", "node_modules", "docs", ".git"]
+  "exclude": ["frontend", "backend", "node_modules", "docs", ".git", "apps/web"]
 }
