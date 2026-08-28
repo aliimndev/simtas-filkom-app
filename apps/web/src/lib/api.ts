@@ -11,7 +11,9 @@ const apiFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Respons
   return fetch(input, { ...init, headers });
 };
 
+const apiOrigin = import.meta.env.VITE_API_ORIGIN || (import.meta.env.DEV ? "http://localhost:3001" : "");
+
 // ponytail: typed hc client — cast to any to keep the existing Svelte route calls concise.
-export const api: any = hc<AppType>(import.meta.env.VITE_API_ORIGIN ?? "http://localhost:3001", {
+export const api: any = hc<AppType>(apiOrigin, {
   fetch: apiFetch as typeof fetch,
 });

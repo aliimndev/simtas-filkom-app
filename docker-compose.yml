@@ -4,27 +4,43 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: simtas_filkom
+      POSTGRES_DB: simtas
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d simtas"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  backend:
-    build: ./backend
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     ports:
-      - "8080:8080"
-    env_file: ./backend/.env
+      - "3001:3001"
     environment:
-      DB_HOST: postgres
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/simtas
+      JWT_ACCESS_SECRET: dev-access-secret
+      JWT_REFRESH_SECRET: dev-refresh-secret
+      PORT: 3001
+      CORS_ORIGIN: http://localhost:5173
     depends_on:
       postgres:
         condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_ORIGIN: ""
+    ports:
+      - "5173:4173"
+    depends_on:
+      - api
 
 volumes:
   postgres_data:

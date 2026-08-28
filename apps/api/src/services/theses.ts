@@ -13,7 +13,7 @@ export class ThesesError extends Error {
 
 const db_ = () => getDb(loadConfig().databaseUrl);
 
-// ── state machine (mirror backend/pkg/statemachine/thesis_state.go) ──
+// ── thesis state machine ──
 const VALID_TRANSITIONS: Record<string, string[]> = {
   submitted: ["approved", "rejected", "cancelled"],
   approved: ["in_progress", "cancelled"],

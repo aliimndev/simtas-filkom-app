@@ -8,9 +8,9 @@
 ## Ringkasan
 
 SIMTAS FILKOM adalah sistem manajemen tugas akhir/skripsi berbasis web untuk
-Fakultas Ilmu Komputer Universitas Djuanda. Aplikasi sudah dibangun dengan
-Clean Architecture (Go + Gin + PostgreSQL) di backend dan Next.js di frontend,
-dengan 5 role user, state machine untuk alur thesis, audit log, dan notifikasi email.
+Fakultas Ilmu Komputer Universitas Djuanda. Aplikasi menggunakan Hono + Bun di
+API dan SvelteKit di frontend, dengan 5 role user, state machine untuk alur
+thesis, audit log, dan notifikasi email.
 
 Dokumen berikut merepresentasikan pekerjaan yang tersisa menuju release:
 
@@ -26,8 +26,8 @@ Dokumen berikut merepresentasikan pekerjaan yang tersisa menuju release:
 
 | Layer | Teknologi |
 |-------|-----------|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query, React Hook Form, Zod |
-| Backend | Go 1.24+, Gin Framework, GORM, JWT |
+| Frontend | SvelteKit, Svelte, TypeScript, Tailwind CSS |
+| Backend | Hono, Bun, TypeScript, JWT |
 | Database | PostgreSQL 16 |
 | Storage | S3-compatible object storage (Supabase Storage / swappable via `StorageService`) |
 | Email | Resend |

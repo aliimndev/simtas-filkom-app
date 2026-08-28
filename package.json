@@ -2,7 +2,14 @@
   "name": "simtas-ts",
   "private": true,
   "type": "module",
+  "packageManager": "bun@1.3.14",
   "workspaces": ["apps/*", "packages/*"],
-  "scripts": { "dev": "bash scripts/dev.sh" },
+  "scripts": {
+    "dev": "bun scripts/dev.ts",
+    "build": "bun run --cwd apps/web build",
+    "check": "bun run --cwd apps/web check",
+    "test": "bun run --cwd apps/api test && bun run --cwd apps/web test && bun run --cwd packages/shared test",
+    "typecheck": "bun run --cwd apps/api typecheck"
+  },
   "devDependencies": { "typescript": "^5.5.0", "@types/bun": "latest" }
 }

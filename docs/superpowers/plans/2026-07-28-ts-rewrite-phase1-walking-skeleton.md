@@ -837,7 +837,7 @@ git commit -m "feat(api): JWT issue + refresh-token family rotation (Phase 1)"
 
 **Consumes:** Task 5 `issueTokens`/`rotateRefresh`/`revokeRefreshFamily`/`verifyJwt`; Task 3 `loginSchema`/`loginSuccessSchema`/`tokenPairSchema`; Task 4 `getDb`; Task 4 placeholder `errorStub` (replaced by real error renderer in Task 7 — for now throw plain `HTTPException`-style objects or return `c.json` directly). **Produces:** handlers for `/api/v1/auth/{login,refresh,logout}` and `GET /api/v1/auth/me`.
 
-**Done when:** `cd apps/api && bun test test/auth.integration.test.ts` passes against the real seeded dev DB, including the lockout and RBAC-matrix scenarios copied from `backend/internal/handler/*_test.go`.
+- [ ] **API integration tests** in `apps/api/test` run against a seeded PostgreSQL database.
 
 - [ ] **Step 1: Create `apps/api/src/services/password.ts`** (bcrypt, wire-compatible with Go)
 

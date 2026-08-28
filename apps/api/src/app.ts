@@ -37,6 +37,10 @@ export function createApp(cfg: Config) {
   app.use("*", logger);
   app.use("*", rateLimit({ windowMs: 60_000, max: 100 }));
 
+  app.get("/metrics", (c) =>
+    c.text("# HELP simtas_api_up Whether the SIMTAS API is available.\n# TYPE simtas_api_up gauge\nsimtas_api_up 1\n"),
+  );
+
   // CORS via native middleware (ponytail: native). Allowlist supports comma-separated CORS_ORIGIN in prod.
   // Unknown origin => no ACAO header (never fall back to a allowlisted origin — that leaks cross-origin).
   const allowlist = cfg.corsOrigin.split(",").map((s) => s.trim());

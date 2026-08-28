@@ -1,9 +1,0 @@
-{{define "content"}}
-<h1 style="margin:0 0 12px 0;font-size:20px;color:#17191d;">Hasil Sidang Skripsi</h1>
-{{if .Greeting}}<p style="margin:0 0 16px 0;font-size:14px;color:#4b5563;line-height:1.7;">{{.Greeting}}</p>{{end}}
-{{if .Message}}<p style="margin:0 0 16px 0;font-size:14px;color:#4b5563;line-height:1.7;">{{.Message}}</p>{{end}}
-{{template "statusBadge" .}}
-{{template "detailTable" .}}
-{{if .Notes}}<p style="margin:16px 0 0 0;font-size:13px;color:#7c8792;">{{.Notes}}</p>{{end}}
-{{template "ctaButton" .}}
-{{end}}

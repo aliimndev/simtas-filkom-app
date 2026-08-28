@@ -2,53 +2,31 @@
 .env
 .env.local
 .env.production
-
-# Go
-backend/vendor/
-backend/.env
-backend/coverage.out
-backend/coverage.html
-backend/seed
-backend/internal/handler/tmp/
-# Local dev data (uploads + throwaway Postgres data dir)
-backend/tmp/
-
-# Node
-node_modules/
-.next/
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-frontend/.env.local
-frontend/coverage/
-
-# IDE
-.vscode/
-.idea/
-.zcode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-.vercel
 .env*
-.agents/skills/
 
-# TypeScript rewrite (Phase 1)
-node_modules
+# Dependencies and generated output
+node_modules/
+.svelte-kit/
+apps/web/build/
 *.tsbuildinfo
+*.log
+
+# Local application data
 apps/api/.env
 apps/web/.env
-.svelte-kit
-apps/web/.svelte-kit
-apps/web/build
 apps/api/_dbg.ts
 apps/api/dbg_tmp.ts
 apps/api/test/dbg.test.ts
 apps/web/vite.config.ts.timestamp-*.mjs
 *.timestamp-*.mjs
+
+# IDE / OS
+.vscode/
+.idea/
+.zcode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+.vercel/
+.agents/skills/

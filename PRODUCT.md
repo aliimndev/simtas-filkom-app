@@ -31,7 +31,8 @@ A single centralized, digital, end-to-end platform that binds all five stakehold
 - Indonesia-language product (Bahasa Indonesia is the sole interface language in v1.0).
 - Runs in a campus environment; data is per-student and must remain under faculty control.
 - Deployment targeted for on-campus production (see `infrastructure/`, `deploy/`, and `docs/PRODUCTION-READINESS-REVIEW.md`).
-- Backend Go (Gin, GORM, Clean Architecture) + PostgreSQL 16, with Supabase Storage for PDF/archive objects, Resend for email notifications, and JWT auth. Frontend Next.js + React + TypeScript + Tailwind CSS v4.
+- Backend | Hono + Bun + TypeScript + PostgreSQL
+- Frontend | SvelteKit + Svelte + TypeScript + Tailwind CSS
 - API is versioned at `/api/v1/...` and documented with Swagger/OpenAPI.
 - Seven core email-trigger events notify relevant stakeholders; audit log records all critical actions.
 
@@ -67,8 +68,9 @@ Undecided (recorded, not invented): exact production storage vendor confirmation
 - `PRD.md` — full product requirements document (workflows, scope, metrics, roles).
 - `README.md` — stack, architecture, and setup documentation.
 - `docs/` — production readiness review, release roadmap, and operational runbook.
-- `frontend/` — implemented Next.js interface (see `frontend/DESIGN.md` for the incumbent visual system) with working routes for all roles.
-- `backend/` — Go API implementing the documented workflows.
+- `apps/web/` — SvelteKit interface with working routes for all roles.
+- `apps/api/` — Hono API implementing the documented workflows.
+- `packages/db/` — Drizzle schema and SQL migrations.
 
 State of proof: no customer testimonials, benchmarks, or press exist; future work must not fabricate them.
 

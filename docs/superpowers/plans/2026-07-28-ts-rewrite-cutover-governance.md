@@ -4,7 +4,7 @@
 
 ## 1. Parity Checklist
 
-Each row is a scenario ported from the Go suite (`backend/internal/handler/*_test.go` and `backend/internal/usecase/*_test.go`). `Status`: Pending / Ported / Green (CI green on seeded DB).
+Each row is a scenario ported into the TypeScript API suite (`apps/api/test`). `Status`: Pending / Ported / Green (CI green on seeded DB).
 
 | # | Module | Scenario (Go source) | Route / Slice | Expected | Status |
 |---|--------|----------------------|---------------|----------|--------|

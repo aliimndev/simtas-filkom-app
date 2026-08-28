@@ -4,9 +4,8 @@ import { getDb } from "../db";
 import { loadConfig } from "../config";
 import { schema } from "@sims/db";
 
-// Port of Go document module (backend/internal/usecase/document_usecase.go +
-// document_repository_impl.go). Faithful on business logic; storage is stubbed
-// (ponytail: no object store — callers pass file_url directly).
+// Document service business rules are implemented in this TypeScript API;
+// storage remains injectable so an object store can be added without changing routes.
 
 const DOC_TYPES = [
   "proposal",

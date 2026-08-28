@@ -11,5 +11,10 @@ export default defineConfig({
       preprocess: svelteConfig.preprocess,
     }),
   ],
-  server: { port: 5173 },
+  server: {
+    port: 5173,
+    proxy: {
+      "/api": "http://localhost:3001",
+    },
+  },
 });
