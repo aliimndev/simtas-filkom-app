@@ -46,3 +46,6 @@ apps/api/.env
 apps/web/.env
 .svelte-kit
 apps/web/.svelte-kit
+apps/web/build
+apps/api/_dbg.ts
+apps/api/dbg_tmp.ts

@@ -1,0 +1,12 @@
+// vite.config.ts
+import { sveltekit } from "file:///home/alee/Destop/skirpsi/simtas-filkom-app/node_modules/.bun/@sveltejs+kit@2.70.3+aee4136817760883/node_modules/@sveltejs/kit/src/exports/vite/index.js";
+import { defineConfig } from "file:///home/alee/Destop/skirpsi/simtas-filkom-app/node_modules/.bun/vite@5.4.21+3469d0971ff4d2ae/node_modules/vite/dist/node/index.js";
+import tailwindcss from "file:///home/alee/Destop/skirpsi/simtas-filkom-app/node_modules/.bun/@tailwindcss+vite@4.3.3+d858d373d7ea5788/node_modules/@tailwindcss/vite/dist/index.mjs";
+var vite_config_default = defineConfig({
+  plugins: [tailwindcss(), sveltekit()],
+  server: { port: 5173 }
+});
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcudHMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImNvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9kaXJuYW1lID0gXCIvaG9tZS9hbGVlL0Rlc3RvcC9za2lycHNpL3NpbXRhcy1maWxrb20tYXBwL2FwcHMvd2ViXCI7Y29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2ZpbGVuYW1lID0gXCIvaG9tZS9hbGVlL0Rlc3RvcC9za2lycHNpL3NpbXRhcy1maWxrb20tYXBwL2FwcHMvd2ViL3ZpdGUuY29uZmlnLnRzXCI7Y29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2ltcG9ydF9tZXRhX3VybCA9IFwiZmlsZTovLy9ob21lL2FsZWUvRGVzdG9wL3NraXJwc2kvc2ltdGFzLWZpbGtvbS1hcHAvYXBwcy93ZWIvdml0ZS5jb25maWcudHNcIjtpbXBvcnQgeyBzdmVsdGVraXQgfSBmcm9tIFwiQHN2ZWx0ZWpzL2tpdC92aXRlXCI7XG5pbXBvcnQgeyBkZWZpbmVDb25maWcgfSBmcm9tIFwidml0ZVwiO1xuaW1wb3J0IHRhaWx3aW5kY3NzIGZyb20gXCJAdGFpbHdpbmRjc3Mvdml0ZVwiO1xuXG5leHBvcnQgZGVmYXVsdCBkZWZpbmVDb25maWcoe1xuICBwbHVnaW5zOiBbdGFpbHdpbmRjc3MoKSwgc3ZlbHRla2l0KCldLFxuICBzZXJ2ZXI6IHsgcG9ydDogNTE3MyB9LFxufSk7XG4iXSwKICAibWFwcGluZ3MiOiAiO0FBQThVLFNBQVMsaUJBQWlCO0FBQ3hXLFNBQVMsb0JBQW9CO0FBQzdCLE9BQU8saUJBQWlCO0FBRXhCLElBQU8sc0JBQVEsYUFBYTtBQUFBLEVBQzFCLFNBQVMsQ0FBQyxZQUFZLEdBQUcsVUFBVSxDQUFDO0FBQUEsRUFDcEMsUUFBUSxFQUFFLE1BQU0sS0FBSztBQUN2QixDQUFDOyIsCiAgIm5hbWVzIjogW10KfQo=

@@ -1,0 +1,34 @@
+import { beforeAll, describe, expect, it } from "bun:test";
+import { eq } from "drizzle-orm";
+import { createApp } from "../src/app";
+import { loadConfig } from "../src/config";
+import { getDb } from "../src/db";
+import { schema } from "@sims/db";
+import { signAccessToken } from "../src/services/token";
+import { titleChangeRequestsRoutes } from "../src/routes/titleChangeRequests";
+const TEST_DB_URL = "postgres://postgres@localhost:5433/simtas";
+const app = createApp(loadConfig({ NODE_ENV: "test", DATABASE_URL: TEST_DB_URL } as any));
+app.route("/api/v1/title-change-requests", titleChangeRequestsRoutes);
+const STUDENT_ID="11111111-1111-1111-1111-111111111111";
+const SUPERVISOR_ID="44444444-4444-4444-4444-444444444444";
+const ACADEMIC_YEAR_ID="aaaaaaaa-1111-1111-1111-111111111111";
+const THESIS_ID="bbbbbbbb-1111-1111-1111-111111111111";
+const NEW_TITLE="Perancangan dan pengembangan aplikasi berbasis mobile untuk pemantauan progres tugas akhir mahasiswa secara real time";
+beforeAll(async()=>{
+ const db=getDb(TEST_DB_URL);
+ const mhs=(await db.select().from(schema.roles).where(eq(schema.roles.name,"mahasiswa")))[0].id;
+ const D="$2a$12$qMPO1EgF0zmpDh4W49ERVOfOxF28jsItEaiKEKZCWOL9NoKX3U7iC";
+ await db.delete(schema.users).where(eq(schema.users.id,STUDENT_ID));
+ await db.insert(schema.users).values({id:STUDENT_ID,email:"s@x.id",fullName:"S",roleId:mhs,passwordHash:D,loginAttemptCount:0,tokenVersion:0,mustChangePassword:false,isActive:true} as any);
+ await db.delete(schema.academicYears).where(eq(schema.academicYears.id,ACADEMIC_YEAR_ID));
+ await db.insert(schema.academicYears).values({id:ACADEMIC_YEAR_ID,name:"2025/2026",semester:"ganjil",startDate:"2025-09-01",endDate:"2026-01-31",isActive:true} as any);
+ await db.delete(schema.theses).where(eq(schema.theses.id,THESIS_ID));
+ await db.insert(schema.theses).values({id:THESIS_ID,studentId:STUDENT_ID,academicYearId:ACADEMIC_YEAR_ID,title:"orig",thesisType:"skripsi",status:"approved"} as any);
+ await db.delete(schema.thesisSupervisors).where(eq(schema.thesisSupervisors.thesisId,THESIS_ID));
+ await db.insert(schema.thesisSupervisors).values({id:"cccccccc-1111-1111-1111-111111111111",thesisId:THESIS_ID,supervisorId:SUPERVISOR_ID,assignedBy:SUPERVISOR_ID} as any);
+});
+describe("dbg",()=>{it("create",async()=>{
+ const tok=await signAccessToken(STUDENT_ID,"MAHASISWA",0);
+ const r=await app.request("/api/v1/title-change-requests",{method:"POST",headers:{authorization:`Bearer ${tok}`,"content-type":"application/json","x-forwarded-for":"d1"},body:JSON.stringify({thesisId:THESIS_ID,requestedTitle:NEW_TITLE})});
+ console.log("STATUS",r.status, JSON.stringify(await r.json()));
+});});

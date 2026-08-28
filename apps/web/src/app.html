@@ -1,8 +1,15 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      // Apply persisted theme before paint (parity with @frontend root layout).
+      try {
+        if (localStorage.getItem("theme") === "dark")
+          document.documentElement.classList.add("dark");
+      } catch {}
+    </script>
     %sveltekit.head%
   </head>
   <body>

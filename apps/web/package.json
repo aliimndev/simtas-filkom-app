@@ -11,7 +11,10 @@
   "dependencies": {
     "hono": "^4.5.0",
     "@sims/api": "workspace:*",
-    "@sims/shared": "workspace:*"
+    "@sims/shared": "workspace:*",
+    "lucide-svelte": "^0.460.0",
+    "@fontsource-variable/inter": "^5.1.0",
+    "@fontsource/instrument-serif": "^5.1.0"
   },
   "devDependencies": {
     "@sveltejs/kit": "^2.5.0",
@@ -20,6 +23,8 @@
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "typescript": "^5.5.0",
-    "vite": "^5.4.0"
+    "vite": "^5.4.0",
+    "tailwindcss": "^4.1.0",
+    "@tailwindcss/vite": "^4.1.0"
   }
 }
