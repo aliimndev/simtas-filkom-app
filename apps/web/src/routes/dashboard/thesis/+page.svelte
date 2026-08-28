@@ -2,8 +2,11 @@
   import { BookOpen, CheckCircle2, Clock, History, PencilLine, XCircle } from "lucide-svelte";
   import { api } from "$lib/api";
   import { auth } from "$lib/auth.store";
-  import StatusBadge from "$lib/components/dashboard/StatusBadge.svelte";
-  import { thesisStatusProps } from "$lib/components/dashboard/thesis-status";
+  import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
+  import Dialog from "$lib/components/ui/Dialog.svelte";
+  import { thesisStatusProps, titleChangeStatusProps } from "$lib/constants/statuses";
+  import { formatDate } from "$lib/utils/format";
+  import { apiErrorMessage } from "$lib/utils/errors";
   import Reveal from "$lib/components/landing/Reveal.svelte";
 
   const user = $derived($auth.user);
@@ -14,6 +17,7 @@
   let error = $state("");
   let requestsLoading = $state(false);
   let submitOpen = $state(false);
+  let cancelOpen = $state(false);
   let cancelTarget = $state<any | null>(null);
   let actionError = $state<string | null>(null);
   let submitting = $state(false);
@@ -23,113 +27,9 @@
   let newTitle = $state("");
   let newReason = $state("");
   let titleError = $state<string | null>(null);
-  let submitDialog = $state<HTMLElement>();
-  let cancelDialog = $state<HTMLElement>();
-  let dialogReturnFocus: HTMLElement | null = null;
 
-  function handleDialogKeydown(event: KeyboardEvent, dialog: HTMLElement | undefined, close: () => void) {
-    if (event.key === "Escape") {
-      close();
-      return;
-    }
-    if (event.key !== "Tab" || !dialog) return;
-
-    const focusable = Array.from(
-      dialog.querySelectorAll<HTMLElement>(
-        "a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex='-1'])",
-      ),
-    );
-    if (focusable.length === 0) return;
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
-
-  function restoreDialogFocus() {
-    const target = dialogReturnFocus;
-    dialogReturnFocus = null;
-    requestAnimationFrame(() => target?.focus());
-  }
-
-  function openSubmit() {
-    dialogReturnFocus = document.activeElement as HTMLElement | null;
-    newTitle = "";
-    newReason = "";
-    titleError = null;
-    actionError = null;
-    submitOpen = true;
-  }
-
-  function closeSubmit() {
-    submitOpen = false;
-    restoreDialogFocus();
-  }
-
-  function openCancel(req: any) {
-    dialogReturnFocus = document.activeElement as HTMLElement | null;
-    cancelError = null;
-    cancelTarget = req;
-  }
-
-  function closeCancel() {
-    cancelTarget = null;
-    restoreDialogFocus();
-  }
-
-  $effect(() => {
-    const dialog = submitOpen ? submitDialog : cancelTarget ? cancelDialog : undefined;
-    if (!dialog) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const frame = requestAnimationFrame(() => {
-      const target = submitOpen
-        ? dialog.querySelector<HTMLElement>("#requested-title")
-        : dialog.querySelector<HTMLElement>("button:not([disabled])");
-      target?.focus();
-    });
-
-    return () => {
-      cancelAnimationFrame(frame);
-      document.body.style.overflow = previousOverflow;
-    };
-  });
-
-  function errorMessage(err: any, fallback: string): string {
-    return err?.error?.message ?? err?.message ?? fallback;
-  }
-
-  function formatDate(s?: string | null) {
-    if (!s) return "—";
-    try {
-      return new Date(s).toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return s;
-    }
-  }
-
-  function titleChangeBadge(status: string) {
-    switch (status) {
-      case "PENDING":
-        return { class: "bg-warning-50 text-warning border border-warning/20", label: "Menunggu Persetujuan" };
-      case "APPROVED":
-        return { class: "bg-success-50 text-success border border-success/20", label: "Disetujui" };
-      case "REJECTED":
-        return { class: "bg-danger-50 text-danger-700 border border-danger/20", label: "Ditolak" };
-      default:
-        return { class: "bg-st-surface-hi text-st-muted border border-st-stroke", label: "Dibatalkan" };
-    }
+  function errorMessage(err: unknown, fallback: string): string {
+    return apiErrorMessage(err, fallback);
   }
 
   async function loadThesis() {
@@ -191,6 +91,27 @@
     return null;
   }
 
+  function openSubmit() {
+    newTitle = "";
+    newReason = "";
+    titleError = null;
+    actionError = null;
+    submitOpen = true;
+  }
+
+  function closeSubmit() {
+    submitOpen = false;
+  }
+
+  function openCancel(req: any) {
+    cancelError = null;
+    cancelTarget = req;
+  }
+
+  function closeCancel() {
+    cancelTarget = null;
+  }
+
   async function onSubmitChange() {
     if (!thesis?.id) return;
     const tErr = validateTitle(newTitle);
@@ -209,10 +130,7 @@
           reason: newReason.trim() || undefined,
         },
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error((body as any)?.error?.message ?? "Gagal mengajukan perubahan judul.");
-      }
+      if (!res.ok) throw await res.json().catch(() => ({}));
       closeSubmit();
       await loadRequests(thesis.id);
     } catch (e: any) {
@@ -228,10 +146,7 @@
     cancelError = null;
     try {
       const res = await api.api.v1.titleChangeRequests[cancelTarget.id].cancel.$patch({});
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error((body as any)?.error?.message ?? "Gagal membatalkan permintaan.");
-      }
+      if (!res.ok) throw await res.json().catch(() => ({}));
       closeCancel();
       if (thesis?.id) await loadRequests(thesis.id);
     } catch (e: any) {
@@ -365,13 +280,13 @@
           {:else}
             <div class="space-y-3">
               {#each requests as r (r.id)}
-                {@const rb = titleChangeBadge(r.status)}
+                {@const rb = titleChangeStatusProps(r.status)}
                 <div class="rounded-xl border border-st-stroke p-4">
                   <div class="flex flex-wrap items-start justify-between gap-2">
                     <div class="min-w-0 flex-1">
                       <div class="flex flex-wrap items-center gap-2">
                         <p class="font-medium text-st-text">Judul baru: {r.requestedTitle ?? r.requested_title}</p>
-                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium {rb.class}">
+                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium {rb.variant === 'pending' ? 'bg-warning-50 text-warning border border-warning/20' : rb.variant === 'approved' ? 'bg-success-50 text-success border border-success/20' : 'bg-danger-50 text-danger-700 border border-danger/20'}">
                           {#if r.status === "PENDING"}
                             <Clock size={12} />
                           {:else if r.status === "APPROVED"}
@@ -447,148 +362,77 @@
   {/if}
 </div>
 
-{#if submitOpen}
-  <div
-    bind:this={submitDialog}
-    class="fixed inset-0 z-50 flex items-center justify-center p-4"
-    role="dialog"
-    tabindex="-1"
-    aria-modal="true"
-    aria-labelledby="submit-title"
-    onkeydown={(event) => handleDialogKeydown(event, submitDialog, closeSubmit)}
+<Dialog bind:open={submitOpen} labelledBy="submit-title" initialFocus="#requested-title">
+  <h2 id="submit-title" class="text-lg font-semibold text-st-text">Ajukan Perubahan Judul</h2>
+  <p class="mt-1 text-sm text-st-muted">
+    Perubahan judul akan diproses oleh Dosen Pembimbing Anda.
+  </p>
+
+  <form
+    class="mt-4 space-y-4"
+    onsubmit={(e) => {
+      e.preventDefault();
+      onSubmitChange();
+    }}
   >
-    <button
-      type="button"
-      class="absolute inset-0 bg-black/40"
-      onclick={closeSubmit}
-      aria-label="Tutup dialog"
-    ></button>
-    <div class="relative z-10 w-full max-w-lg rounded-2xl border border-st-stroke bg-st-surface p-6">
-      <h2 id="submit-title" class="text-lg font-semibold text-st-text">Ajukan Perubahan Judul</h2>
-      <p class="mt-1 text-sm text-st-muted">
-        Perubahan judul akan diproses oleh Dosen Pembimbing Anda.
-      </p>
-
-      <form
-        class="mt-4 space-y-4"
-        onsubmit={(e) => {
-          e.preventDefault();
-          onSubmitChange();
-        }}
-      >
-        {#if actionError}
-          <div role="alert" class="rounded-md border border-danger-700/40 bg-danger-50 px-3 py-2 text-sm text-danger-700">
-            {actionError}
-          </div>
-        {/if}
-        <div>
-          <label for="current-title" class="text-sm font-medium text-st-text">Judul Saat Ini</label>
-          <input
-            id="current-title"
-            type="text"
-            readonly
-            value={thesis?.title ?? ""}
-            class="mt-1 w-full rounded-md border border-st-stroke bg-st-bg px-3 py-2 text-sm text-st-muted"
-          />
-        </div>
-        <div>
-          <label for="requested-title" class="text-sm font-medium text-st-text">Judul Baru <span class="text-danger-700">*</span></label>
-          <textarea
-            id="requested-title"
-            rows="3"
-            placeholder="Tulis judul baru skripsi Anda (minimal 10 kata)"
-            bind:value={newTitle}
-            class="mt-1 w-full rounded-md border {titleError ? 'border-danger-700' : 'border-st-stroke'} bg-st-surface px-3 py-2 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
-          ></textarea>
-          {#if titleError}
-            <p class="mt-1 text-xs text-danger-700">{titleError}</p>
-          {/if}
-        </div>
-        <div>
-          <label for="reason" class="text-sm font-medium text-st-text">Alasan Perubahan</label>
-          <textarea
-            id="reason"
-            rows="2"
-            placeholder="Alasan mengajukan perubahan judul (opsional)"
-            bind:value={newReason}
-            class="mt-1 w-full rounded-md border border-st-stroke bg-st-surface px-3 py-2 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
-          ></textarea>
-        </div>
-        <div class="flex flex-wrap justify-end gap-2 pt-1">
-          <button
-            type="button"
-            onclick={closeSubmit}
-            class="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-st-text transition-colors hover:bg-st-surface-hi"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            class="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-700 disabled:opacity-50"
-          >
-            <PencilLine size={16} /> {submitting ? "Mengajukan…" : "Ajukan"}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-{/if}
-
-{#if cancelTarget}
-  <div
-    bind:this={cancelDialog}
-    class="fixed inset-0 z-50 flex items-center justify-center p-4"
-    role="dialog"
-    tabindex="-1"
-    aria-modal="true"
-    aria-labelledby="cancel-title"
-    onkeydown={(event) => handleDialogKeydown(event, cancelDialog, closeCancel)}
-  >
-    <button
-      type="button"
-      class="absolute inset-0 bg-black/40"
-      onclick={closeCancel}
-      aria-label="Tutup dialog"
-    ></button>
-    <div class="relative z-10 w-full max-w-md rounded-2xl border border-st-stroke bg-st-surface p-6">
-      <h2 id="cancel-title" class="text-lg font-semibold text-st-text">
-        Batalkan Permintaan Perubahan Judul?
-      </h2>
-      <p class="mt-1 text-sm text-st-muted">
-        Permintaan yang sedang diproses akan ditarik dan tidak dapat dikembalikan.
-      </p>
-
-      <div class="mt-4 space-y-4">
-        <div class="rounded-lg bg-st-bg p-3 text-sm">
-          <p class="text-xs font-medium text-st-muted">Judul yang diajukan</p>
-          <p class="mt-0.5 text-st-text">
-            {cancelTarget.requestedTitle ?? cancelTarget.requested_title}
-          </p>
-        </div>
-        {#if cancelError}
-          <div role="alert" class="rounded-md border border-danger-700/40 bg-danger-50 px-3 py-2 text-sm text-danger-700">
-            {cancelError}
-          </div>
-        {/if}
-        <div class="flex flex-wrap justify-end gap-2">
-          <button
-            type="button"
-            onclick={closeCancel}
-            class="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-st-text transition-colors hover:bg-st-surface-hi"
-          >
-            Kembali
-          </button>
-          <button
-            type="button"
-            disabled={cancelling}
-            onclick={confirmCancel}
-            class="inline-flex h-9 items-center rounded-md border border-danger-700/40 bg-danger-50 px-3 text-sm font-medium text-danger-700 transition-colors hover:bg-danger-100 disabled:opacity-50"
-          >
-            {cancelling ? "Membatalkan…" : "Ya, Batalkan"}
-          </button>
-        </div>
+    {#if actionError}
+      <div role="alert" class="rounded-md border border-danger-700/40 bg-danger-50 px-3 py-2 text-sm text-danger-700">
+        {actionError}
       </div>
+    {/if}
+    <div>
+      <label for="current-title" class="text-sm font-medium text-st-text">Judul Saat Ini</label>
+      <input
+        id="current-title"
+        type="text"
+        readonly
+        value={thesis?.title ?? ""}
+        class="mt-1 w-full rounded-md border border-st-stroke bg-st-bg px-3 py-2 text-sm text-st-muted"
+      />
     </div>
-  </div>
-{/if}
+    <div>
+      <label for="requested-title" class="text-sm font-medium text-st-text">Judul Baru <span class="text-danger-700">*</span></label>
+      <textarea
+        id="requested-title"
+        rows="3"
+        placeholder="Tulis judul baru skripsi Anda (minimal 10 kata)"
+        bind:value={newTitle}
+        class="mt-1 w-full rounded-md border {titleError ? 'border-danger-700' : 'border-st-stroke'} bg-st-surface px-3 py-2 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+      ></textarea>
+      {#if titleError}
+        <p class="mt-1 text-xs text-danger-700">{titleError}</p>
+      {/if}
+    </div>
+    <div>
+      <label for="reason" class="text-sm font-medium text-st-text">Alasan Perubahan</label>
+      <textarea
+        id="reason"
+        rows="2"
+        placeholder="Alasan mengajukan perubahan judul (opsional)"
+        bind:value={newReason}
+        class="mt-1 w-full rounded-md border border-st-stroke bg-st-surface px-3 py-2 text-sm text-st-text outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring"
+      ></textarea>
+    </div>
+    <div class="flex flex-wrap justify-end gap-2 pt-1">
+      <button
+        type="button"
+        onclick={closeSubmit}
+        class="inline-flex h-9 items-center rounded-md px-3 text-sm font-medium text-st-text transition-colors hover:bg-st-surface-hi"
+      >
+        Batal
+      </button>
+      <button
+        type="submit"
+        disabled={submitting}
+        class="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-700 disabled:opacity-50"
+      >
+        <PencilLine size={16} /> {submitting ? "Mengajukan…" : "Ajukan"}
+      </button>
+    </div>
+  </form>
+</Dialog>
+
+<Dialog bind:open={cancelOpenDerived} labelledBy="cancel-title" initialFocus="button:not([disabled])">
+  {#snippet _unused()}
+  {/snippet}
+</Dialog>

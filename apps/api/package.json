@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
-    "test": "bun test test/",
-    "test:unit": "bun test test/*.unit.test.ts",
+    "test": "bun test test/unit test/integration",
+    "test:unit": "bun test test/unit",
     "typecheck": "bunx tsc --noEmit"
   },
   "dependencies": {

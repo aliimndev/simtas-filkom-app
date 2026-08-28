@@ -3,8 +3,8 @@
   import { auth } from "$lib/auth.store";
   import { api } from "$lib/api";
   import DashboardHeader from "$lib/components/dashboard/DashboardHeader.svelte";
-  import StatCard from "$lib/components/dashboard/StatCard.svelte";
-  import StatusBadge from "$lib/components/dashboard/StatusBadge.svelte";
+  import StatCard from "$lib/components/ui/StatCard.svelte";
+  import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
   import { thesisStatusProps } from "$lib/components/dashboard/thesis-status";
 
   const user = $derived($auth.user);

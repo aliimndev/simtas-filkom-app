@@ -1,7 +1,7 @@
 <script lang="ts">
   import { BookOpen } from "lucide-svelte";
   import { api } from "$lib/api";
-  import StatusBadge from "$lib/components/dashboard/StatusBadge.svelte";
+  import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
   import { thesisStatusProps } from "$lib/components/dashboard/thesis-status";
 
   let q = $state("");

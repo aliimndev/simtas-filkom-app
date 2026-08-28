@@ -2,7 +2,7 @@
   import { FileText, Download, CheckCircle2, RefreshCcw, Eye, Loader2 } from "lucide-svelte";
   import { api } from "$lib/api";
   import { auth } from "$lib/auth.store";
-  import StatusBadge from "$lib/components/dashboard/StatusBadge.svelte";
+  import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
   import Reveal from "$lib/components/landing/Reveal.svelte";
   import type { StatusVariant } from "$lib/components/dashboard/thesis-status";
 

@@ -2,7 +2,7 @@
   import { ArrowRight, CheckCircle2, Inbox, PencilLine, XCircle } from "lucide-svelte";
   import { auth } from "$lib/auth.store";
   import { api } from "$lib/api";
-  import StatusBadge from "$lib/components/dashboard/StatusBadge.svelte";
+  import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
 
   const user = $derived($auth.user);
   const role = $derived(String(user?.role ?? ""));

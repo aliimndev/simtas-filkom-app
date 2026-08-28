@@ -5,7 +5,7 @@
   import { api } from "$lib/api";
   import { auth } from "$lib/auth.store";
   import Reveal from "$lib/components/landing/Reveal.svelte";
-  import StatusBadge from "$lib/components/dashboard/StatusBadge.svelte";
+  import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
   import { thesisStatusProps } from "$lib/components/dashboard/thesis-status";
 
   const id = $derived($page.params.id ?? "");
