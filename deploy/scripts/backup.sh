@@ -6,7 +6,7 @@ set -euo pipefail
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="/opt/simtas-filkom/backups"
 RETENTION_DAYS=30
-COMPOSE="docker compose -f /opt/simtas-filkom/deploy/docker-compose.prod.yml"
+COMPOSE="docker compose --env-file /opt/simtas-filkom/deploy/.env.production -f /opt/simtas-filkom/deploy/docker-compose.prod.yml"
 
 echo "[$(date)] Starting backup..."
 

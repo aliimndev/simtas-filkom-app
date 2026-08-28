@@ -2,38 +2,31 @@
 .env
 .env.local
 .env.production
+.env*
 
-# Go
-backend/vendor/
-backend/.env
-backend/coverage.out
-backend/coverage.html
-backend/seed
-backend/internal/handler/tmp/
-# Local dev data (uploads + throwaway Postgres data dir)
-backend/tmp/
-
-# Node
+# Dependencies and generated output
 node_modules/
-.next/
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-frontend/.env.local
-frontend/coverage/
+.svelte-kit/
+apps/web/build/
+*.tsbuildinfo
+*.log
 
-# IDE
+# Local application data
+apps/api/.env
+apps/web/.env
+apps/api/_dbg.ts
+apps/api/dbg_tmp.ts
+apps/api/test/dbg.test.ts
+apps/web/vite.config.ts.timestamp-*.mjs
+*.timestamp-*.mjs
+
+# IDE / OS
 .vscode/
 .idea/
 .zcode/
 *.swp
 *.swo
-
-# OS
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-.vercel
-.env*
+.vercel/
+.agents/skills/

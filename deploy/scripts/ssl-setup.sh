@@ -14,7 +14,7 @@ BASE_DIR="${BASE_DIR:-/opt/simtas-filkom}"
 SSL_DIR="$BASE_DIR/infrastructure/nginx/ssl"
 DOMAINS=("api.simtas.filkom.unida.ac.id" "simtas.filkom.unida.ac.id")
 EMAIL="${EMAIL:-admin@filkom.unida.ac.id}"
-COMPOSE="docker compose -f $BASE_DIR/deploy/docker-compose.prod.yml"
+COMPOSE="docker compose --env-file $BASE_DIR/deploy/.env.production -f $BASE_DIR/deploy/docker-compose.prod.yml"
 
 if ! command -v certbot >/dev/null 2>&1; then
   apt-get update && apt-get install -y certbot

@@ -5,9 +5,9 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: simtas-backend
+  - job_name: simtas-api
     metrics_path: /metrics
     static_configs:
-      - targets: ["backend:8080"]
+      - targets: ["api:3001"]
         labels:
           service: simtas-api

@@ -58,9 +58,9 @@
       "id": 4,
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
       "targets": [
-        { "expr": "up{job=\"simtas-backend\"}", "refId": "A" }
+        { "expr": "up{job=\"simtas-api\"}", "refId": "A" }
       ],
-      "title": "Backend Up",
+      "title": "API Up",
       "type": "stat"
     }
   ],

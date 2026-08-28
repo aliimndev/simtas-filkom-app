@@ -1,6 +1,6 @@
 # SIMTAS FILKOM — Monitoring stack (Prometheus + Grafana)
 # Deploy on the same VPS as docker-compose.prod.yml so both share the
-# simtas-network bridge and Prometheus can reach backend:8080/metrics.
+# simtas-network bridge and Prometheus can reach api:3001/metrics.
 #
 #   docker compose -f deploy/docker-compose.monitoring.yml up -d
 #
@@ -14,7 +14,7 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.retention.time=30d"
     volumes:
-      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
       - simtas-network
@@ -40,8 +40,8 @@ services:
     ports:
       - "3001:3000"
     volumes:
-      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ../infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
