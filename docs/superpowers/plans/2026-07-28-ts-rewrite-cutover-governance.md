@@ -6,7 +6,7 @@
 
 Each row is a scenario ported into the TypeScript API suite (`apps/api/test`). `Status`: Pending / Ported / Green (CI green on seeded DB).
 
-| # | Module | Scenario (Go source) | Route / Slice | Expected | Status |
+| # | Module | Scenario (API contract) | Route / Slice | Expected | Status |
 |---|--------|----------------------|---------------|----------|--------|
 | 1 | auth | login success (valid email + password) | `POST /api/v1/auth/login` | 200 + `{accessToken, refreshToken, user}` with correct role | Green |
 | 2 | auth | login wrong password | `POST /api/v1/auth/login` | 401 `UNAUTHORIZED` | Green |
@@ -33,13 +33,13 @@ Each row is a scenario ported into the TypeScript API suite (`apps/api/test`). `
 
 ## 2. Rollback Runbook
 
-### How to fail back to Go
-1. Go container is defined in `docker-compose.yml` (`backend` service) and remains deployable on `develop`. It owns the migrations; TS owns zero DDL in Phase 1.
-2. Nginx / reverse proxy routes `/api/v1/auth/*` via flag `USE_TS_AUTH` (env: `true` → TS, `false` → Go). The flag is read at Nginx reload, no redeploy needed.
-3. To rollback: `USE_TS_AUTH=false && nginx -s reload` or revert the `docker-compose.override.yml` that points the auth upstream to `http://api-ts:3001`. No DB migration to revert because Phase 1 is schema-read-only. Traffic flips in <5s.
+### How to roll back the API deployment
+1. The Bun API is defined in `docker-compose.yml` (`api` service), and database migrations are maintained in `packages/db/migrations`.
+2. Nginx / reverse proxy routes `/api/v1/auth/*` to the `api` service. Change the upstream and reload Nginx if a deployment rollback is required.
+3. To roll back: deploy the previous known-good API image or commit and reload Nginx. Review database migrations before rollback; do not run destructive changes during an application rollback.
 
 ### Data safety
-- Both backends write the same Postgres (`simtas` / `simtas_filkom`). No `DROP` / `TRUNCATE` in Phase 1; all writes respect FKs.
+- The API writes to the existing PostgreSQL databases (`simtas` / `simtas_filkom`). No `DROP` / `TRUNCATE`; all writes respect foreign-key constraints.
 - Refresh-token families are the only new table touched; both implementations use `family_id + jti` semantics, so a TS-issued family is readable by Go and vice versa (UUIDs are DB-generated, no codegen mismatch).
 - A rollback does not strand users: access tokens remain valid until `exp` (15 min), refresh tokens remain valid in their families.
 

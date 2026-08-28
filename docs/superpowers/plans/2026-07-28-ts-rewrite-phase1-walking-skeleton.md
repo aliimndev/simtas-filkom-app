@@ -8,12 +8,12 @@ An AI agent executing this plan MUST obey the following rules. They are not opti
 
 1. **One task at a time.** Complete Task N fully (all steps + verification green) before starting Task N+1. Do not batch-edit unrelated files.
 2. **Track with checkboxes.** Tick `- [ ]` → `- [x]` as you finish each step. A step is only done when its **Verification** command passes with the stated output.
-3. **One conventional commit per task.** Use the exact `git commit -m "..."` message provided at the end of each task. Do not squash tasks. Do not commit `backend/` (Go) — it is out of scope for Phase 1.
+3. **One conventional commit per task.** Use the exact `git commit -m "..."` message provided at the end of each task. Do not squash tasks. Do not introduce a second application runtime; the Bun workspace is the source of truth.
 4. **Run `bun install` after every change to any `package.json`.** Workspace links (`workspace:*`) are resolved by Bun; missing install = broken imports.
 5. **When a step is ambiguous, STOP and ask.** Do not invent secrets, env values, or schema column names. The DB contract is generated, not assumed — always read `packages/db/src/schema.ts` (produced in Task 2) before writing any query.
 6. **Package namespace is `@sims/*` everywhere.** `@sims/api`, `@sims/web`, `@sims/db`, `@sims/shared`. (The original draft used a mix of `@baz/*` and `@sims/web`; that was a bug. This version is normalized to `@sims/*`.)
 7. **Column naming caveat.** `drizzle-kit pull` preserves the database's snake_case column names as the Drizzle property keys (e.g. `user_id`, `family_id`, `token_jti`, `expires_at`, `revoked`, `password_hash`). The code snippets below use readable names; **always substitute the exact property names from `packages/db/src/schema.ts`** when you implement.
-8. **Do not modify `backend/` (Go) in Phase 1.** The Go backend stays deployable on `develop`. You may READ Go source (handlers, migrations, tests) to port behavior 1:1, but never write to it.
+8. **Application source of truth:** `apps/api`, `apps/web`, `packages/db`, and `packages/shared` are the active workspace. Keep behavior changes in those packages and validate them with the Bun test suite.
 
 ### Agent Execution Loop (Structured Flow)
 
@@ -60,7 +60,7 @@ Every task is executed through the same 6-phase loop. Do not skip phases. If a p
 
 **Quick checklist (copy into each subagent prompt):**
 ```
-- [ ] READ task + referenced schema/Go source
+- [ ] READ task + referenced schema and active TypeScript source
 - [ ] PLAN micro-steps
 - [ ] EXECUTE file changes + bun install if needed
 - [ ] VERIFY via task's Done-when command(s) — paste output
@@ -70,9 +70,9 @@ Every task is executed through the same 6-phase loop. Do not skip phases. If a p
 
 **Goal:** Stand up the full TypeScript fullstack pipeline (Bun monorepo → Hono API → Drizzle Postgres → SvelteKit SPA) with a working end-to-end **auth + user + RBAC** vertical slice, proving every architectural assumption before porting the remaining 14 domain modules.
 
-**Architecture:** Monorepo split into `apps/api` (Hono + Drizzle), `apps/web` (SvelteKit, SSR disabled / SPA mode), `packages/db` (Drizzle schema + connection), and `packages/shared` (Zod schemas + types, consumed by both apps). The API is the single source of truth for the domain; the web app is a pure presentation client calling the API over HTTP via Hono's `hc` RPC client. JWT access + refresh-token **rotation with family revoke-on-reuse** is ported 1:1 from the existing Go backend.
+**Architecture:** Monorepo split into `apps/api` (Hono + Drizzle), `apps/web` (SvelteKit, SSR disabled / SPA mode), `packages/db` (Drizzle schema + connection), and `packages/shared` (Zod schemas + types, consumed by both apps). The API is the single source of truth for the domain; the web app is a pure presentation client calling the API over HTTP via Hono's `hc` RPC client. JWT access + refresh-token **rotation with family revoke-on-reuse** follows the established API contract.
 
-**Tech Stack:** Bun (runtime + package manager + test runner), Hono, Drizzle ORM + `drizzle-kit`, Zod, jose (JWT), bcryptjs (password hashing, compatible with Go's bcrypt hashes), PostgreSQL (existing, reused schema via `drizzle-kit pull`), SvelteKit (SPA mode), TypeScript 5.
+**Tech Stack:** Bun (runtime + package manager + test runner), Hono, Drizzle ORM + `drizzle-kit`, Zod, jose (JWT), bcryptjs (password hashing), PostgreSQL (existing, reused schema via `drizzle-kit pull`), SvelteKit (SPA mode), TypeScript 5.
 
 ## System Design — Senior Review (Added for Fullstack Migration)
 
@@ -117,7 +117,7 @@ refresh: POST /auth/refresh {refreshToken} → verifyJwt(refreshSecret) → SELE
 logout: POST /auth/logout {refreshToken} → verifyJwt(refreshToken) → revokeRefreshFamily(familyId) → 204
 ```
 
-JWT claims parity with Go: `{sub: userId, role, tokenVersion, iat, exp}` for access; refresh adds `{familyId, jti}`. `aud/iss` optional, keep absent for parity unless Go sets them — check `backend/internal/auth`.
+JWT claims use `{sub: userId, role, tokenVersion, iat, exp}` for access; refresh adds `{familyId, jti}`. `aud/iss` remain optional and are omitted unless explicitly required by the current API contract.
 
 ### Security Additions (beyond the skeleton)
 
@@ -150,10 +150,10 @@ Phase 1 proves the slice. Remaining 14 modules port in dependency order: `users 
 
 ## Global Constraints
 
-- **Go backend untouched:** the existing Go backend (`backend/`) stays fully deployable and on `develop` until Phase N cutover; this plan introduces the TS workspace alongside it. Do **not** modify `backend/` in Phase 1 (reading is allowed for porting).
+- **Bun workspace only:** the active implementation is maintained in `apps/api`, `apps/web`, `packages/db`, and `packages/shared`; no legacy application runtime is part of the deployment.
 - **Zero schema drift:** `packages/db/src/schema.ts` is generated from the live Postgres DB via `drizzle-kit pull`. Never hand-edit introspected schema to "fix" design; design fixes are deferred.
 - **Zero data loss:** no `DROP`, `TRUNCATE`, or destructive migration. Respect all existing FKs/constraints.
-- **Auth parity non-negotiable:** JWT access + refresh with per-family rotation and reuse detection (revoke family) must behave identically to Go. Password hashing stays **bcrypt** — existing hashes in `users.password_hash` must keep logging in (use `bcryptjs`, which is wire-compatible with Go's `golang.org/x/crypto/bcrypt`).
+- **Auth contract non-negotiable:** JWT access + refresh with per-family rotation and reuse detection (revoke family) must remain stable. Password hashing stays **bcrypt** so existing hashes in `users.password_hash` continue to authenticate.
 - **Route prefixes unchanged:** all routes under `/api/v1/*` exactly as the Go router (`POST /api/v1/auth/login`, `/refresh`, `/logout`, `GET /api/v1/auth/me`, etc.).
 - **Test-parity gate:** a Hono/Bun integration test that hits the live DB must pass before any further module is ported. TS cutover only allowed when the ported integration suite is 100% green.
 - **One runtime, one language:** everything runs on Bun and is TypeScript. No separate Node runtime.
@@ -311,7 +311,7 @@ export default defineConfig({
 - [ ] **Step 3: Start the dev DB and generate schema (do not hand-edit result)**
 
 Start Postgres first if not running (see root `docker-compose.yml`): `docker compose up -d db`.
-Point `DATABASE_URL` at the same Postgres the Go backend uses, then:
+Point `DATABASE_URL` at the same PostgreSQL database used by SIMTAS, then:
 
 ```bash
 cd packages/db
@@ -1099,7 +1099,7 @@ export async function clearTestUser() {
 }
 ```
 
-- [ ] **Step 9: `test/auth.integration.test.ts`** (parity subset; port scenarios from `backend/internal/handler/*_test.go`)
+- [ ] **Step 9: `test/auth.integration.test.ts`** (parity subset; cover the API contract in `apps/api/test`)
 
 ```ts
 import { beforeAll, afterAll, describe, expect, it } from "bun:test";
@@ -1149,8 +1149,8 @@ describe("auth parity", () => {
     expect(res.status).toBe(401);
   });
 
-  // Copy the Go login lockout scenario (5 failures => 423) and the
-  // RBAC matrix (route x role) from backend/internal/handler/*_test.go here.
+  // Cover the login lockout scenario (5 failures => 423) and the
+  // RBAC matrix (route x role) in the API integration suite here.
 });
 ```
 
@@ -1500,8 +1500,8 @@ git commit -m "feat(web): SvelteKit SPA login via typed hc client (Phase 1)"
 
 **Done when:** governance doc exists with a parity checklist (status columns), a rollback runbook, and the cookie/refresh cross-origin decision recorded.
 
-- [ ] **Step 1: Write the parity checklist** — the exact scenario list the Go suite encodes per module (auth flow, RBAC matrix route × role, pagination shape, error envelope, file upload, forgot/reset password) with status columns (Pending / Ported / Green).
-- [ ] **Step 2: Write the rollback runbook** — one paragraph each: how to fail back to the Go container (existing `docker-compose.yml`), how to redirect traffic, and the data-safety note (TS backend writes the same Postgres; no schema changes in Phase 1 means rollback is schema-safe).
+- [ ] **Step 1: Write the parity checklist** — the exact scenario list the API suite covers per module (auth flow, RBAC matrix route × role, pagination shape, error envelope, file upload, forgot/reset password) with status columns (Pending / Ported / Green).
+- [ ] **Step 2: Write the rollback runbook** — one paragraph each: how to roll back the Bun API deployment, how to redirect traffic, and the data-safety note (the API writes the same PostgreSQL schema; rollback remains schema-safe when no destructive migration is introduced).
 - [ ] **Step 3: Record the cookie/refresh cross-origin decision** — SvelteKit SPA sends refresh via request body today; if we switch to httpOnly cookie later it must be `SameSite=None; Secure`. Mark this as the Phase-N deployment item.
 - [ ] **Step 4: Commit**
 

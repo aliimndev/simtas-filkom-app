@@ -277,15 +277,15 @@ Setiap aksi wajib membuat record di `audit_logs`:
 | `TITLE_CHANGE_REJECTED` | Mahasiswa | Setelah `REJECTED` |
 | `TITLE_CHANGE_CANCELLED` | Dosen Pembimbing (opsional) | Setelah `CANCELLED` |
 
-**Email template** akan mengikuti pola yang sudah ada di `backend/pkg/email/templates/`.
+**Email template** akan dikelola sebagai bagian dari konfigurasi notifikasi API saat email delivery diaktifkan.
 
 ### 9. Migration Strategy
 
-1. **Backend migration:** Tambahkan tabel `title_change_requests` + unique index partial untuk `PENDING`.
-2. **Repository + Usecase:** Implementasi baru tanpa mengubah existing thesis flow.
-3. **API endpoints:** Ditambahkan di router yang sudah ada (`backend/internal/delivery/http/`).
-4. **Frontend:** Ditambahkan di halaman thesis detail + dashboard dosen.
-5. **Rollback:** Jika ada issue, bisa disable endpoint tanpa mempengaruhi thesis flow utama.
+1. **Database migration:** Tambahkan tabel `title_change_requests` + unique index partial untuk `PENDING` di `packages/db/migrations/`.
+2. **API service:** Implementasi business logic di `apps/api/src/services/` tanpa mengubah thesis flow yang sudah ada.
+3. **API endpoints:** Tambahkan route di `apps/api/src/routes/`.
+4. **Web interface:** Tambahkan halaman atau komponen terkait di `apps/web/src/routes/`.
+5. **Rollback:** Jika ada issue, disable endpoint atau deploy commit sebelumnya tanpa mempengaruhi thesis flow utama.
 
 ### 10. Alternatives Considered
 
