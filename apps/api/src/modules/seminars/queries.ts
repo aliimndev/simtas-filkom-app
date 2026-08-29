@@ -86,6 +86,7 @@ export async function hydrate(connection: Pick<Db, "select">, row: any) {
       componentName: schema.seminarScores.componentName,
       componentWeight: schema.seminarScores.componentWeight,
       score: schema.seminarScores.score,
+      notes: schema.seminarScores.notes,
     })
     .from(schema.seminarScores)
     .innerJoin(schema.users, eq(schema.users.id, schema.seminarScores.examinerId))
@@ -107,6 +108,7 @@ export async function hydrate(connection: Pick<Db, "select">, row: any) {
     scheduledAt: iso(row.scheduledAt),
     room: row.room ?? null,
     notes: row.notes ?? null,
+    cancellationReason: row.cancellationReason ?? null,
     finalScore: row.finalScore == null ? null : Number(row.finalScore),
     examiners: examiners.map((examiner: any) => ({ id: examiner.id, fullName: examiner.fullName, nim: examiner.nimNidn ?? null })),
     scores: scores.map((score: any) => ({
@@ -116,6 +118,7 @@ export async function hydrate(connection: Pick<Db, "select">, row: any) {
       componentName: score.componentName,
       componentWeight: Number(score.componentWeight),
       score: Number(score.score),
+      notes: score.notes ?? null,
     })),
     createdAt: iso(row.createdAt),
     updatedAt: iso(row.updatedAt),
