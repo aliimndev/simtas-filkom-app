@@ -13,5 +13,9 @@
     "verify:vercel-env": "bun scripts/verify-vercel-env.ts",
     "build:k6": "bun scripts/build-k6.ts"
   },
+  "overrides": {
+    "cookie": "0.7.2",
+    "esbuild": "0.25.12"
+  },
   "devDependencies": { "typescript": "^5.5.0", "@types/bun": "latest" }
 }

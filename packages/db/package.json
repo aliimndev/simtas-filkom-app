@@ -2,8 +2,18 @@
   "name": "@sims/db",
   "version": "0.1.0",
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "scripts": { "generate": "drizzle-kit pull", "check": "drizzle-kit check" },
-  "dependencies": { "drizzle-orm": "^0.36.0", "postgres": "^3.4.4" },
-  "devDependencies": { "drizzle-kit": "^0.28.0" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit pull",
+    "check": "drizzle-kit check"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.2",
+    "postgres": "^3.4.4"
+  },
+  "devDependencies": {
+    "drizzle-kit": "0.31.10"
+  }
 }

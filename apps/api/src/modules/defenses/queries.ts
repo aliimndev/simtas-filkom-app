@@ -9,8 +9,13 @@ function db(): Db {
   return getDb(loadConfig().databaseUrl);
 }
 
-export function isUniqueViolation(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "23505";
+export function isUniqueViolation(error: unknown, seen = new Set<object>()): boolean {
+  if (typeof error !== "object" || error === null || seen.has(error)) return false;
+  seen.add(error);
+  const candidate = error as { code?: unknown; cause?: unknown; originalError?: unknown };
+  return candidate.code === "23505"
+    || isUniqueViolation(candidate.cause, seen)
+    || isUniqueViolation(candidate.originalError, seen);
 }
 
 export async function approvedLatestDefenseDocument(connection: Pick<Db, "select">, thesisId: string) {
