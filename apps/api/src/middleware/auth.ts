@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { verifyJwt } from "../services/token";
+import { verifyJwt } from "../modules/auth/token.service";
 import { loadConfig } from "../config";
 import { getDb } from "../db";
 import { schema } from "@sims/db";

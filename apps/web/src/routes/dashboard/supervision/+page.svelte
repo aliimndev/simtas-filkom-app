@@ -2,8 +2,8 @@
   import { MessageSquarePlus, Check, Calendar, User } from "lucide-svelte";
   import { api } from "$lib/api";
   import { auth } from "$lib/auth.store";
-  import StatCard from "$lib/components/dashboard/StatCard.svelte";
-  import StatusBadge from "$lib/components/dashboard/StatusBadge.svelte";
+  import StatCard from "$lib/components/ui/StatCard.svelte";
+  import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
   import Reveal from "$lib/components/landing/Reveal.svelte";
   import { thesisStatusProps, type StatusVariant } from "$lib/components/dashboard/thesis-status";
 

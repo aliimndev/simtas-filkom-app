@@ -12,13 +12,14 @@ Fakultas Ilmu Komputer Universitas Djuanda. Aplikasi menggunakan Hono + Bun di
 API dan SvelteKit di frontend, dengan 5 role user, state machine untuk alur
 thesis, audit log, dan notifikasi email.
 
-Dokumen berikut merepresentasikan pekerjaan yang tersisa menuju release:
+Dokumen berikut merepresentasikan cara kerja dan pekerjaan yang tersisa menuju release:
 
+- [ENGINEERING-WORKFLOW.md](./ENGINEERING-WORKFLOW.md) — workflow engineering A–Z untuk membangun, menguji, merilis, dan mengoperasikan SIMTAS
+- [AGENT-EXECUTION-LOOP.md](./AGENT-EXECUTION-LOOP.md) — protocol agent untuk frontier ticket, self-correction, verification, dan safety stop
 - [ROADMAP.md](./ROADMAP.md) — rencana kerja menuju go-live (berlaku saat ini)
-- [PRODUCTION-READINESS-REVIEW.md](./PRODUCTION-READINESS-REVIEW.md) — audit kelayakan production
-- [runbook.md](./runbook.md) — prosedur operasional server production
-- [pertanyaan-kaprodi-flow.md](./pertanyaan-kaprodi-flow.md) — validasi alur dengan Kaprodi
-- [PRD.md](../PRD.md) — product requirements document
+- [VERCEL.md](./VERCEL.md) — konfigurasi deployment frontend dan pemisahan API
+- [superpowers/plans/2026-07-28-ts-rewrite-cutover-governance.md](./superpowers/plans/2026-07-28-ts-rewrite-cutover-governance.md) — governance cutover dan parity gate
+- [superpowers/plans/2026-07-28-ts-rewrite-phase1-walking-skeleton.md](./superpowers/plans/2026-07-28-ts-rewrite-phase1-walking-skeleton.md) — rencana walking skeleton Phase 1
 
 ---
 
@@ -50,4 +51,6 @@ chore: update dependency / config
 
 ## Referensi
 
-- [PRD.md](../PRD.md) — Product Requirements Document lengkap
+- [ENGINEERING-WORKFLOW.md](./ENGINEERING-WORKFLOW.md) — workflow engineering A–Z
+- [ROADMAP.md](./ROADMAP.md) — roadmap menuju go-live
+- [VERCEL.md](./VERCEL.md) — deployment frontend dan pemisahan API

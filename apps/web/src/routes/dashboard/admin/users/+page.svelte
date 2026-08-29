@@ -3,10 +3,12 @@
   import { api } from "$lib/api";
   import { auth } from "$lib/auth.store";
   import { roleLabel } from "$lib/constants/navigation";
-  import StatCard from "$lib/components/dashboard/StatCard.svelte";
-  import StatusBadge from "$lib/components/dashboard/StatusBadge.svelte";
+  import StatCard from "$lib/components/ui/StatCard.svelte";
+  import StatusBadge from "$lib/components/ui/StatusBadge.svelte";
+  import Pagination from "$lib/components/ui/Pagination.svelte";
+  import Alert from "$lib/components/ui/Alert.svelte";
+  import { roleStatusProps } from "$lib/constants/statuses";
   import Reveal from "$lib/components/landing/Reveal.svelte";
-  import type { StatusVariant } from "$lib/components/dashboard/thesis-status";
 
   const PAGE_SIZE = 10;
 
@@ -17,23 +19,6 @@
     { value: "DOSEN_PENGUJI", label: roleLabel("DOSEN_PENGUJI") },
     { value: "MAHASISWA", label: roleLabel("MAHASISWA") },
   ];
-
-  function roleVariant(role?: string | null): StatusVariant {
-    switch ((role ?? "").toUpperCase()) {
-      case "ADMIN_FAKULTAS":
-        return "completed";
-      case "KAPRODI":
-        return "in_progress";
-      case "DOSEN_PEMBIMBING":
-        return "approved";
-      case "DOSEN_PENGUJI":
-        return "pending";
-      case "MAHASISWA":
-        return "draft";
-      default:
-        return "draft";
-    }
-  }
 
   let q = $state("");
   let role = $state("");
@@ -272,15 +257,11 @@
   </div>
 
   {#if actionError}
-    <div role="alert" class="rounded-md border border-danger-700/40 bg-danger-50 px-3 py-2 text-sm text-danger-700">
-      {actionError}
-    </div>
+    <Alert> {actionError} </Alert>
   {/if}
 
   {#if error}
-    <div role="alert" class="rounded-md border border-danger-700/40 bg-danger-50 px-3 py-2 text-sm text-danger-700">
-      {error}
-    </div>
+    <Alert> {error} </Alert>
   {/if}
 
   {#if loading}
@@ -291,7 +272,7 @@
     <div class="space-y-3">
       {#each list as u (u.id)}
         {@const inactive = u.is_active === false}
-        {@const rVariant = roleVariant(u.role)}
+        {@const rsp = roleStatusProps(u.role)}
         <article class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-st-stroke bg-st-surface p-5">
           <div class="flex min-w-0 items-center gap-3">
             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-(--st-accent-from)/10 font-display text-base italic text-(--st-accent-to)">
@@ -300,7 +281,7 @@
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <p class="font-medium text-st-text">{u.full_name ?? u.fullName ?? "—"}</p>
-                <StatusBadge variant={rVariant} label={roleLabel(u.role)} />
+                <StatusBadge variant={rsp.variant} label={rsp.label} />
                 <StatusBadge variant={inactive ? "rejected" : "approved"} label={inactive ? "Nonaktif" : "Aktif"} />
               </div>
               <p class="mt-1 line-clamp-1 text-sm text-st-muted">{u.email ?? "—"}</p>
@@ -346,27 +327,5 @@
     </div>
   {/if}
 
-  {#if total > PAGE_SIZE}
-    <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-      <p class="text-sm text-st-muted">Total {total} pengguna · Halaman {page}</p>
-      <div class="flex gap-2">
-        <button
-          type="button"
-          disabled={page <= 1}
-          onclick={() => (page -= 1)}
-          class="inline-flex h-9 items-center justify-center rounded-md border border-st-stroke bg-st-surface px-3 text-sm text-st-text transition-colors hover:bg-st-surface-hi disabled:opacity-50"
-        >
-          Sebelumnya
-        </button>
-        <button
-          type="button"
-          disabled={page >= Math.ceil(total / PAGE_SIZE)}
-          onclick={() => (page += 1)}
-          class="inline-flex h-9 items-center justify-center rounded-md border border-st-stroke bg-st-surface px-3 text-sm text-st-text transition-colors hover:bg-st-surface-hi disabled:opacity-50"
-        >
-          Berikutnya
-        </button>
-      </div>
-    </div>
-  {/if}
+  <Pagination {total} {page} pageSize={PAGE_SIZE} onPage={(next) => (page = next)} />
 </div>

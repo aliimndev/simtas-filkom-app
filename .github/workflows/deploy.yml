@@ -1,14 +1,10 @@
 name: Deploy (Staging)
 
-# Staged rollout: merge to main → deploy to staging (auto on dispatch).
-# Production promotion is a separate, manual step after staging verification.
+# Optional VPS deployment. Vercel handles the normal frontend deployment.
+# Run manually after STAGING_SSH_* secrets and the VPS are configured.
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
 
 concurrency:
   group: deploy-staging
