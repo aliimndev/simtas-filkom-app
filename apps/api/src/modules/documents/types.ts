@@ -1,5 +1,6 @@
 export interface Actor {
   userId: string;
+  role: string;
   ipAddress?: string | null;
   userAgent?: string | null;
 }

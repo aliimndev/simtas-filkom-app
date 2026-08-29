@@ -10,10 +10,11 @@ export const documentsRoutes = new Hono();
 
 documentsRoutes.use("*", Authenticate());
 
-const actorFrom = (c: any): { userId: string; ipAddress?: string | null; userAgent?: string | null } => {
+const actorFrom = (c: any): { userId: string; role: string; ipAddress?: string | null; userAgent?: string | null } => {
   const u = c.get("user") as any;
   return {
     userId: u.id,
+    role: u.role,
     ipAddress: c.req.header("x-forwarded-for") ?? null,
     userAgent: c.req.header("user-agent") ?? null,
   };

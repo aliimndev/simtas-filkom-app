@@ -4,7 +4,7 @@ import { schema } from "@sims/db";
 import { getDb } from "../../db";
 import { loadConfig } from "../../config";
 import { recordAudit } from "./audit";
-import { notifyKaprodi, notifySchedule } from "./notifications";
+import { notifyCancellation, notifyKaprodi, notifySchedule } from "./notifications";
 import { approvedLatestSeminarDocument, getSeminar, getThesis, isUniqueViolation, listSeminars } from "./queries";
 import { ACTIVE_SEMINAR_STATUSES, STAFF_ROLES, SeminarError, type SeminarActor, type SeminarListFilter, type ScheduleSeminarInput } from "./types";
 
@@ -31,13 +31,16 @@ export async function submitSeminar(thesisId: string, actor: SeminarActor) {
         sql`${schema.seminars.status} IN ('pending', 'scheduled', 'passed')`,
       )).limit(1);
       if (active.length > 0) throw new SeminarError("CONFLICT", "Thesis ini sudah memiliki Seminar aktif", 409);
-      if (thesis.status !== "in_progress") throw new SeminarError("VALIDATION", "Thesis harus berstatus in_progress untuk mengajukan Seminar", 422);
+      if (thesis.status !== "in_progress" && thesis.status !== "seminar_ready") throw new SeminarError("VALIDATION", "Thesis harus berstatus in_progress atau seminar_ready untuk mengajukan Seminar", 422);
       if (!(await approvedLatestSeminarDocument(tx, thesisId))) throw new SeminarError("GATE_NOT_MET", "Dokumen Seminar terbaru belum disetujui", 422);
 
       const [seminar] = await tx.insert(schema.seminars).values({ thesisId: thesisId as any, status: "pending" }).returning();
       const updated = await tx.update(schema.theses)
         .set({ status: "seminar_ready", updatedAt: new Date() })
-        .where(and(eq(schema.theses.id, thesisId as any), eq(schema.theses.status, "in_progress")))
+        .where(and(
+          eq(schema.theses.id, thesisId as any),
+          sql`${schema.theses.status} IN ('in_progress', 'seminar_ready')`,
+        ))
         .returning({ id: schema.theses.id });
       if (updated.length === 0) throw new SeminarError("CONFLICT", "Status Thesis berubah, ulangi pengajuan", 409);
       await recordAudit(tx, actor, "seminar_submitted", seminar.id, { status: thesis.status }, { status: "pending", thesisStatus: "seminar_ready" });
@@ -71,7 +74,7 @@ export async function scheduleSeminar(id: string, input: ScheduleSeminarInput, a
   if (!STAFF_ROLES.has(actor.role)) throw new SeminarError("FORBIDDEN", "Hanya Kaprodi atau Admin Fakultas yang dapat menjadwalkan Seminar", 403);
   const schedule = validateScheduleInput(input);
   const result = await db().transaction(async (tx) => {
-    const rows = await tx.select().from(schema.seminars).where(eq(schema.seminars.id, id as any));
+    const rows = await tx.select().from(schema.seminars).where(eq(schema.seminars.id, id as any)).for("update");
     const seminar = rows[0];
     if (!seminar) throw new SeminarError("NOT_FOUND", "Seminar tidak ditemukan", 404);
     if (seminar.status !== "pending" && seminar.status !== "scheduled") throw new SeminarError("CONFLICT", "Seminar tidak dapat dijadwalkan dari status ini", 409);
@@ -115,5 +118,52 @@ export async function scheduleSeminar(id: string, input: ScheduleSeminarInput, a
   });
 
   await notifySchedule(id, result.studentId, schedule.examinerIds).catch(() => undefined);
+  return getSeminar(id, actor);
+}
+
+export async function cancelSeminar(id: string, reason: string, actor: SeminarActor) {
+  if (!STAFF_ROLES.has(actor.role)) throw new SeminarError("FORBIDDEN", "Hanya Kaprodi atau Admin Fakultas yang dapat membatalkan Seminar", 403);
+  const cancellationReason = reason.trim();
+  if (!cancellationReason) throw new SeminarError("VALIDATION", "reason wajib diisi", 422);
+
+  const result = await db().transaction(async (tx) => {
+    const rows = await tx.select().from(schema.seminars).where(eq(schema.seminars.id, id as any)).for("update");
+    const seminar = rows[0];
+    if (!seminar) throw new SeminarError("NOT_FOUND", "Seminar tidak ditemukan", 404);
+    if (seminar.status !== "pending" && seminar.status !== "scheduled") {
+      throw new SeminarError("CONFLICT", "Seminar hanya dapat dibatalkan dari status pending atau scheduled", 409);
+    }
+
+    const thesis = await getThesis(tx, seminar.thesisId);
+    if (!thesis) throw new SeminarError("NOT_FOUND", "Thesis tidak ditemukan", 404);
+    const examiners = await tx.select({ examinerId: schema.seminarExaminers.examinerId })
+      .from(schema.seminarExaminers)
+      .where(eq(schema.seminarExaminers.seminarId, id as any));
+    const [updated] = await tx.update(schema.seminars)
+      .set({ status: "cancelled", cancellationReason, updatedAt: new Date() } as any)
+      .where(and(
+        eq(schema.seminars.id, id as any),
+        sql`${schema.seminars.status} IN ('pending', 'scheduled')`,
+      ))
+      .returning();
+    if (!updated) throw new SeminarError("CONFLICT", "Seminar sudah berubah, ulangi pembatalan", 409);
+
+    const thesisUpdated = await tx.update(schema.theses)
+      .set({ status: "seminar_ready", updatedAt: new Date() })
+      .where(and(eq(schema.theses.id, thesis.id), sql`${schema.theses.status} IN ('in_progress', 'seminar_ready')`))
+      .returning({ id: schema.theses.id });
+    if (thesisUpdated.length === 0) throw new SeminarError("CONFLICT", "Status Thesis tidak dapat dipertahankan sebagai seminar_ready", 409);
+
+    await recordAudit(tx, actor, "seminar_cancelled", id,
+      { status: seminar.status, thesis_status: thesis.status },
+      { status: "cancelled", cancellation_reason: cancellationReason, thesis_status: "seminar_ready" },
+    );
+    return {
+      studentId: thesis.studentId,
+      examinerIds: examiners.map((examiner) => examiner.examinerId),
+    };
+  });
+
+  await notifyCancellation(id, result.studentId, result.examinerIds, cancellationReason).catch(() => undefined);
   return getSeminar(id, actor);
 }

@@ -33,6 +33,8 @@ export async function upload(input: UploadInput): Promise<DocumentDetail> {
   if (!thesis) throw new DocumentError("NOT_FOUND", "Thesis tidak ditemukan", 404);
   if (!ELIGIBLE_STATUSES.has(thesis.status))
     throw new DocumentError("VALIDATION", "thesis harus berstatus in_progress atau lebih lanjut", 400);
+  if (documentType === "final_thesis" && thesis.status !== "defense_done")
+    throw new DocumentError("CONFLICT", "final_thesis hanya dapat diunggah setelah Sidang selesai", 409);
   // Only the owning mahasiswa uploads.
   if (thesis.studentId !== input.actor.userId)
     throw new DocumentError("FORBIDDEN", "Bukan pemilik thesis", 403);
@@ -131,6 +133,22 @@ export async function review(input: ReviewInput): Promise<DocumentDetail> {
   if (!doc) throw new DocumentError("NOT_FOUND", "Dokumen tidak ditemukan", 404);
   if (doc.status !== PENDING_REVIEW)
     throw new DocumentError("CONFLICT", "Dokumen tidak dalam status menunggu review", 409);
+
+  if (doc.documentType === "final_thesis") {
+    if (input.actor.role === "DOSEN_PEMBIMBING") {
+      const related = await db
+        .select({ id: schema.thesisSupervisors.id })
+        .from(schema.thesisSupervisors)
+        .where(and(
+          eq(schema.thesisSupervisors.thesisId, doc.thesisId),
+          eq(schema.thesisSupervisors.supervisorId, input.actor.userId as any),
+        ))
+        .limit(1);
+      if (related.length === 0) throw new DocumentError("FORBIDDEN", "Hanya Dosen Pembimbing terkait yang dapat mereview final_thesis", 403);
+    } else if (input.actor.role !== "KAPRODI" && input.actor.role !== "ADMIN_FAKULTAS") {
+      throw new DocumentError("FORBIDDEN", "Reviewer final_thesis tidak berwenang", 403);
+    }
+  }
 
   const updated = await db
     .update(schema.documents)

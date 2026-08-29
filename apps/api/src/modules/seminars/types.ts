@@ -14,6 +14,13 @@ export type ScheduleSeminarInput = {
   examinerIds: string[];
 };
 
+export type SeminarScoreInput = {
+  componentName: string;
+  componentWeight: number;
+  score: number;
+  notes?: string | null;
+};
+
 export type SeminarListFilter = {
   status?: string;
   page: number;

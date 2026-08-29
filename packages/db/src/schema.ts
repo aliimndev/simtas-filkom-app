@@ -155,6 +155,7 @@ export const seminars = pgTable("seminars", {
   scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
   room: varchar("room", { length: 100 }),
   notes: text("notes"),
+  cancellationReason: text("cancellation_reason"),
   finalScore: numeric("final_score"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -176,6 +177,7 @@ export const seminarScores = pgTable("seminar_scores", {
   componentName: varchar("component_name", { length: 100 }).notNull(),
   componentWeight: numeric("component_weight").notNull(),
   score: numeric("score").notNull(),
+  notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -209,6 +211,22 @@ export const defenseScores = pgTable("defense_scores", {
   componentName: varchar("component_name", { length: 100 }).notNull(),
   componentWeight: numeric("component_weight").notNull(),
   score: numeric("score").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ── surat_tugas ──
+export const suratTugas = pgTable("surat_tugas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  defenseId: uuid("defense_id").notNull(),
+  letterNumber: varchar("letter_number", { length: 100 }).notNull(),
+  issueDate: date("issue_date").notNull(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  fileUrl: text("file_url").notNull(),
+  issuerId: uuid("issuer_id").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("draft"),
+  cancellationReason: text("cancellation_reason"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
